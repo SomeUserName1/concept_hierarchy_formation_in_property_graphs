@@ -1,0 +1,23 @@
+\BOOKMARK [0][]{chapter.1}{Introduction}{}% 1
+\BOOKMARK [1][]{section.1.1}{Preface}{chapter.1}% 2
+\BOOKMARK [2][]{subsection.1.1.1}{Motivation \046 Objective}{section.1.1}% 3
+\BOOKMARK [2][]{subsection.1.1.2}{Contributions}{section.1.1}% 4
+\BOOKMARK [2][]{subsection.1.1.3}{Statement of Originality}{section.1.1}% 5
+\BOOKMARK [1][]{section.1.2}{Related Work}{chapter.1}% 6
+\BOOKMARK [2][]{subsection.1.2.1}{Type Theory}{section.1.2}% 7
+\BOOKMARK [2][]{subsection.1.2.2}{Clustering}{section.1.2}% 8
+\BOOKMARK [2][]{subsection.1.2.3}{Functional Dependency Extraction}{section.1.2}% 9
+\BOOKMARK [0][]{chapter.2}{Proposed Method}{}% 10
+\BOOKMARK [1][]{section.2.1}{A Word on the Input \046 Output Format}{chapter.2}% 11
+\BOOKMARK [1][]{section.2.2}{Deriving the Hierarchy: Property-based Clustering}{chapter.2}% 12
+\BOOKMARK [1][]{section.2.3}{Refining the Hierarchy: Value-based Sub-Clustering}{chapter.2}% 13
+\BOOKMARK [1][]{section.2.4}{Complexity Analysis}{chapter.2}% 14
+\BOOKMARK [2][]{subsection.2.4.1}{Computation}{section.2.4}% 15
+\BOOKMARK [2][]{subsection.2.4.2}{Memory}{section.2.4}% 16
+\BOOKMARK [2][]{subsection.2.4.3}{I/O}{section.2.4}% 17
+\BOOKMARK [0][]{chapter.3}{Discussion}{}% 18
+\BOOKMARK [1][]{section.3.1}{Benchmarks \046 Results}{chapter.3}% 19
+\BOOKMARK [1][]{section.3.2}{Applications}{chapter.3}% 20
+\BOOKMARK [1][]{section.3.3}{Summary}{chapter.3}% 21
+\BOOKMARK [1][]{section.3.4}{Future Work}{chapter.3}% 22
+\BOOKMARK [0][]{chapter.4}{Milestones}{}% 23
