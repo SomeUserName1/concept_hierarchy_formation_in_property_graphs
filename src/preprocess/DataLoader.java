@@ -1,57 +1,33 @@
 package preprocess;
 
-public class DataLoader {
-    package service;
-
-import algorithm.CoordinatesCalculator;
-import model.Point;
-
+import groovy.json.JsonSlurper;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
-    public class DataLoader {
+public class DataLoader {
+    public ArrayList<Business> getData() {
+        return data;
+    }
 
-        private static final String SEPARATOR = ",";
+    private ArrayList<Business> data = new ArrayList<>();
 
-        /*
-            Method to read points from csv file
-         */
-        public List<Point> readPoints(String inputFilePath) throws IOException {
-            File inputFile = new File(inputFilePath);
-            InputStream inputStream = new FileInputStream(inputFile);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
-            List<String> csvLines = bufferedReader.lines()
-                    .skip(1)
-                    .collect(Collectors.toList());
-
-            List<Point> points = new ArrayList<>();
-            for (int i = 0; i < csvLines.size(); i++) {
-                Point point = createPointFromCsvLine(csvLines.get(i), i);
-                points.add(point);
+    public void readBusinesses(String inputFilePath) {
+        JsonSlurper parser = new JsonSlurper();
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFilePath))){
+            String line = br.readLine();
+            while ( line != null) {
+                extract((Map)parser.parseText(line));
+                line = br.readLine();
             }
-
-            bufferedReader.close();
-            return points;
-        }
-
-        /*
-            Method to create point object from single csv line
-         */
-        private Point createPointFromCsvLine(String csvLine, int idx) {
-            String[] csvCells = csvLine.split(SEPARATOR);
-            Point point = new Point();
-            point.setId(idx);
-            point.setOriginalCluster(csvCells[1]);
-            point.setLatitude(Double.valueOf(csvCells[2]));
-            point.setY(CoordinatesCalculator.convertLatitudeToY(point.getLatitude()));
-            point.setLongitude(Double.valueOf(csvCells[3]));
-            point.setX(CoordinatesCalculator.convertLongitudeToX(point.getLongitude()));
-
-            return point;
+        }  catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
+    private void extract(Map data) {
+        this.data.add(new Business((String)data.get("business_id"),
+                (String)data.get("categories"),
+                (HashMap<String, String>)data.get("attributes")));
+    }
 }

@@ -1,31 +1,20 @@
-import algorithm.Chameleon;
-import algorithm.MetricsCalculator;
-import graphics.ClusteringVisualization;
-import model.Cluster;
-import model.Metrics;
-import model.Point;
-import service.DataLoader;
+import cluster.SimpleClustering;
+import preprocess.DataLoader;
 
-import java.io.IOException;
-import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
 
         // TODO set up args & interfaces
-        if (args.length != 4) {
-            System.out.println("Arguments: fileName, k, initNrOfClusters, resultNrOfClusters");
-            return;
-        }
 
-        String fileName = args[0];
-        int k = Integer.parseInt(args[1]);
-        int initNrOfClusters = Integer.parseInt(args[2]);
-        int resultNrOfClusters = Integer.parseInt(args[3]);
-
+        String fileName = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project/data/business0.json";
         DataLoader dataLoader = new DataLoader();
-        List<Point> points = null;
+        dataLoader.readBusinesses(fileName);
+
+        SimpleClustering clustering = new SimpleClustering(dataLoader.getData());
+
+        /*List<Point> points = null;
         try {
             points = dataLoader.readPoints("dataset/" + fileName);
         } catch (IOException e) {
@@ -50,6 +39,6 @@ public class Main {
         // Print metrics
         System.out.println("Metrics: ");
         System.out.println(metrics);
-        clusters.forEach(x -> System.out.println(x.printMetrics()));
+        clusters.forEach(x -> System.out.println(x.printMetrics()));*/
     }
 }

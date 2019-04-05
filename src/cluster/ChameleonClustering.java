@@ -1,3 +1,4 @@
+/*
 package cluster;
 
 public class ChameleonClustering {
@@ -28,9 +29,11 @@ import java.util.stream.Collectors;
             this.knnGraph = new Double[points.size()][points.size()];
         }
 
-        /*
+        */
+/*
             Main method of the algorithm
-         */
+         *//*
+
         public List<Cluster> run() {
             // First part of the algorithm
             initCompleteGraph();
@@ -63,10 +66,12 @@ import java.util.stream.Collectors;
             return clusters;
         }
 
-        /*
+        */
+/*
             Method to initialize complete graph.
             It computes the distances between each pair of points and assigns the weight as 1/distance.
-         */
+         *//*
+
         private void initCompleteGraph() {
             for (int i = 0; i < points.size(); i++) {
                 for (int j = 0; j < points.size(); j++) {
@@ -85,11 +90,13 @@ import java.util.stream.Collectors;
             }
         }
 
-        /*
+        */
+/*
             Method to find k nearest neighbours for each point.
             For each point it finds the weight of its k-th nearest neighbour that is called minWeight
             and removes these edges which weights are less than minWeight.
-         */
+         *//*
+
         private void runKnn() {
             // Find k-nearest neighbours for each point
             for (int i = 0; i < points.size(); i++) {
@@ -120,11 +127,13 @@ import java.util.stream.Collectors;
             }
         }
 
-        /*
+        */
+/*
             Method to init clusters.
             It finds connected components in knnGraph using DFS algorithm.
             For each connected component it creates a new cluster.
-         */
+         *//*
+
         private void initClusters() {
             boolean[] visitedPoints = new boolean[points.size()];
             for (int i = 0; i < visitedPoints.length; i++) {
@@ -138,10 +147,12 @@ import java.util.stream.Collectors;
             }
         }
 
-        /*
+        */
+/*
             Recursive method to find connected points in knnGraph.
             It implements DFS algorithm.
-         */
+         *//*
+
         private List<Point> runDfs(int idx, boolean[] visitedPoints, List<Point> connectedPoints) {
             visitedPoints[idx] = true;
             connectedPoints.add(points.get(idx));
@@ -154,9 +165,11 @@ import java.util.stream.Collectors;
             return connectedPoints;
         }
 
-        /*
+        */
+/*
             Method to create subgraph (with given list of points) of original graph.
-         */
+         *//*
+
         private Double[][] createSubgraph(List<Point> subgraphPoints) {
             Double[][] subgraph = new Double[subgraphPoints.size()][subgraphPoints.size()];
 
@@ -169,12 +182,14 @@ import java.util.stream.Collectors;
             return subgraph;
         }
 
-        /*
+        */
+/*
             Method to partition cluster into two new clusters.
             It splits the points of the original cluster horizontally,
             if maximal distance between X coordinates is greater than maximal distance between Y coordinates,
             or vertically in other case.
-         */
+         *//*
+
         private List<Cluster> partitionCluster(Cluster cluster) {
             List<Point> pointsToPartition = cluster.getPoints();
             // Sort points by X coordinate in ascending order
@@ -212,10 +227,12 @@ import java.util.stream.Collectors;
             return Arrays.asList(firstCluster, secondCluster);
         }
 
-        /*
+        */
+/*
             Method to find two clusters two connect in the third part of the algorithm
             It computes connection metrics for each pair of clusters and returns the best one.
-         */
+         *//*
+
         private List<Cluster> findTwoClustersToConnect() {
             Cluster bestFirst = new Cluster();
             Cluster bestSecond = new Cluster();
@@ -240,9 +257,11 @@ import java.util.stream.Collectors;
             return Arrays.asList(bestFirst, bestSecond);
         }
 
-        /*
+        */
+/*
             Method to compute connection metrics between two clusters
-         */
+         *//*
+
         private double computeConnectionMetrics(Cluster firstCluster, Cluster secondCluster) {
             // Relative inter - connectivity
             double RI = computeRI(firstCluster, secondCluster);
@@ -252,9 +271,11 @@ import java.util.stream.Collectors;
             return RI * RC;
         }
 
-        /*
+        */
+/*
             Method to compute relative inter - connectivity of the cluster
-         */
+         *//*
+
         private double computeRI(Cluster firstCluster, Cluster secondCluster) {
             // Compute internal inter - connectivity of the first cluster
             double firstClusterEC = firstCluster.getEC();
@@ -266,9 +287,11 @@ import java.util.stream.Collectors;
             return 2 * bothClustersEC / (firstClusterEC + secondClusterEC);
         }
 
-        /*
+        */
+/*
             Method to connect relative closeness between two clusters
-         */
+         *//*
+
         private double computeRC(Cluster firstCluster, Cluster secondCluster) {
             // Number of points in the first cluster
             int firstClusterPointsNr = firstCluster.getPoints().size();
@@ -286,10 +309,12 @@ import java.util.stream.Collectors;
                     (secondClusterPointsNr * firstClusterEC + firstClusterPointsNr * secondClusterEC);
         }
 
-        /*
+        */
+/*
             Method to computer inter - connectivity between two clusters
             It returns the minimal weight of edge between two points from different clusters
-         */
+         *//*
+
         private double computeEC(Cluster firstCluster, Cluster secondCluster) {
             double EC = Double.MAX_VALUE;
             List<Point> firstPoints = firstCluster.getPoints();
@@ -308,9 +333,11 @@ import java.util.stream.Collectors;
             return EC;
         }
 
-        /*
+        */
+/*
             Method to merge two clusters
-         */
+         *//*
+
         private Cluster mergeTwoClusters(Cluster firstCluster, Cluster secondCluster) {
             Cluster resultCluster = new Cluster();
 
@@ -326,3 +353,4 @@ import java.util.stream.Collectors;
         }
     }
 }
+*/
