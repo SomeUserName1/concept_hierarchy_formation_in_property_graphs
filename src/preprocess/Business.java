@@ -1,7 +1,9 @@
 package preprocess;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Business {
     private String business_id;
@@ -25,6 +27,30 @@ public class Business {
 
     public HashMap<String, String> getAttributes() {
         return attributes;
+    }
+
+    public int compare_attribs(Business b) {
+        if (this.getAttributes() == null && b.getAttributes() != null) {
+            return b.getAttributes().keySet().size();
+        } else if (this.getAttributes() != null && b.getAttributes() == null) {
+            return this.getAttributes().keySet().size();
+        } else if (this.getAttributes() == null && b.getAttributes() == null) {
+            return 0;
+        }
+
+        Set<String> attribs_a = this.getAttributes().keySet();
+        Set<String> attribs_b = b.getAttributes().keySet();
+
+        // Union
+        Set<String> symmetric_difference = new HashSet<>(attribs_a);
+        symmetric_difference.addAll(attribs_b);
+
+        Set<String> intersection = new HashSet<>(attribs_a);
+        intersection.retainAll(attribs_b);
+
+        symmetric_difference.removeAll(intersection);
+
+        return symmetric_difference.size();
     }
 
     @Override
