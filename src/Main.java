@@ -1,6 +1,6 @@
-import cluster.SimpleClustering;
-import preprocess.DataLoader;
-
+import cluster.Clustering;
+import cluster.Dendrogram.DendrogramClustering;
+import preprocess.YelpBusiness.YelpBusinessDataLoader;
 
 public class Main {
 
@@ -8,15 +8,16 @@ public class Main {
 
         // TODO set up args & interfaces
 
-        String fileName = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project/data/business0.json";
-        DataLoader dataLoader = new DataLoader();
-        dataLoader.readBusinesses(fileName);
+        String fileName = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project/data/business.json";
+        YelpBusinessDataLoader yelpBusinessDataLoader = new YelpBusinessDataLoader();
+        yelpBusinessDataLoader.read(fileName);
+        yelpBusinessDataLoader.sample(10);
 
-        SimpleClustering clustering = new SimpleClustering(dataLoader.getData());
+        Clustering clustering = new DendrogramClustering(yelpBusinessDataLoader.getData());
 
         /*List<Point> points = null;
         try {
-            points = dataLoader.readPoints("dataset/" + fileName);
+            points = yelpBusinessDataLoader.readPoints("dataset/" + fileName);
         } catch (IOException e) {
             System.out.println("Could not read input file: " + fileName);
             System.exit(1);
@@ -26,7 +27,7 @@ public class Main {
 
         // Run Chameleon algorithm
         Chameleon chameleon = new Chameleon(k, initNrOfClusters, resultNrOfClusters, points);
-        List<Cluster> clusters = chameleon.run();
+        List<Clustering> clusters = chameleon.run();
 
         // Compute metrics
         MetricsCalculator metricsCalculator = new MetricsCalculator();

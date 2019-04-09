@@ -1,33 +1,13 @@
 package preprocess;
 
-import groovy.json.JsonSlurper;
-import java.io.*;
-import java.util.*;
+import preprocess.YelpBusiness.YelpBusiness;
 
-public class DataLoader {
-    public ArrayList<Business> getData() {
-        return data;
-    }
+import java.util.ArrayList;
 
-    private ArrayList<Business> data = new ArrayList<>();
+public interface DataLoader {
+    ArrayList<YelpBusiness> getData();
 
+    void read(String inputFilePath);
 
-    public void readBusinesses(String inputFilePath) {
-        JsonSlurper parser = new JsonSlurper();
-        try (BufferedReader br = new BufferedReader(new FileReader(inputFilePath))){
-            String line = br.readLine();
-            while ( line != null) {
-                extract((Map)parser.parseText(line));
-                line = br.readLine();
-            }
-        }  catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void extract(Map data) {
-        this.data.add(new Business((String)data.get("business_id"),
-                (String)data.get("categories"),
-                (HashMap<String, String>)data.get("attributes")));
-    }
+    void sample(int no_entries);
 }
