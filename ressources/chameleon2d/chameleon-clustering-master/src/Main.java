@@ -34,7 +34,7 @@ public class Main {
 
         System.out.println("Number of points: " + points.size());
 
-        // Run Chameleon algorithm
+        // Run chameleon algorithm
         Chameleon chameleon = new Chameleon(k, initNrOfClusters, resultNrOfClusters, points);
         List<Cluster> clusters = chameleon.run();
 

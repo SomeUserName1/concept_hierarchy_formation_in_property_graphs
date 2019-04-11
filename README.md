@@ -12,7 +12,7 @@ Shall be able to sample and filter data to induce certain conditions
 ## 2. Clustering
 Currently only multi-line properties of nodes.  
 Shall at some point discover sub-labels/"types" for Nodes, later maybe also for
-edges or sub-graphs
+edges, incoming and outgoing sets and sub-graphs
 
 Algorithms to implement:  
 - Linkage-based clustering (single and complete linkage) (for nodes/edges)
