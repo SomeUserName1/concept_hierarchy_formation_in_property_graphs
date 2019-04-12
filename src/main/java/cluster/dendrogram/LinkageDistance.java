@@ -47,7 +47,6 @@ class LinkageDistance<T extends DataObject> implements DistanceFunction<T> {
         return (int) Math.round(distances.stream().mapToInt(a -> a).average()
             .orElse(0));
       default:
-        System.out.println();
         throw new NoSuchElementException("only single, complete and average "
             + "are currently available");
     }

@@ -57,7 +57,6 @@ public class YelpBusiness implements DataObject {
    */
   public int compare(DataObject d) throws RuntimeException {
     YelpBusiness b;
-    System.out.println(d.toString());
     if ((d.toString().contains("YelpBusiness"))) {
       b = (YelpBusiness) d;
     } else {

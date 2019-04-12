@@ -183,6 +183,25 @@ public class DendrogramNode<T extends DataObject> {
     return sb.toString();
   }
 
+  public void print(int level) {
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = 0; i < level; i++) {
+      sb.append('\t');
+    }
+    if (this.isLeaf) {
+      sb.append("Leaf(").append(this.cluster.get(0).toShortString()).append(
+          ")");
+      System.out.println(sb);
+    } else {
+      level++;
+      sb.append("Node");
+      System.out.println(sb);
+      this.getLeftChild().print(level);
+      this.getRightChild().print(level);
+    }
+  }
+
   DendrogramNode<T> getMinNode() {
     return this.minNode;
   }

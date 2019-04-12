@@ -123,7 +123,7 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
    * Assumes clustering has finished
    */
   public void print() {
-    System.out.println(this.workingSet.get(0).toNString(0));
+    this.workingSet.get(0).print(0);
   }
 
   @Override
