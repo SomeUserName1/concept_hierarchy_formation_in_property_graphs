@@ -115,8 +115,13 @@ public class YelpBusinessTest {
   class StubDataObject implements DataObject {
 
     @Override
-    public int compare(DataObject d) {
+    public float compare(DataObject d) {
       return 0;
+    }
+
+    @Override
+    public String toShortString() {
+      return "";
     }
   }
 }

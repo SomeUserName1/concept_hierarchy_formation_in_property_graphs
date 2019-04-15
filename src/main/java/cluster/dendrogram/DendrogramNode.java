@@ -1,11 +1,9 @@
 package cluster.dendrogram;
 
 import cluster.DistanceFunction;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+
 import preprocess.DataObject;
 
 
@@ -34,11 +32,11 @@ public class DendrogramNode<T extends DataObject> {
    * distance vector from the current node to all others in the workspace of
    * the dendrogram.
    */
-  private Map<DendrogramNode<T>, Integer> distances = new HashMap<>();
+  private Map<DendrogramNode<T>, Float> distances = new HashMap<>();
   /**
    * current minimal distance.
    */
-  private int minimumDistance = Integer.MAX_VALUE;
+  private Float minimumDistance = Float.MAX_VALUE;
   /**
    * node having the current minimal distance.
    */
@@ -47,8 +45,19 @@ public class DendrogramNode<T extends DataObject> {
    * flag to indicate wether the node is a leaf, thus has no children.
    */
   private boolean isLeaf;
+  /**
+   * storing the distance at which the two children were merged
+   */
+  private Float merged_distance;
 
-  DendrogramNode(DendrogramNode<T> left, DendrogramNode<T> right) {
+
+  /**
+   *
+   * @param left
+   * @param right
+   * @param distance
+   */
+  DendrogramNode(DendrogramNode<T> left, DendrogramNode<T> right, float distance) {
     this.isLeaf = false;
 
     this.leftChild = left;
@@ -56,6 +65,8 @@ public class DendrogramNode<T extends DataObject> {
 
     this.cluster.addAll(this.leftChild.getCluster());
     this.cluster.addAll(this.rightChild.getCluster());
+
+    this.merged_distance = distance;
   }
 
   DendrogramNode(T b) {
@@ -72,7 +83,7 @@ public class DendrogramNode<T extends DataObject> {
    *
    * @return The left node that was merged to form this node
    */
-  public DendrogramNode<T> getLeftChild() {
+  private DendrogramNode<T> getLeftChild() {
     if (this.isLeaf) {
       throw new NullPointerException("A Leaf node has no children!");
     }
@@ -84,13 +95,16 @@ public class DendrogramNode<T extends DataObject> {
    *
    * @return The left node that was merged to form this node
    */
-  public DendrogramNode<T> getRightChild() {
+  private DendrogramNode<T> getRightChild() {
     if (this.isLeaf) {
       throw new NullPointerException("A Leaf node has no children!");
     }
     return this.rightChild;
   }
 
+  List<Float> getDistanceValues() {
+    return new ArrayList<>(this.distances.values());
+  }
 
   List<T> getCluster() {
     return this.cluster;
@@ -110,7 +124,10 @@ public class DendrogramNode<T extends DataObject> {
    */
   void calculateDistance(DendrogramNode<T> node,
                          DistanceFunction<T> distanceFunction) {
-    int distance = distanceFunction.calculate(this, node);
+    if (node == this) {
+      return;
+    }
+    float distance = distanceFunction.calculate(this, node);
     this.distances.put(node, distance);
     node.setDistance(this, distance);
     if (distance < this.minimumDistance) {
@@ -120,7 +137,7 @@ public class DendrogramNode<T extends DataObject> {
   }
 
 
-  Integer getDistance(DendrogramNode node) {
+  Float getDistance(DendrogramNode node) {
     return this.distances.get(node);
   }
 
@@ -140,17 +157,17 @@ public class DendrogramNode<T extends DataObject> {
         this.minimumDistance = Collections.min(this.distances.values());
         this.minNode =
             this.distances.entrySet().stream()
-                .filter(entry -> entry.getValue() == this.minimumDistance)
+                .filter(entry -> entry.getValue().equals(this.minimumDistance))
                 .map(Map.Entry::getKey).findFirst()
                 .orElseThrow(NullPointerException::new);
       } else {
-        this.minimumDistance = Integer.MAX_VALUE;
+        this.minimumDistance = Float.MAX_VALUE;
         this.minNode = null;
       }
     }
   }
 
-  private void setDistance(DendrogramNode<T> node, Integer distance) {
+  private void setDistance(DendrogramNode<T> node, Float distance) {
     this.distances.put(node, distance);
     if (distance < this.minimumDistance) {
       this.minimumDistance = distance;
@@ -158,44 +175,19 @@ public class DendrogramNode<T extends DataObject> {
     }
   }
 
-  // Geklaut vom B-Tree assignment in dbai
-  public String toNString(int level) {
-    final StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < level; i++) {
-      sb.append('\t');
-    }
-    if (this.isLeaf()) {
-      // leaf node
-      sb.append("Leaf[");
-        sb.append(this.cluster.get(0).toShortString());
-
-      sb.append("]");
-    } else {
-      sb.append("Branch[\n");
-      level++;
-      for (int i = 0; i < level; i++) {
-        sb.append('\t');
-      }
-      sb.append('(').append(this.getLeftChild().toNString(level)).append(')')
-          .append('(').append(this.getRightChild().toNString(level)).append(')');
-      sb.append("]");
-    }
-    return sb.toString();
-  }
-
-  public void print(int level) {
+  void print(int level) {
     StringBuilder sb = new StringBuilder();
 
     for (int i = 0; i < level; i++) {
       sb.append('\t');
     }
     if (this.isLeaf) {
-      sb.append("Leaf(").append(this.cluster.get(0).toShortString()).append(
-          ")");
+      sb.append("Leaf(").append(this.cluster.get(0).toString())
+        .append(")");
       System.out.println(sb);
     } else {
       level++;
-      sb.append("Node");
+      sb.append(this.merged_distance).append(" Node");
       System.out.println(sb);
       this.getLeftChild().print(level);
       this.getRightChild().print(level);
@@ -206,7 +198,7 @@ public class DendrogramNode<T extends DataObject> {
     return this.minNode;
   }
 
-  Integer getMinDistance() {
+  Float getMinDistance() {
     return this.minimumDistance;
   }
 

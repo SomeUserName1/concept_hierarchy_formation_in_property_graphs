@@ -1,11 +1,6 @@
 package preprocess.yelp;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import preprocess.DataObject;
 
@@ -49,21 +44,7 @@ public class YelpBusiness implements DataObject {
     return attributes;
   }
 
-  /**
-   * Compares the attributes of two YelpBusinesses by keys.
-   * @param d A DataObject; Must be a yelp or throws an exception
-   * @return The number of distinct attributes by key (only) aka the
-   *        symmetric difference between the key sets
-   */
-  public int compare(DataObject d) throws RuntimeException {
-    YelpBusiness b;
-    if ((d.toString().contains("YelpBusiness"))) {
-      b = (YelpBusiness) d;
-    } else {
-      throw new RuntimeException("You can't compare two different data "
-          + "objects. If you want to, create a common Wrapper Object that"
-          + " implements compare appropriately for both DataObjects.");
-    }
+  public int symmetricDifference(YelpBusiness b) {
     if (this.getAttributes() == null && b.getAttributes() != null) {
       return b.getAttributes().keySet().size();
     } else if (this.getAttributes() != null && b.getAttributes() == null) {
@@ -87,23 +68,58 @@ public class YelpBusiness implements DataObject {
     return symmetricDifference.size();
   }
 
+  private float intersection(YelpBusiness b) {
+      if (this.getAttributes() == null || b.getAttributes() == null) {
+        return 0;
+      }
+
+      Set<String> attributesA = this.getAttributes().keySet();
+      Set<String> attributesB = b.getAttributes().keySet();
+
+      Set<String> intersection = new HashSet<>(attributesA);
+      intersection.retainAll(attributesB);
+
+      return intersection.size() > 0 ? 1.0f/intersection.size() : 2;
+  }
+
+  /**
+   * Compares the attributes of two YelpBusinesses by keys.
+   * @param d A DataObject; Must be a yelp or throws an exception
+   * @return The number of distinct attributes by key (only) aka the
+   *        symmetric difference between the key sets
+   */
+  public float compare(DataObject d) throws RuntimeException {
+    YelpBusiness b;
+    if ((d.toString().contains("YelpBusiness"))) {
+      b = (YelpBusiness) d;
+    } else {
+      throw new RuntimeException("You can't compare two different data "
+          + "objects. If you want to, create a common Wrapper Object that"
+          + " implements compare appropriately for both DataObjects.");
+    }
+    //return symmetricDifference(b);
+    return intersection(b);
+  }
+
   @Override
   public String toString() {
     StringBuilder str = new StringBuilder("YelpBusiness ");
-    str.append("id: ").append(this.businessId).append("\ncategories: ").append(this.categories)
-        .append("\nattributes: \n");
+    str.append("id: ").append(this.businessId, 1, 5).append(", attributes: ");
     if (this.attributes == null) {
-      return str.append("None\n").toString();
+      return str.append("None").toString();
     }
 
-    for (Map.Entry entry : this.attributes.entrySet()) {
-      str.append("\t").append(entry);
+    List<String> attributeKeys = new ArrayList<>(this.attributes.keySet());
+    Collections.sort(attributeKeys);
+    for (String entry : attributeKeys) {
+      str.append(entry).append(", ");
     }
 
-    return str.append("\n").toString();
+    return str.toString();
   }
 
   public String toShortString() {
     return this.getBusinessId().substring(1, 5);
   }
+
 }

@@ -3,6 +3,7 @@ package cluster.dendrogram;
 import cluster.Clustering;
 import cluster.DistanceFunction;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.JFrame;
 import preprocess.DataObject;
@@ -34,12 +35,12 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
    * current working set.
    * @param bs List of DataObjects to cluster
    */
-  public DendrogramClustering(List<T> bs) {
+  public DendrogramClustering(List<T> bs, String distanceFunction) {
     for (T b : bs) {
       DendrogramNode<T> leaf = new DendrogramNode<>(b);
       workingSet.add(leaf);
     }
-    this.distanceFunction = new LinkageDistance<>("single");
+    this.distanceFunction = new LinkageDistance<>(distanceFunction);
   }
 
   /**
@@ -48,7 +49,7 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
   private void initializeDistances() {
     for (DendrogramNode<T> n1 : this.workingSet) {
       for (DendrogramNode<T> n2 : this.workingSet) {
-        if (n1 != n2 && n1.getDistance(n2) == null) {
+        if (n1 != n2 && (n1.getDistance(n2) == null || n2.getDistance(n1) == null)) {
           n1.calculateDistance(n2, this.distanceFunction);
         }
       }
@@ -69,14 +70,14 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
 
     initializeDistances();
 
-    int i = 0;
     boolean removeMerged0;
     boolean removeMerged1;
+    float minimumDistance;
 
     while (this.workingSet.size() > 1) {
-      //find_minimum_distance
+      // System.out.println("find minimum distance");
       DendrogramNode<T> containingNode = null;
-      int minimumDistance = Integer.MAX_VALUE;
+      minimumDistance = Float.MAX_VALUE;
       for (DendrogramNode<T> node : this.workingSet) {
         if (node.getMinDistance() < minimumDistance) {
           containingNode = node;
@@ -84,7 +85,7 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
         }
       }
 
-      //merge
+      // System.out.println("merge");
       removeMerged0 = this.workingSet.remove(containingNode);
       removeMerged1 =
           this.workingSet.remove(containingNode.getMinNode());
@@ -92,7 +93,7 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
       assert (removeMerged0 && removeMerged1);
 
       DendrogramNode<T> newNode = new DendrogramNode<>(containingNode,
-          containingNode.getMinNode());
+          containingNode.getMinNode(), minimumDistance);
 
       for (DendrogramNode<T> node : this.workingSet) {
         node.dropDistance(containingNode);
@@ -101,7 +102,7 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
 
       this.workingSet.add(newNode);
 
-      // update distances
+      // System.out.println("update distances");
       for (DendrogramNode<T> node : this.workingSet) {
         if (node == newNode) {
           continue;
@@ -110,7 +111,6 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
       }
 
       System.out.println("Working Set size: " + this.workingSet.size());
-      System.out.println("Finished iteration " + i++);
     }
     System.out.println("Finished clustering");
   }
@@ -123,7 +123,9 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
    * Assumes clustering has finished
    */
   public void print() {
-    this.workingSet.get(0).print(0);
+    if(!this.workingSet.isEmpty()) {
+      this.workingSet.get(0).print(0);
+    }
   }
 
   @Override

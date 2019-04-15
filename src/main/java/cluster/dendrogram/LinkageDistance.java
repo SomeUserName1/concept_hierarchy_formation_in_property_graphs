@@ -28,24 +28,21 @@ class LinkageDistance<T extends DataObject> implements DistanceFunction<T> {
    * @return the distance between the nodes/clusters
    */
   @Override
-  public Integer calculate(DendrogramNode<T> node1, DendrogramNode<T> node2) {
-    List<Integer> distances = new ArrayList<>();
+  public Float calculate(DendrogramNode<T> node1, DendrogramNode<T> node2) {
+    List<Float> distances = new ArrayList<>();
     for (T element1 : node1.getCluster()) {
       for (T element2 : node2.getCluster()) {
-        if (element1 == element2) {
-          continue;
-        }
         distances.add(element1.compare(element2));
       }
     }
     switch (this.type) {
       case "single":
-        return Collections.max(distances);
-      case "complete":
         return Collections.min(distances);
+      case "complete":
+        return Collections.max(distances);
       case "average":
-        return (int) Math.round(distances.stream().mapToInt(a -> a).average()
-            .orElse(0));
+        return (float) distances.stream().mapToDouble(a -> a).average()
+            .orElse(0);
       default:
         throw new NoSuchElementException("only single, complete and average "
             + "are currently available");

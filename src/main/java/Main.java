@@ -1,6 +1,10 @@
 import cluster.Clustering;
 import cluster.dendrogram.DendrogramClustering;
+import preprocess.yelp.YelpBusiness;
 import preprocess.yelp.YelpBusinessDataLoader;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Main {
@@ -9,13 +13,18 @@ public class Main {
 
     // TODO set up args & interfaces
 
-    String fileName = "/home/fabian/Nextcloud/workspace/uni/8" +
-        "/bachelor_project/data/business0.json";
+    String fileName = "/home/someusername/snap/nextcloud-client/10/Nextcloud/workspace/uni/8/bachelor_project/data/" +
+            "business.json";
     YelpBusinessDataLoader yelpBusinessDataLoader = new YelpBusinessDataLoader();
     yelpBusinessDataLoader.read(fileName);
 
-    Clustering clustering =
-        new DendrogramClustering<>(yelpBusinessDataLoader.getData());
+    yelpBusinessDataLoader.filterBy("categories", "Food");
+    yelpBusinessDataLoader.sample(4000);
+
+    List<YelpBusiness> data = yelpBusinessDataLoader.getData();
+    System.out.println("Number of entries: " + data.size());
+
+    Clustering clustering = new DendrogramClustering<>(data, "average");
     clustering.cluster();
     ((DendrogramClustering) clustering).print();
 

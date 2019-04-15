@@ -3,7 +3,7 @@ package preprocess;
 // TODO Specification
 public interface DataObject {
 
-  int compare(DataObject d);
+  float compare(DataObject d);
 
   String toString();
 

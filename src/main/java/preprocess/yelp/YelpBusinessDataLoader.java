@@ -39,12 +39,21 @@ public class YelpBusinessDataLoader implements DataLoader<YelpBusiness> {
     JsonSlurperClassic parser = new JsonSlurperClassic();
     try (BufferedReader br = new BufferedReader(new FileReader(inputFilePath))) {
       String line = br.readLine();
+      YelpBusiness b;
+      String categories;
+      Map dataLine;
       while (line != null) {
-        Map dataLine = (Map) parser.parseText(line);
+        dataLine = (Map) parser.parseText(line);
 
-        this.data.add(new YelpBusiness((String) dataLine.get("business_id"),
-            Arrays.asList(((String) dataLine.get("categories")).split(",")),
-            (HashMap<String, String>) dataLine.get("attributes")));
+        categories = (String) dataLine.get("categories");
+
+        b =  categories != null ?
+                new YelpBusiness((String) dataLine.get("business_id"), Arrays.asList(categories.split(",")),
+                (HashMap<String, String>) dataLine.get("attributes"))
+                : new YelpBusiness((String) dataLine.get("business_id"), null,
+                (HashMap<String, String>) dataLine.get("attributes"));
+
+        this.data.add(b);
 
         line = br.readLine();
       }
@@ -60,6 +69,9 @@ public class YelpBusinessDataLoader implements DataLoader<YelpBusiness> {
    */
   @Override
   public void sample(int noEntries) {
+    if (noEntries > this.data.size()) {
+      return;
+    }
     Random random = new Random();
     List<YelpBusiness> sample = new ArrayList<>();
     int s = this.data.size();
@@ -80,6 +92,7 @@ public class YelpBusinessDataLoader implements DataLoader<YelpBusiness> {
    */
   @Override
   public void filterBy(String field, String value) {
+    System.out.println("Filtering by field: " + field + ", for value: " + value);
     List<YelpBusiness> filtered = new java.util.ArrayList<>();
     switch (field) {
       case "business_id":

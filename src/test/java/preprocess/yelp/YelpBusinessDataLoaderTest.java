@@ -28,6 +28,18 @@ public class YelpBusinessDataLoaderTest {
   }
 
   @Test
+  public void testNullCategories() {
+    // todo
+    assertEquals(0, 1);
+  }
+
+  @Test
+  public void testNullAttributes() {
+    // todo
+    assertEquals(0,1);
+  }
+
+  @Test
   public void testSample() {
     YelpBusinessDataLoader loader = new YelpBusinessDataLoader();
     loader.read("/home/fabian/Nextcloud/workspace/uni/8" +
