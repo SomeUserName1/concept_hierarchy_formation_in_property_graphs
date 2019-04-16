@@ -2,7 +2,10 @@ package cluster.dendrogram;
 
 import cluster.Clustering;
 import cluster.DistanceFunction;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.JFrame;
@@ -70,45 +73,40 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
 
     initializeDistances();
 
-    boolean removeMerged0;
-    boolean removeMerged1;
+    boolean removeMerged;
     float minimumDistance;
+    List<DendrogramNode<T>> toMerge = new ArrayList<>();
 
     while (this.workingSet.size() > 1) {
-      // System.out.println("find minimum distance");
+      toMerge.clear();
       DendrogramNode<T> containingNode = null;
       minimumDistance = Float.MAX_VALUE;
+
+      // System.out.println("find minimum distance");
       for (DendrogramNode<T> node : this.workingSet) {
         if (node.getMinDistance() < minimumDistance) {
           containingNode = node;
           minimumDistance = node.getMinDistance();
         }
       }
-
       // System.out.println("merge");
-      removeMerged0 = this.workingSet.remove(containingNode);
-      removeMerged1 =
-          this.workingSet.remove(containingNode.getMinNode());
+      toMerge.add(containingNode);
+      toMerge.addAll(containingNode.getMinNode());
 
-      assert (removeMerged0 && removeMerged1);
+      DendrogramNode<T> newNode = new DendrogramNode<>(toMerge, minimumDistance);
 
-      DendrogramNode<T> newNode = new DendrogramNode<>(containingNode,
-          containingNode.getMinNode(), minimumDistance);
-
-      for (DendrogramNode<T> node : this.workingSet) {
-        node.dropDistance(containingNode);
-        node.dropDistance(containingNode.getMinNode());
+      for (DendrogramNode<T> node : toMerge) {
+        removeMerged = this.workingSet.remove(node);
+        assert (removeMerged);
       }
-
-      this.workingSet.add(newNode);
 
       // System.out.println("update distances");
       for (DendrogramNode<T> node : this.workingSet) {
-        if (node == newNode) {
-          continue;
-        }
+        node.dropDistances(toMerge);
         newNode.calculateDistance(node, this.distanceFunction);
       }
+
+      this.workingSet.add(newNode);
 
       System.out.println("Working Set size: " + this.workingSet.size());
     }

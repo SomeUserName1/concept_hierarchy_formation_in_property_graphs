@@ -19,7 +19,7 @@ public class Main {
     yelpBusinessDataLoader.read(fileName);
 
     yelpBusinessDataLoader.filterBy("categories", "Food");
-    yelpBusinessDataLoader.sample(1000);
+    yelpBusinessDataLoader.sample(6000);
 
     List<YelpBusiness> data = yelpBusinessDataLoader.getData();
     System.out.println("Number of entries: " + data.size());

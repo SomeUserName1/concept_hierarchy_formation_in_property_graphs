@@ -44,7 +44,7 @@ public class YelpBusiness implements DataObject {
     return attributes;
   }
 
-  public int symmetricDifference(YelpBusiness b) {
+  private float relativeSymmetricDifference(YelpBusiness b) {
     if (this.getAttributes() == null && b.getAttributes() != null) {
       return b.getAttributes().keySet().size();
     } else if (this.getAttributes() != null && b.getAttributes() == null) {
@@ -57,18 +57,18 @@ public class YelpBusiness implements DataObject {
     Set<String> attributesB = b.getAttributes().keySet();
 
     // Union
-    Set<String> symmetricDifference = new HashSet<>(attributesA);
-    symmetricDifference.addAll(attributesB);
+    Set<String> union = new HashSet<>(attributesA);
+    union.addAll(attributesB);
 
     Set<String> intersection = new HashSet<>(attributesA);
     intersection.retainAll(attributesB);
 
-    symmetricDifference.removeAll(intersection);
+    union.removeAll(intersection);
 
-    return symmetricDifference.size();
+    return ((float)union.size())/(attributesA.size() + attributesB.size() + 0.0001f);
   }
 
-  private float intersection(YelpBusiness b) {
+  private float relativeIntersection(YelpBusiness b) {
       if (this.getAttributes() == null || b.getAttributes() == null) {
         return 0;
       }
@@ -79,7 +79,9 @@ public class YelpBusiness implements DataObject {
       Set<String> intersection = new HashSet<>(attributesA);
       intersection.retainAll(attributesB);
 
-      return intersection.size() > 0 ? 1.0f/intersection.size() : 2;
+      float min = attributesA.size() < attributesB.size() ? attributesA.size() : attributesB.size();
+
+    return 1.0f - ((float)intersection.size())/(min + 0.00001f );
   }
 
   /**
@@ -97,8 +99,10 @@ public class YelpBusiness implements DataObject {
           + "objects. If you want to, create a common Wrapper Object that"
           + " implements compare appropriately for both DataObjects.");
     }
+
+    float k = 0.5f;
     //return symmetricDifference(b);
-    return intersection(b);
+    return k * relativeSymmetricDifference(b) + (1-k) * relativeIntersection(b);
   }
 
   @Override
