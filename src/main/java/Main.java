@@ -18,13 +18,12 @@ public class Main {
     YelpBusinessDataLoader yelpBusinessDataLoader = new YelpBusinessDataLoader();
     yelpBusinessDataLoader.read(fileName);
 
-    yelpBusinessDataLoader.filterBy("categories", "Food");
-    yelpBusinessDataLoader.sample(6000);
+    yelpBusinessDataLoader.sample(100);
 
     List<YelpBusiness> data = yelpBusinessDataLoader.getData();
     System.out.println("Number of entries: " + data.size());
 
-    Clustering clustering = new DendrogramClustering<>(data, "average");
+    Clustering clustering = new DendrogramClustering<>(data, "single");
     clustering.cluster();
     ((DendrogramClustering) clustering).print();
 

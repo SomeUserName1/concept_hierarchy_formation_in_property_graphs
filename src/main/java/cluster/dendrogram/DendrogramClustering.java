@@ -3,10 +3,7 @@ package cluster.dendrogram;
 import cluster.Clustering;
 import cluster.DistanceFunction;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import javax.swing.JFrame;
 import preprocess.DataObject;
@@ -73,40 +70,45 @@ public class DendrogramClustering<T extends DataObject> implements Clustering {
 
     initializeDistances();
 
-    boolean removeMerged;
+    boolean removeMerged0;
+    boolean removeMerged1;
     float minimumDistance;
-    List<DendrogramNode<T>> toMerge = new ArrayList<>();
 
     while (this.workingSet.size() > 1) {
-      toMerge.clear();
+      // System.out.println("find minimum distance");
       DendrogramNode<T> containingNode = null;
       minimumDistance = Float.MAX_VALUE;
-
-      // System.out.println("find minimum distance");
       for (DendrogramNode<T> node : this.workingSet) {
         if (node.getMinDistance() < minimumDistance) {
           containingNode = node;
           minimumDistance = node.getMinDistance();
         }
       }
+
       // System.out.println("merge");
-      toMerge.add(containingNode);
-      toMerge.addAll(containingNode.getMinNode());
+      removeMerged0 = this.workingSet.remove(containingNode);
+      removeMerged1 =
+              this.workingSet.remove(containingNode.getMinNode());
 
-      DendrogramNode<T> newNode = new DendrogramNode<>(toMerge, minimumDistance);
+      assert (removeMerged0 && removeMerged1);
 
-      for (DendrogramNode<T> node : toMerge) {
-        removeMerged = this.workingSet.remove(node);
-        assert (removeMerged);
-      }
+      DendrogramNode<T> newNode = new DendrogramNode<>(containingNode,
+              containingNode.getMinNode(), minimumDistance);
 
-      // System.out.println("update distances");
       for (DendrogramNode<T> node : this.workingSet) {
-        node.dropDistances(toMerge);
-        newNode.calculateDistance(node, this.distanceFunction);
+        node.dropDistance(containingNode);
+        node.dropDistance(containingNode.getMinNode());
       }
 
       this.workingSet.add(newNode);
+
+      // System.out.println("update distances");
+      for (DendrogramNode<T> node : this.workingSet) {
+        if (node == newNode) {
+          continue;
+        }
+        newNode.calculateDistance(node, this.distanceFunction);
+      }
 
       System.out.println("Working Set size: " + this.workingSet.size());
     }

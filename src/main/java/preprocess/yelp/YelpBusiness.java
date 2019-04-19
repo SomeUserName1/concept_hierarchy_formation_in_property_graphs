@@ -45,43 +45,60 @@ public class YelpBusiness implements DataObject {
   }
 
   private float relativeSymmetricDifference(YelpBusiness b) {
-    if (this.getAttributes() == null && b.getAttributes() != null) {
-      return b.getAttributes().keySet().size();
-    } else if (this.getAttributes() != null && b.getAttributes() == null) {
-      return this.getAttributes().keySet().size();
-    } else if (this.getAttributes() == null) {
+    if (this.categories.isEmpty() && b.getCategories().isEmpty()) {
+      return b.getCategories().size();
+    } else if (!this.categories.isEmpty() && b.getCategories().isEmpty()) {
+      return this.categories.size();
+    } else if (this.categories == null) {
       return 0;
     }
 
-    Set<String> attributesA = this.getAttributes().keySet();
-    Set<String> attributesB = b.getAttributes().keySet();
+    List<String> categoriesA = this.categories;
+    List<String> categoriesB = b.getCategories();
 
-    // Union
-    Set<String> union = new HashSet<>(attributesA);
-    union.addAll(attributesB);
+    Set<String> union = new HashSet<>(categoriesA);
+    union.addAll(categoriesB);
 
-    Set<String> intersection = new HashSet<>(attributesA);
-    intersection.retainAll(attributesB);
+    Set<String> intersection = new HashSet<>(categoriesA);
+    intersection.retainAll(categoriesB);
 
+    // Symmetric difference
     union.removeAll(intersection);
 
-    return ((float)union.size())/(attributesA.size() + attributesB.size() + 0.0001f);
+    return ((float)union.size())/(categoriesA.size() + categoriesB.size() + 0.0001f);
   }
 
-  private float relativeIntersection(YelpBusiness b) {
-      if (this.getAttributes() == null || b.getAttributes() == null) {
+  private float jaccardDistance(YelpBusiness b) {
+      if (this.categories.isEmpty() || b.getCategories().isEmpty()) {
         return 0;
       }
 
-      Set<String> attributesA = this.getAttributes().keySet();
-      Set<String> attributesB = b.getAttributes().keySet();
+      List<String> union = new ArrayList<>(this.categories);
 
-      Set<String> intersection = new HashSet<>(attributesA);
-      intersection.retainAll(attributesB);
+      Set<String> intersection = new HashSet<>(union);
+      intersection.retainAll(b.getCategories());
 
-      float min = attributesA.size() < attributesB.size() ? attributesA.size() : attributesB.size();
+      union.addAll(b.getCategories());
 
-    return 1.0f - ((float)intersection.size())/(min + 0.00001f );
+
+    return 1.0f - ((float)intersection.size())/union.size() + 0.0001f; // (min + 0.00001f );
+  }
+
+  private float relativeIntersection(YelpBusiness b) {
+    if (this.categories.isEmpty() || b.getCategories().isEmpty()) {
+      return 0;
+    }
+
+    List<String> categoriesA = this.categories;
+    List<String> categoriesB = b.getCategories();
+
+    Set<String> intersection = new HashSet<>(categoriesA);
+    intersection.retainAll(b.getCategories());
+
+    float min = categoriesA.size() < categoriesB.size() ? categoriesA.size() : categoriesB.size();
+
+
+    return 1.0f - ((float)intersection.size()) / (min + 0.00001f);
   }
 
   /**
@@ -101,21 +118,21 @@ public class YelpBusiness implements DataObject {
     }
 
     float k = 0.5f;
-    //return symmetricDifference(b);
-    return k * relativeSymmetricDifference(b) + (1-k) * relativeIntersection(b);
+    // return symmetricDifference(b);
+    // return k * relativeSymmetricDifference(b) + (1-k) * relativeIntersection(b);
+    return jaccardDistance(b);
   }
 
   @Override
   public String toString() {
     StringBuilder str = new StringBuilder("YelpBusiness ");
-    str.append("id: ").append(this.businessId, 1, 5).append(", attributes: ");
-    if (this.attributes == null) {
+    str.append("id: ").append(this.businessId, 1, 5).append(", categories: ");
+    if (this.categories == null) {
       return str.append("None").toString();
     }
 
-    List<String> attributeKeys = new ArrayList<>(this.attributes.keySet());
-    Collections.sort(attributeKeys);
-    for (String entry : attributeKeys) {
+    Collections.sort(this.categories);
+    for (String entry : this.categories) {
       str.append(entry).append(", ");
     }
 

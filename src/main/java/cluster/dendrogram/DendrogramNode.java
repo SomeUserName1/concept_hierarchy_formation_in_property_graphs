@@ -19,7 +19,11 @@ public class DendrogramNode<T extends DataObject> {
     /**
      * previously merged node to form the current.
      */
-    private List<DendrogramNode<T>> children = new ArrayList<>();
+    private DendrogramNode<T> leftChild;
+    /**
+     * previously merged node to form the current.
+     */
+    private DendrogramNode<T> rightChild;
     /**
      * List containing the concrete data instances per cluster.
      */
@@ -36,7 +40,7 @@ public class DendrogramNode<T extends DataObject> {
     /**
      * node having the current minimal distance.
      */
-    private List<DendrogramNode<T>> minNode = new ArrayList<>();
+    private DendrogramNode<T> minNode = null;
     /**
      * flag to indicate wether the node is a leaf, thus has no children.
      */
@@ -48,17 +52,19 @@ public class DendrogramNode<T extends DataObject> {
 
 
     /**
-     * @param children nodes that were merged in the previous step
-     * @param distance distance between the nodes
+     *
+     * @param left
+     * @param right
+     * @param distance
      */
-    DendrogramNode(List<DendrogramNode<T>> children, float distance) {
+    DendrogramNode(DendrogramNode<T> left, DendrogramNode<T> right, float distance) {
         this.isLeaf = false;
 
-        this.children.addAll(children);
+        this.leftChild = left;
+        this.rightChild = right;
 
-        for (DendrogramNode<T> child : this.children) {
-            this.cluster.addAll(child.getCluster());
-        }
+        this.cluster.addAll(this.leftChild.getCluster());
+        this.cluster.addAll(this.rightChild.getCluster());
 
         this.merged_distance = distance;
     }
@@ -66,28 +72,36 @@ public class DendrogramNode<T extends DataObject> {
     DendrogramNode(T b) {
         this.isLeaf = true;
 
-        this.children = null;
+        this.leftChild = null;
+        this.rightChild = null;
 
         this.cluster.add(b);
     }
 
     /**
-     * used for visualization (GUI).
+     * used for visualization.
      *
      * @return The left node that was merged to form this node
      */
-    private List<DendrogramNode<T>> getChildren() {
+    private DendrogramNode<T> getLeftChild() {
         if (this.isLeaf) {
             throw new NullPointerException("A Leaf node has no children!");
         }
-        return this.children;
+        return this.leftChild;
     }
 
     /**
-     * Used for debugging purposes
+     * used for visualization.
      *
-     * @return the distances to all other dendrogram nodes in the current working set
+     * @return The left node that was merged to form this node
      */
+    private DendrogramNode<T> getRightChild() {
+        if (this.isLeaf) {
+            throw new NullPointerException("A Leaf node has no children!");
+        }
+        return this.rightChild;
+    }
+
     List<Float> getDistanceValues() {
         return new ArrayList<>(this.distances.values());
     }
@@ -116,17 +130,9 @@ public class DendrogramNode<T extends DataObject> {
         float distance = distanceFunction.calculate(this, node);
         this.distances.put(node, distance);
         node.setDistance(this, distance);
-        checkMinNode(node, distance);
-
-    }
-
-    private void checkMinNode(DendrogramNode<T> node, float distance) {
         if (distance < this.minimumDistance) {
             this.minimumDistance = distance;
-            this.minNode.clear();
-            this.minNode.add(node);
-        } else if (distance == minimumDistance) {
-            this.minNode.add(node);
+            this.minNode = node;
         }
     }
 
@@ -142,33 +148,31 @@ public class DendrogramNode<T extends DataObject> {
      * in the distance vector left or sets it to null if the removed was the
      * last node in the distance vector.
      *
-     * @param nodes to drop from the distance vector.
+     * @param node to drop from the distance vector.
      */
-    void dropDistances(List<DendrogramNode<T>> nodes) {
-        for (DendrogramNode<T> node : nodes) {
-            if (this.distances.get(node).equals(this.minimumDistance)) {
-                this.minNode.remove(node);
-            }
-            this.distances.remove(node);
-        }
-
-        if (this.minNode.isEmpty()) {
+    void dropDistance(DendrogramNode<T> node) {
+        this.distances.remove(node);
+        if (node == this.minNode) {
             if (!this.distances.isEmpty()) {
                 this.minimumDistance = Collections.min(this.distances.values());
-                this.minNode.add(this.distances.entrySet().stream()
-                        .filter(entry -> entry.getValue().equals(this.minimumDistance))
-                        .map(Map.Entry::getKey).findFirst()
-                        .orElseThrow(NullPointerException::new));
+                this.minNode =
+                        this.distances.entrySet().stream()
+                                .filter(entry -> entry.getValue().equals(this.minimumDistance))
+                                .map(Map.Entry::getKey).findFirst()
+                                .orElseThrow(NullPointerException::new);
             } else {
                 this.minimumDistance = Float.MAX_VALUE;
-                this.minNode.clear();
+                this.minNode = null;
             }
         }
     }
 
     private void setDistance(DendrogramNode<T> node, Float distance) {
         this.distances.put(node, distance);
-        checkMinNode(node, distance);
+        if (distance < this.minimumDistance) {
+            this.minimumDistance = distance;
+            this.minNode = node;
+        }
     }
 
     void print(int level) {
@@ -185,15 +189,12 @@ public class DendrogramNode<T extends DataObject> {
             level++;
             sb.append(this.merged_distance).append(" Node");
             System.out.println(sb);
-
-            for (DendrogramNode<T> child : this.children) {
-                child.print(level);
-            }
-
+            this.getLeftChild().print(level);
+            this.getRightChild().print(level);
         }
     }
 
-    List<DendrogramNode<T>> getMinNode() {
+    DendrogramNode<T> getMinNode() {
         return this.minNode;
     }
 
