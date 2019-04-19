@@ -3,7 +3,7 @@
 Integrate with: Neo4J  
 [NeoProfiler](https://github.com/moxious/neoprofiler)
 Example with Cypher only on only one data set done by hand: [Barrasa, 2017](https://jbarrasa.com/2017/03/31/quickgraph5-learning-a-taxonomy-from-your-tagged-data/)
-
+[Second Example; brief](https://neo4j.com/blog/data-profiling-holistic-view-neo4j/)
 
 This project is intended to provide tools that help to extract further structure 
 from graphs, especially Neo4J data sets, in order to support cardinality estimation  
@@ -21,6 +21,8 @@ edges, incoming and outgoing sets and sub-graphs
 Algorithms to implement:  
 - Linkage-based clustering (single and complete linkage) (for nodes)  => Finished, bad performance!
 - HDBSCAN: state of the art, performance comparable to K-Means, hierarchical, supports soft clustering (200000 2d points in < 60s reference implementation: [SkLearn](https://github.com/scikit-learn-contrib/hdbscan))
+    Implement extending [SMILE](https://github.com/haifengl/smile/tree/master/core/src/main/java/smile/clustering)  
+    eventually extend using min cuts based on relative inter cluster connectivity and closeness;
 - Adapted version of chameleon clustering (for sub-graphs) (maybe considered later, if HDBSCAN is bad)
 
 TODO: Metrics (e.g. InfoGain, Fisher Info/Score, Shilouette coef., lift, ...)  
