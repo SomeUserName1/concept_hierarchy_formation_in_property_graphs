@@ -1,9 +1,11 @@
 import cluster.Clustering;
 import cluster.dendrogram.DendrogramClustering;
 import preprocess.yelp.YelpBusiness;
-import preprocess.yelp.YelpBusinessDataLoader;
+import preprocess.yelp.YelpBusinessLoader;
+import preprocess.synthetic.SyntheticNodeGenerator;
+import preprocess.synthetic.SyntheticNodeLoader;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 
@@ -11,47 +13,25 @@ public class Main {
 
   public static void main(String[] args) {
 
-    // TODO set up args & interfaces
+    String path = "/home/someusername/snap/nextcloud-client/10/Nextcloud/workspace/uni/8/bachelor/bachelor_project/data/";
+    SyntheticNodeGenerator sNG = new SyntheticNodeGenerator();
+    sNG.generate(path, 5, 4);
 
-    String fileName = "/home/someusername/snap/nextcloud-client/10/Nextcloud/workspace/uni/8/bachelor_project/data/" +
-            "business.json";
-    YelpBusinessDataLoader yelpBusinessDataLoader = new YelpBusinessDataLoader();
-    yelpBusinessDataLoader.read(fileName);
 
-    yelpBusinessDataLoader.sample(100);
 
-    List<YelpBusiness> data = yelpBusinessDataLoader.getData();
-    System.out.println("Number of entries: " + data.size());
+//    String fileName = path + "business.json";
+//    YelpBusinessLoader yelpBusinessLoader = new YelpBusinessLoader();
+//    yelpBusinessLoader.read(fileName);
+//
+//    yelpBusinessLoader.sample(100);
+//
+//    List<YelpBusiness> data = yelpBusinessLoader.getData();
+//    System.out.println("Number of entries: " + data.size());
+//
+//    Clustering clustering = new DendrogramClustering<>(data, "single");
+//    clustering.cluster();
+//    ((DendrogramClustering) clustering).print();
 
-    Clustering clustering = new DendrogramClustering<>(data, "single");
-    clustering.cluster();
-    ((DendrogramClustering) clustering).print();
 
-        /*List<Point> points = null;
-        try {
-            points = yelpBusinessDataLoader.readPoints("dataset/" + fileName);
-        } catch (IOException e) {
-            System.out.println("Could not read input file: " + fileName);
-            System.exit(1);
-        }
-
-        System.out.println("Number of points: " + points.size());
-
-        // Run chameleon algorithm
-        chameleon chameleon = new chameleon(k, initNrOfClusters, resultNrOfClusters, points);
-        List<Clustering> clusters = chameleon.run();
-
-        // Compute metrics
-        MetricsCalculator metricsCalculator = new MetricsCalculator();
-        Metrics metrics = metricsCalculator.calculate(clusters);
-
-        // Visualize results
-        ClusteringVisualization visualization = new ClusteringVisualization(clusters);
-        visualization.drawImage(fileName.replace(".csv", ".png"));
-
-        // Print metrics
-        System.out.println("Metrics: ");
-        System.out.println(metrics);
-        clusters.forEach(x -> System.out.println(x.printMetrics()));*/
   }
 }
