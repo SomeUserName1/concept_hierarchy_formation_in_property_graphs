@@ -25,6 +25,7 @@ public class SyntheticNodeGenerator {
                 for (int k = 0; k < j+1; k++) {
                     sb.append(index[k]);
                 }
+                if (j < depth-1) sb.append(", ");
             }
             syntheticNode.put("labels", sb.toString());
             index = incrementIndex(index, width, depth-1);

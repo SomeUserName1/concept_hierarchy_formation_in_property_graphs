@@ -6,9 +6,9 @@ import java.util.Random;
 
 // TODO: Specification
 public abstract class DataLoader<T extends DataObject> {
-  List<T> data;
+  protected List<T> data = new ArrayList<>();
 
-  List<T> getData() {
+  public List<T> getData() {
     return this.data;
   }
 

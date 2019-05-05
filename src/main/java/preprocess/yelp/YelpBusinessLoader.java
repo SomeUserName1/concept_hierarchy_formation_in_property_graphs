@@ -19,7 +19,6 @@ import preprocess.DataLoader;
  * Provides functionality to sample from and filter the data
  */
 public class YelpBusinessLoader extends DataLoader<YelpBusiness> {
-  private List<YelpBusiness> data = new ArrayList<>();
 
 
   /**

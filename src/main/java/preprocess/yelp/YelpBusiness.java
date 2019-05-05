@@ -109,7 +109,7 @@ public class YelpBusiness implements DataObject {
    */
   public float compare(DataObject d) throws RuntimeException {
     YelpBusiness b;
-    if ((d.toString().contains("YelpBusiness"))) {
+    if (d instanceof YelpBusiness) {
       b = (YelpBusiness) d;
     } else {
       throw new RuntimeException("You can't compare two different data "
