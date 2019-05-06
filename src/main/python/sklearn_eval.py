@@ -2,31 +2,60 @@ from scipy.cluster.hierarchy import dendrogram
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.cluster import DBSCAN, AgglomerativeClustering
 from sklearn import metrics
-from sklearn.manifold import TSNE
+import umap
 import hdbscan
 import numpy as np
 import matplotlib.pyplot as plt
 import json
-from itertools import chain
 
-SAFE_PATH = "/home/fabian/Nextcloud/workspace/uni/8/bachelor/bachelor_project/doc/img/"
+BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor/bachelor_project/"
+IMG_ID = "1/"
+IMG_PATH = BASE + "doc/img/" + IMG_ID
+SYNTHETIC_PATH = BASE + "data/synthetic.json"
+BUSINESSES_PATH = BASE + "data/business.json"
 
 
-def main(path):
-    with open(path, "r") as read_file:
-        data = chain.from_iterable([json.loads(line) for line in read_file])
+def main(dataset: str):
+    if dataset == 'synthetic':
+        labels = open_synthetic()
+    elif dataset == 'businesses':
+        labels = open_businesses()
+    else:
+        raise Exception("Specify implemented dataset! synthetic or businesses")
 
-    print(data)
-    labels = [entry['categories'] for entry in data]
-
+    print("Loading finished, starting vectorization")
     vectorizer = CountVectorizer(binary=True)
     transformed_data = vectorizer.fit_transform(labels).toarray()
 
-    projected_data = TSNE().fit_transform(transformed_data)
+    print("Finished vectorization, starting projection")
 
+    projected_data = umap.UMAP(metric='jaccard', random_state=42, n_neighbors=30, verbose=True, min_dist=0.0)\
+        .fit_transform(transformed_data)
+
+    print("Projection finished, starting clustering")
     cluster_agglomerative(transformed_data, projected_data)
     cluster_dbscan(transformed_data, projected_data)
     cluster_hdbscan(transformed_data, projected_data)
+
+
+def open_synthetic():
+    with open(SYNTHETIC_PATH, "r") as read_file:
+        data = json.load(read_file)
+
+    labels = [entry['labels'] for entry in data]
+
+    return labels
+
+
+def open_businesses():
+    with open(BUSINESSES_PATH, "r") as read_file:
+        data = [json.loads(line) for line in read_file]
+
+    labels = [entry['categories'] for entry in data]
+
+    labels = [label for label in labels if label is not None]
+
+    return labels
 
 
 def cluster_agglomerative(transformed_data, projected_data):
@@ -50,7 +79,7 @@ def cluster_agglomerative(transformed_data, projected_data):
 
     # Plot the corresponding dendrogram
     dendrogram(linkage_matrix, labels=agglo.labels_)
-    plt.savefig(SAFE_PATH + "agglo_dendro.svg")
+    plt.savefig(IMG_PATH + "agglo_dendro.svg")
 
     plt.figure()
     labels = agglo.labels_
@@ -68,10 +97,10 @@ def cluster_agglomerative(transformed_data, projected_data):
 
         xy = projected_data[class_member_mask]
         plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                  markeredgecolor='k', markersize=10)
+                 markeredgecolor='k', markersize=10)
 
     plt.title('Agglomerative: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(SAFE_PATH + "agglo_clust.svg")
+    plt.savefig(IMG_PATH + "agglo_clust.svg")
     plt.show()
 
 
@@ -111,7 +140,7 @@ def cluster_dbscan(transformed_data, projected_data):
                  markeredgecolor='k', markersize=6)
 
     plt.title('DBSCAN: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(SAFE_PATH + "dbscan_clusters.svg")
+    plt.savefig(IMG_PATH + "dbscan_clusters.svg")
     plt.show()
 
 
@@ -149,18 +178,18 @@ def cluster_hdbscan(transformed_data, projected_data):
         plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
                  markeredgecolor='k', markersize=6)
     plt.title('HDBSCAN*: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(SAFE_PATH + "hdbscan_clusters.svg")
+    plt.savefig(IMG_PATH + "hdbscan_clusters.svg")
     plt.show()
     plt.figure()
     hdb.single_linkage_tree_.plot()
-    plt.savefig(SAFE_PATH + "hdbscan_dendro.svg")
+    plt.savefig(IMG_PATH + "hdbscan_dendro.svg")
     plt.show()
     plt.figure()
     hdb.condensed_tree_.plot()
-    plt.savefig(SAFE_PATH + "hdbscan_condensed.svg")
+    plt.savefig(IMG_PATH + "hdbscan_condensed.svg")
     plt.show()
 
 
 if __name__ == '__main__':
-    PATH = "/home/fabian/Nextcloud/workspace/uni/8/bachelor/bachelor_project/data/business.json"
-    main(PATH)
+    # 'synthetic' or 'businesses'
+    main('businesses')
