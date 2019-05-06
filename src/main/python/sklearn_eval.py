@@ -2,32 +2,35 @@ from scipy.cluster.hierarchy import dendrogram
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.cluster import DBSCAN, AgglomerativeClustering
 from sklearn import metrics
-from sklearn.metrics import jaccard_similarity_score
+from sklearn.manifold import TSNE
 import hdbscan
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
 import json
+from itertools import chain
+
+SAFE_PATH = "/home/fabian/Nextcloud/workspace/uni/8/bachelor/bachelor_project/doc/img/"
 
 
 def main(path):
     with open(path, "r") as read_file:
-        data = json.load(read_file)
+        data = chain.from_iterable([json.loads(line) for line in read_file])
 
-    labels = [entry['labels'] for entry in data]
+    print(data)
+    labels = [entry['categories'] for entry in data]
 
     vectorizer = CountVectorizer(binary=True)
     transformed_data = vectorizer.fit_transform(labels).toarray()
 
-    # FIXME plotting, hdbscan plots
+    projected_data = TSNE().fit_transform(transformed_data)
 
-    cluster_agglomerative(transformed_data)
-    # cluster_dbscan(transformed_data)
-    cluster_hdbscan(transformed_data)
+    cluster_agglomerative(transformed_data, projected_data)
+    cluster_dbscan(transformed_data, projected_data)
+    cluster_hdbscan(transformed_data, projected_data)
 
 
-def cluster_agglomerative(transformed_data):
-    agglo = AgglomerativeClustering(n_clusters=4, affinity='jaccard',
+def cluster_agglomerative(transformed_data, projected_data):
+    agglo = AgglomerativeClustering(n_clusters=5, affinity='jaccard',
                                     linkage='single')
     agglo.fit(transformed_data)
 
@@ -47,29 +50,33 @@ def cluster_agglomerative(transformed_data):
 
     # Plot the corresponding dendrogram
     dendrogram(linkage_matrix, labels=agglo.labels_)
+    plt.savefig(SAFE_PATH + "agglo_dendro.svg")
 
+    plt.figure()
     labels = agglo.labels_
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    # unique_labels = set(labels)
-    # colors = [plt.cm.Spectral(each)
-    #           for each in np.linspace(0, 1, len(unique_labels))]
-    # for k, col in zip(unique_labels, colors):
-    #     if k == -1:
-    #         # Black used for noise.
-    #         col = [0, 0, 0, 1]
-    #
-    #     class_member_mask = (labels == k)
-    #
-    #     xy = transformed_data[class_member_mask]
-    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-    #              markeredgecolor='k', markersize=10)
+    unique_labels = set(labels)
+    colors = [plt.cm.Spectral(each)
+              for each in np.linspace(0, 1, len(unique_labels))]
 
-    plt.title('Estimated number of clusters: %d' % n_clusters_)
+    for k, col in zip(unique_labels, colors):
+        if k == -1:
+            # Black used for noise.
+            col = [0, 0, 0, 1]
+
+        class_member_mask = (labels == k)
+
+        xy = projected_data[class_member_mask]
+        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+                  markeredgecolor='k', markersize=10)
+
+    plt.title('Agglomerative: Estimated number of clusters: %d' % n_clusters_)
+    plt.savefig(SAFE_PATH + "agglo_clust.svg")
     plt.show()
 
 
-def cluster_dbscan(transformed_data):
-    db = DBSCAN(eps=0.9, metric='jaccard', min_samples=4)
+def cluster_dbscan(transformed_data, projected_data):
+    db = DBSCAN(eps=0.99, metric='jaccard', min_samples=40)
     db.fit(transformed_data)
     # DBSCAN Plotting and measures
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
@@ -82,13 +89,6 @@ def cluster_dbscan(transformed_data):
 
     print('Estimated number of clusters: %d' % n_clusters_)
     print('Estimated number of noise points: %d' % n_noise_)
-    # print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels_true, labels))
-    # print("Completeness: %0.3f" % metrics.completeness_score(labels_true, labels))
-    # print("V-measure: %0.3f" % metrics.v_measure_score(labels_true, labels))
-    # print("Adjusted Rand Index: %0.3f"
-    #       % metrics.adjusted_rand_score(labels_true, labels))
-    # print("Adjusted Mutual Information: %0.3f"
-    #       % metrics.adjusted_mutual_info_score(labels_true, labels))
     print("Silhouette Coefficient: %0.3f"
           % metrics.silhouette_score(transformed_data, labels))
 
@@ -102,35 +102,65 @@ def cluster_dbscan(transformed_data):
 
         class_member_mask = (labels == k)
 
-        xy = transformed_data[class_member_mask & core_samples_mask]
+        xy = projected_data[class_member_mask & core_samples_mask]
         plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
                  markeredgecolor='k', markersize=14)
 
-        xy = transformed_data[class_member_mask & ~core_samples_mask]
+        xy = projected_data[class_member_mask & ~core_samples_mask]
         plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
                  markeredgecolor='k', markersize=6)
 
-    plt.title('Estimated number of clusters: %d' % n_clusters_)
+    plt.title('DBSCAN: Estimated number of clusters: %d' % n_clusters_)
+    plt.savefig(SAFE_PATH + "dbscan_clusters.svg")
     plt.show()
 
 
-def cluster_hdbscan(transformed_data):
-    arr = np.array(transformed_data)
-    print(arr.shape)
-    hdb = hdbscan.HDBSCAN(metric='jaccard')
-    hdb.fit(transformed_data)
-    # color_palette = sns.color_palette('deep', 625)
-    # cluster_colors = [color_palette[x] if x >= 0
-    #                   else (0.5, 0.5, 0.5)
-    #                   for x in hdb.labels_]
-    # cluster_member_colors = [sns.desaturate(x, p) for x, p in
-    #                          zip(cluster_colors, hdb.probabilities_)]
-    # plt.scatter(arr, s=50, linewidth=0, c=cluster_member_colors, alpha=0.25)
+def cluster_hdbscan(transformed_data, projected_data):
+    hdb = hdbscan.HDBSCAN(metric='jaccard', min_cluster_size=40).fit(transformed_data)
+    labels = hdb.labels_
+
+    # Number of clusters in labels, ignoring noise if present.
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise_ = list(labels).count(-1)
+
+    print('Estimated number of clusters: %d' % n_clusters_)
+    print('Estimated number of noise points: %d' % n_noise_)
+    print("Silhouette Coefficient: %0.3f"
+          % metrics.silhouette_score(transformed_data, labels))
+    print("Cluster  stability per cluster:")
+    for val in hdb.cluster_persistence_:
+        print("\t %0.3f" % val)
+
+    unique_labels = set(labels)
+    colors = [plt.cm.Spectral(each)
+              for each in np.linspace(0, 1, len(unique_labels))]
+    for k, col in zip(unique_labels, colors):
+        if k == -1:
+            # Black used for noise.
+            col = [0, 0, 0, 1]
+
+        class_member_mask = (labels == k)
+
+        xy = projected_data[class_member_mask]
+        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+                 markeredgecolor='k', markersize=14)
+
+        xy = projected_data[class_member_mask]
+        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+                 markeredgecolor='k', markersize=6)
+    plt.title('HDBSCAN*: Estimated number of clusters: %d' % n_clusters_)
+    plt.savefig(SAFE_PATH + "hdbscan_clusters.svg")
+    plt.show()
+    plt.figure()
     hdb.single_linkage_tree_.plot()
+    plt.savefig(SAFE_PATH + "hdbscan_dendro.svg")
+    plt.show()
+    plt.figure()
     hdb.condensed_tree_.plot()
+    plt.savefig(SAFE_PATH + "hdbscan_condensed.svg")
+    plt.show()
 
 
 if __name__ == '__main__':
-    PATH = "/home/someusername/snap/nextcloud-client/10/Nextcloud/workspace/uni/8/bachelor/bachelor_project/data" \
-           "/synthetic.json"
+    PATH = "/home/fabian/Nextcloud/workspace/uni/8/bachelor/bachelor_project/data/business.json"
     main(PATH)

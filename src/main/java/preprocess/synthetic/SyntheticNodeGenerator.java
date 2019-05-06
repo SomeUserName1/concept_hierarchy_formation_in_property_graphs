@@ -1,9 +1,14 @@
 package preprocess.synthetic;
 
+import groovy.json.internal.IO;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.Math;
 
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -32,6 +37,7 @@ public class SyntheticNodeGenerator {
             sb.setLength(0);
             nodeList.add(syntheticNode);
         }
+
 
         //Write JSON file
         try (FileWriter file = new FileWriter(path + "/synthetic.json")) {
