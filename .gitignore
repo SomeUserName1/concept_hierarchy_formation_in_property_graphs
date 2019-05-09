@@ -8,3 +8,4 @@ build/
 gradle/
 ressources/
 venv/
+src/main/python/chameleon_cluster
