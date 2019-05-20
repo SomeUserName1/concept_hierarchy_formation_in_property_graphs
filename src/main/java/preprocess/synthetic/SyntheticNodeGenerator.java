@@ -38,6 +38,9 @@ public class SyntheticNodeGenerator {
             nodeList.add(syntheticNode);
         }
 
+        // TODO destroy/disturb structure by
+        //      - Taking out steps of the hierarchy at one node
+        //      - ...
 
         //Write JSON file
         try (FileWriter file = new FileWriter(path + "/synthetic.json")) {

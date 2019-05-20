@@ -40,3 +40,11 @@ __Update 05.05.19:__
 Depending on the workload of implementing the neccessary clustering and graph analysis algorithms in Java e.g. with SMILE and if working ultimately with Neo4J, another approach would be to interface Java with Python using [Py4J](https://www.py4j.org/index.html).  
 This would evade all implementation costs but only work for a prototype as this exposes the JVM on the network, letting any user on the machine execute arbitary Java code.
 Definitely not useful when integrating with a database; maybe look up what parts are already there from N4J and add features as feasible and neccessary.
+
+
+
+
+Todo: 
+- Canopoy
+- Svd/PCA/tSNE on data => all other of sklearn
+- Cobweb
