@@ -30,7 +30,7 @@ public class SyntheticNodeLoader extends DataLoader<SyntheticNode> {
             //Iterate over employee array
             for (Object object : syntheticNodeList) {
                 JSONObject node = (JSONObject) object;
-                List<String> labels = Arrays.asList(((String) node.get("labels")).split(","));
+                List<String> labels = Arrays.asList(((String) node.get("labels")).split(",\\s+"));
                 data.add(new SyntheticNode((Math.toIntExact((long)node.get("id"))), labels));
             }
 

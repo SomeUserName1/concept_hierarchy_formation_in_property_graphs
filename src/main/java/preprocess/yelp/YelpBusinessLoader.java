@@ -41,7 +41,7 @@ public class YelpBusinessLoader extends DataLoader<YelpBusiness> {
         categories = (String) dataLine.get("categories");
 
         b =  categories != null ?
-                new YelpBusiness((String) dataLine.get("business_id"), Arrays.asList(categories.split(",")),
+                new YelpBusiness((String) dataLine.get("business_id"), Arrays.asList(categories.split(",\\s+")),
                 (HashMap<String, String>) dataLine.get("attributes"))
                 : new YelpBusiness((String) dataLine.get("business_id"), null,
                 (HashMap<String, String>) dataLine.get("attributes"));

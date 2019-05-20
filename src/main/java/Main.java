@@ -15,11 +15,26 @@ public class Main {
   public static void main(String[] args) {
 
     //String path = "/home/someusername/snap/nextcloud-client/10/Nextcloud" +
-      //  "/workspace/uni/8/bachelor/bachelor_project/data/";
+      //  "/workspace/uni/8/bachelor/bachelor_project/data/synthetic";
     String path = "/home/fabian/Nextcloud/workspace/uni/8/bachelor" +
-        "/bachelor_project/data";
-    SyntheticNodeGenerator sNG = new SyntheticNodeGenerator();
-    sNG.generate(path, 5, 4);
+        "/bachelor_project/data/synthetic";
+    SyntheticNodeGenerator sNG = new SyntheticNodeGenerator( 5, 4);
+    sNG.generate(path);
+
+    sNG.dehomogenize_cluster_size();
+    sNG.generate(path + "_branch");
+
+    sNG = new SyntheticNodeGenerator( 5, 4);
+    sNG.dehomogenize_levels();
+    sNG.generate(path + "_levels");
+
+    sNG = new SyntheticNodeGenerator( 5, 4);
+    sNG.dehomogenize_names();
+    sNG.generate(path + "_names");
+    sNG.dehomogenize_levels();
+    sNG.dehomogenize_cluster_size();
+    sNG.generate(path + "_all");
+//    sNG.generate(path);
 //    String fileName = path + "synthetic.json";
 //    SyntheticNodeLoader syntheticNodeLoader = new SyntheticNodeLoader();
 //    syntheticNodeLoader.read(fileName);
