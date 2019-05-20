@@ -19,64 +19,75 @@ import concept_formation
 import chameleon_cluster
 
 BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor/bachelor_project/"
-IMG_ID = "1/"
+IMG_ID = "5/"
 IMG_PATH = BASE + "doc/img/" + IMG_ID
-SYNTHETIC_PATH = BASE + "data/synthetic.json"
+SYNTHETIC_PLAIN_PATH = BASE + "data/synthetic.json"
+SYNTHETIC_ALL_PATH = BASE + "data/synthetic_all.json"
+SYNTHETIC_BRANCH_PATH = BASE + "data/synthetic_branch.json"
+SYNTHETIC_LEVELS_PATH = BASE + "data/synthetic_levels.json"
+SYNTHETIC_NAMES_PATH = BASE + "data/synthetic_names.json"
 BUSINESSES_PATH = BASE + "data/business.json"
 CACHE_PATH = "/tmp/"
 
 
 def main(dataset: str):
     if dataset == 'synthetic':
-        labels = open_synthetic()
+        sets = [open_synthetic(path) for path in [SYNTHETIC_PLAIN_PATH, SYNTHETIC_BRANCH_PATH, SYNTHETIC_LEVELS_PATH, SYNTHETIC_NAMES_PATH, SYNTHETIC_ALL_PATH]]
     elif dataset == 'businesses':
-        labels = open_businesses()
+        sets = open_businesses()
     else:
         raise Exception("Specify implemented dataset! synthetic or businesses")
 
-    print("Loading finished, starting vectorization")
-    vectorizer = CountVectorizer(binary=True)  # or ordinal
-    transformed_data = np.array(vectorizer.fit_transform(labels).toarray())  # .astype(bool, copy=False)
+    i = 0
+    for labels in sets:
+        print("Loading finished, starting vectorization")
+        vectorizer = CountVectorizer(binary=True)  # or ordinal
+        transformed_data = np.array(vectorizer.fit_transform(labels).toarray())  # .astype(bool, copy=False)
 
-    print("Finished vectorization, starting projection")
+        print("Finished vectorization, starting projection")
 
-    projected__data_umap = umap.UMAP(metric='jaccard', init='random', random_state=42, n_neighbors=30, min_dist=0.0) \
-        .fit_transform(transformed_data)
+        # projected_data_umap = umap.UMAP(metric='jaccard').fit_transform(transformed_data)
 
-    projected_data_tsne = TSNE(metric='jaccard').fit_transform(transformed_data)
+        projected_data_tsne = TSNE(metric='jaccard').fit_transform(transformed_data)
 
-    projected_data_pca = PCA(n_components='mle').fit_transform(transformed_data)
+        # projected_data_pca = PCA(n_components=0.8, svd_solver='full').fit_transform(transformed_data)
 
-    projected_data_ica = FastICA().fit_transform(transformed_data)
+        # projected_data_ica = FastICA().fit_transform(transformed_data)
 
-    projected_data_feat_agglo = FeatureAgglomeration(n_clusters=5, affinity='jaccard', memory=CACHE_PATH,
-                                                     linkage='single')
+        # projected_data_feat_agglo = FeatureAgglomeration(n_clusters=5, affinity='jaccard', memory=CACHE_PATH,
+        #                                                linkage='single')
 
-    # Clustering on Vectorized data
-    print("Projection finished, starting clustering")
-    # cluster_agglomerative(transformed_data, projected_data)
-    print("Agglomerative finished")
+        # Clustering on Vectorized data3
+        # cluster_rock(projected_data_tsne)
+
+        # cluster_birch(projected_data_tsne)
+        # print("Birch finished")
+
+        # print("Projection finished, starting clustering")
+        # cluster_agglomerative(projected_data_tsne, projected_data_tsne, i)
+        # print("Agglomerative finished")
+        # cluster_hdbscan(projected_data_tsne, projected_data_tsne, i)
+        #print("HDBScan finished")
+        #i += 1
+
     # cluster_dbscan(transformed_data, projected_data),
-    print("DBScan finished")
-    # cluster_hdbscan(transformed_data, projected_data)
-    print("HDBScan finished")
+    # print("DBScan finished")
+
 
     # TODO elbow to find no clusters
 
     # Clustering on projected data
-    for projected_data in [projected__data_umap, projected_data_tsne, projected_data_pca, projected_data_ica,
-                           projected_data_feat_agglo]:
-        cluster_birch(projected_data)
-        print("Birch finished")
-        cluster_rock(projected_data)
+    # for projected_data in [projected__data_umap, projected_data_tsne, projected_data_pca, projected_data_ica,
+    #                       projected_data_feat_agglo]:
 
-        # TODO CURE, Affinity prop, optics, kmeans, mean shift, spectral clustering
+
+    # TODO CURE, Affinity prop, optics, kmeans, mean shift, spectral clustering
 
     # TODO Spectral Biclustering / Coclustering
 
 
-def open_synthetic():
-    with open(SYNTHETIC_PATH, "r") as read_file:
+def open_synthetic(path):
+    with open(path, "r") as read_file:
         data = json.load(read_file)
 
     labels = [entry['labels'] for entry in data]
@@ -92,11 +103,11 @@ def open_businesses():
 
     labels = [label for label in labels if label is not None]
 
-    return labels
+    return [labels]
 
 
-def cluster_agglomerative(transformed_data, projected_data):
-    agglo = AgglomerativeClustering(n_clusters=5, affinity='jaccard', memory=CACHE_PATH,
+def cluster_agglomerative(transformed_data, projected_data, i):
+    agglo = AgglomerativeClustering(n_clusters=25, affinity='jaccard', memory=CACHE_PATH,
                                     linkage='single')
     agglo.fit(transformed_data)
 
@@ -116,7 +127,7 @@ def cluster_agglomerative(transformed_data, projected_data):
 
     # Plot the corresponding dendrogram
     dendrogram(linkage_matrix, labels=agglo.labels_)
-    plt.savefig(IMG_PATH + "agglo_dendro.svg")
+    plt.savefig(IMG_PATH + str(i) + "agglo_dendro.svg")
 
     plt.figure()
     labels = agglo.labels_
@@ -137,7 +148,7 @@ def cluster_agglomerative(transformed_data, projected_data):
                  markeredgecolor='k', markersize=10)
 
     plt.title('Agglomerative: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(IMG_PATH + "agglo_clust.svg")
+    plt.savefig(IMG_PATH + str(i) + "agglo_clust.svg")
     plt.show()
 
 
@@ -181,8 +192,8 @@ def cluster_dbscan(transformed_data, projected_data):
     plt.show()
 
 
-def cluster_hdbscan(transformed_data, projected_data):
-    hdb = hdbscan.HDBSCAN(metric='jaccard', min_cluster_size=2, memory=CACHE_PATH, core_dist_n_jobs=-1) \
+def cluster_hdbscan(transformed_data, projected_data, i):
+    hdb = hdbscan.HDBSCAN(metric='euclidean', min_cluster_size=24, memory=CACHE_PATH, core_dist_n_jobs=-1) \
         .fit(transformed_data)
     labels = hdb.labels_
 
@@ -216,32 +227,32 @@ def cluster_hdbscan(transformed_data, projected_data):
         plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
                  markeredgecolor='k', markersize=6)
     plt.title('HDBSCAN*: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(IMG_PATH + "hdbscan_clusters.svg")
+    plt.savefig(IMG_PATH + str(i) + "hdbscan_clusters.svg")
     plt.show()
     plt.figure()
     hdb.single_linkage_tree_.plot()
-    plt.savefig(IMG_PATH + "hdbscan_dendro.svg")
+    plt.savefig(IMG_PATH + str(i) + "hdbscan_dendro.svg")
     plt.show()
     plt.figure()
     hdb.condensed_tree_.plot()
-    plt.savefig(IMG_PATH + "hdbscan_condensed.svg")
+    plt.savefig(IMG_PATH + str(i) + "hdbscan_condensed.svg")
     plt.show()
 
 
 def cluster_rock(transformed_data):
-    rock_inst = rock.rock(transformed_data, 0.3, 5)
+    rock_inst = rock.rock(transformed_data, 2, 5)
     rock_inst.process()
     clusters = rock_inst.get_clusters()
     for cluster in clusters:
         print(cluster)
-    # Outputs all elements as single cluster... wtf
 
 
 # Does not work with bool data, as the measures get all 0. returns (1, 780)?! actually there are 625 nodes
 def cluster_birch(transformed_data):
     transformed_data = np.transpose(transformed_data)
-    agglo = AgglomerativeClustering(n_clusters=5)
-    birch = Birch(threshold=0.000000000000001, n_clusters=agglo).fit(transformed_data)
+    agglo = AgglomerativeClustering(n_clusters=5, affinity='jaccard', memory=CACHE_PATH,
+                                    linkage='single')
+    birch = Birch(threshold=0.0000001, n_clusters=agglo).fit(transformed_data)
     print(birch)
 
     plt.title('Hierarchical Clustering Dendrogram')
@@ -283,6 +294,7 @@ def cluster_birch(transformed_data):
     plt.title('BIRCH + Agglo: Estimated number of clusters: %d' % n_clusters_)
     plt.savefig(IMG_PATH + "agglo_clust.svg")
     plt.show()
+
 
 if __name__ == '__main__':
     # 'synthetic' or 'businesses'
