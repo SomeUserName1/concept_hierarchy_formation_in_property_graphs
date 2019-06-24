@@ -15,8 +15,6 @@ from pyclustering.samples.definitions import FCPS_SAMPLES
 from pyclustering.cluster import rock
 # TODO Trestle, maybe Coweb
 import concept_formation
-# TODO chameleon
-import chameleon_cluster
 
 BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor/bachelor_project/"
 IMG_ID = "5/"

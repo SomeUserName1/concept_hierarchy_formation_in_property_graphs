@@ -1,3 +1,5 @@
+import at.unisalzburg.dbresearch.apted.costmodel.CostModel;
+import at.unisalzburg.dbresearch.apted.node.Node;
 import cluster.Clustering;
 import cluster.dendrogram.DendrogramClustering;
 import preprocess.synthetic.SyntheticNode;
@@ -5,8 +7,8 @@ import preprocess.yelp.YelpBusiness;
 import preprocess.yelp.YelpBusinessLoader;
 import preprocess.synthetic.SyntheticNodeGenerator;
 import preprocess.synthetic.SyntheticNodeLoader;
-
-
+import at.unisalzburg.dbresearch.apted.costmodel.PerEditOperationStringNodeDataCostModel;
+import at.unisalzburg.dbresearch.apted.distance.APTED;
 import java.util.List;
 
 
@@ -34,6 +36,10 @@ public class Main {
     sNG.dehomogenize_levels();
     sNG.dehomogenize_cluster_size();
     sNG.generate(path + "_all");
+
+    CostModel costModel = new PerEditOperationStringNodeDataCostModel(1,1,0);
+    APTED apted = new APTED<>(costModel);
+    float cost = apted.computeEditDistance();
 //    sNG.generate(path);
 //    String fileName = path + "synthetic.json";
 //    SyntheticNodeLoader syntheticNodeLoader = new SyntheticNodeLoader();
