@@ -1,0 +1,103 @@
+25th July 14:00
+Give That Thing A Name: Label/Property/Concept Hierarchy Inference
+
+Overall Structure: 
+
+1. General & Intro:
+    - Prog. Language: Python as most Clustering Algorithms are implemented in Python
+    - [ ] Make code modular and functional to execute different varieties of the pipeline
+
+2. Data: Yelp and Synthetic 
+    - [ ] Port from java to python
+    - [ ] Create Tree from whats generated and hand-crafted one for Yelp data set
+
+3. Preprocessing: Binary Count Vectorization, SVD/PCA/ICA or tSNE/UMAP/MDS. 
+    - [ ] Binary count vectorization and Jaccard distance
+    - [ ] Try SVD/PCA/ICA/tSNE/UMAP/MDS combination for data vis. Try but WITH ALL OR NOTHING. 
+
+4. Clustering:
+    1. General Clustering: (sklearn, pyclustering)
+        - [ ] Elbow or sth.
+        - [ ] KMeans, AffinityProp, MeanShift, Spectral, Optics, Birch Gaussian
+    2. Hierarcical Clustering
+        - [ ] Single, Average, Complete, Ward, Robust Single, maybe divisive
+    3. End-to-End Approaches
+        - [ ] HDBScan (hdbscan package)
+        - [ ] Conceptual Clustering (concept_formation package)
+
+5. Evaluation:
+        - [ ] (Optional: First Phase: Shilouette Coef., Adjusted Rand Index, MI based scores, V-meassure, FMI, CHI, DBI)
+        - [ ] Second Phase: Tree Edit Distance & KFold Cross Validation
+            Cross validation:
+            Take 90% dataset & create hierachy
+            take 10% dataset & validate hierarchy
+
+6. Qestion that Project should answer:
+    1. Find label hierarchies
+    2. Extract only robust sub-hierarchies (rates of convergence for tree clusters)
+    3. How distant are two instances
+    4. Deal with noise
+    5. How can we make such an existing algorithm graph aware: By considering the structure of a graph (in the clustering) regain deleted labels
+        - for each node how many edges of each type: Introduce new properties with graphy traits
+        - Neighbours, types of neighbours, type of relationships, cumulative relationship, 
+    6. How much do we need to sample to get a correct hierarchy?
+ 
+Project: Ignore the graph
+Belivable results of how good the results are ignoring the graph structure
+Thesis: reintroduce graph structure => algos more robust
+
+
+______
+
+NEXT WEEK:
+ALL Code, as many presentation as possible
+23.07:
+Presentation slides finished
+MAX 1 MIN LONGER: better 1 min earlier
+
+
+Find methods to introduce noise in data set
+1. Baseline
+2. Take random node, remove random label
+
+
+
+Cost vs accuracy per algo 
+Algos   | Runtime   | Accuracy  | ...   |
+__________________________
+
+TODO
+0. Find methods to destroy hierarchy
+1. TED running
+2. port data
+2. Fix algos
+3. Bench Pure algo runtime (memory)
+4. Try >SCD/tSNE/... and bench runtime-accuracy trade off
+
+how it supports our scenario, why/why not
+
+
+Presentation:
+1. 
+    1. Motivation: Yelp, got hierarchy of some struct, dont wanna extract by hand (ex.); In Neo4J: vehicle => car, vehicle =>bus, bus, car; need to explicitly state. But concetually there is an hioerarchy, just not explitly in the data. Cant do iut by hand so => hierarchical clustering 
+    2.  Probelm definition (formal, proper terminology)
+2. Solution
+    1. Related Work: Algorithms, Brief how they work; include examples and weioght by how well they work
+3. Evaluation
+    1. Setup
+        1. synthetic baseline: generation, noise intro, ground truth, measures: runtime and accuracy (ted)
+        2. 1 Slide on the pipeline
+    2. Results: if time also for yelp, but only if propperly
+        1 Base experiment
+            1. Table
+            2. Graphs
+        2. Noise exp 1
+        3. NOise exp n
+    preliminary yelp experiment for transition
+        
+4. Conclusions and What do we want to acheive:
+    - multiple hioerarchies: either relationship or disjoint
+    - hierarcical info on labels (selectivity)
+    => HOW: Take structural info, neibhbourhood to infer hierarcy from noisy data again
+    
+    doesnt need to be exact but should make sense
