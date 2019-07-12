@@ -3,12 +3,11 @@ Give That Thing A Name: Label/Property/Concept Hierarchy Inference
 
 Overall Structure: 
 
-1. General & Intro:
-    - Prog. Language: Python as most Clustering Algorithms are implemented in Python
+1. General:
     - [ ] Make code modular and functional to execute different varieties of the pipeline
 
 2. Data: Yelp and Synthetic 
-    - [ ] Port from java to python
+    - [ ] Make callable from python 
     - [ ] Create Tree from whats generated and hand-crafted one for Yelp data set
 
 3. Preprocessing: Binary Count Vectorization, SVD/PCA/ICA or tSNE/UMAP/MDS. 
@@ -67,12 +66,12 @@ Algos   | Runtime   | Accuracy  | ...   |
 __________________________
 
 TODO
-0. Find methods to destroy hierarchy
+0. Find methods to destroy hierarchy: Found only complex graph and genetic algo. based version
 1. TED running
-2. port data
-2. Fix algos
-3. Bench Pure algo runtime (memory)
-4. Try >SCD/tSNE/... and bench runtime-accuracy trade off
+2. port data: call jar for py
+2. Fix algos: restructure code
+3. Bench Pure algo runtime (memory): find propper way to do so
+4. Try SCD/tSNE/... and bench runtime-accuracy trade off
 
 how it supports our scenario, why/why not
 
