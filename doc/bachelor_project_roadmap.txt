@@ -7,8 +7,9 @@ Overall Structure:
     - [ ] Make code modular and functional to execute different varieties of the pipeline
 
 2. Data: Yelp and Synthetic 
-    - [ ] Make callable from python 
-    - [ ] Create Tree from whats generated and hand-crafted one for Yelp data set
+    - [x] Make callable from python
+    - [x] Create Tree from whats generated
+    ⁻ [ ]and hand-crafted one for Yelp data set
 
 3. Preprocessing: Binary Count Vectorization, SVD/PCA/ICA or tSNE/UMAP/MDS. 
     - [ ] Binary count vectorization and Jaccard distance
@@ -30,7 +31,8 @@ Overall Structure:
             Cross validation:
             Take 90% dataset & create hierachy
             take 10% dataset & validate hierarchy
-
+            - [ ] get TED running with appropriate costs via python
+            - [ ] convert Dendrogram to .tree file
 6. Qestion that Project should answer:
     1. Find label hierarchies
     2. Extract only robust sub-hierarchies (rates of convergence for tree clusters)

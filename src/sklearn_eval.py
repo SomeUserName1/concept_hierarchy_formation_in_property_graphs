@@ -9,6 +9,7 @@ import hdbscan
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+import subprocess, shlex
 from pyclustering.samples.definitions import FCPS_SAMPLES
 
 # TODO: BIRCH (?); CURE ROCK; HSyncNet SyncNet SyncSOM;
@@ -29,6 +30,15 @@ CACHE_PATH = "/tmp/"
 
 
 def main(dataset: str):
+    input = "java -jar synthetic_data_generator.jar -p '/home/fabian/Nextcloud/workspace/uni/8/bachelor_project/data/' -d 3 -w 2 -n 1 1 1 -pr 0.25"
+    args = shlex.split(input)
+    subprocess.Popen(args)
+
+    # how to get result.tree from dendro
+    command_line = "java -jar apted.jar -f ../data/synthetic.tree result.tree"
+    args = shlex.split(command_line)
+    subprocess.Popen(args)
+
     if dataset == 'synthetic':
         sets = [open_synthetic(path) for path in [SYNTHETIC_PLAIN_PATH, SYNTHETIC_BRANCH_PATH, SYNTHETIC_LEVELS_PATH, SYNTHETIC_NAMES_PATH, SYNTHETIC_ALL_PATH]]
     elif dataset == 'businesses':
