@@ -1,10 +1,8 @@
-package preprocess.synthetic;
-
-import preprocess.DataObject;
+package generator;
 
 import java.util.*;
 
-public class SyntheticNode implements DataObject {
+public class SyntheticNode {
     private int id;
     private List<String> labels;
 
@@ -39,17 +37,8 @@ public class SyntheticNode implements DataObject {
      * @return The number of distinct attributes by key (only) aka the
      *        symmetric difference between the key sets
      */
-    public float compare(DataObject d) throws RuntimeException {
-        SyntheticNode b;
-        if ((d.toString().contains("Synthetic"))) {
-            b = (SyntheticNode) d;
-        } else {
-            throw new RuntimeException("You can't compare two different data "
-                    + "objects. If you want to, create a common Wrapper Object that"
-                    + " implements compare appropriately for both DataObjects.");
-        }
-
-        return jaccardDistance(b);
+    public float compare(SyntheticNode d) {
+        return jaccardDistance(d);
     }
 
     @Override
