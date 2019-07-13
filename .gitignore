@@ -1,4 +1,3 @@
-data/
 .idea/
 .gradle/
 out/
@@ -8,4 +7,4 @@ build/
 gradle/
 ressources/
 venv/
-src/main/python/chameleon_cluster
+data/

@@ -12,13 +12,15 @@ Overall Structure:
     ⁻ [ ] and hand-crafted one for Yelp data set
 
 3. Preprocessing: Binary Count Vectorization, SVD/PCA/ICA or tSNE/UMAP/MDS. 
-    - [ ] Binary count vectorization
-    - [ ] Try SVD/PCA/ICA/tSNE/UMAP/MDS combination for data vis. Try but WITH ALL OR NOTHING. 
+    - [x] Binary count vectorization
+    - [x] PCA-tSNE combination for data vis. and numeric only methods. 
 
 4. Clustering:
-    1. General Clustering: (sklearn, pyclustering)
-        - [ ] Elbow or sth.
-        - [ ] KMeans, AffinityProp, MeanShift, Spectral, Optics, Birch Gaussian
+    1. Pre-Clustering: (sklearn, pyclustering)
+        - [x] Use pipeline and Grid search for hyper param tuning
+        - [x] SkLearn: AffinityProp, Spectral, Optics, DBScan
+        - [ ] PyClustering: KMeans, KMedoid, KMedians, EM, BSAS, MBSAS, TTSAS
+        - [ ] Wrappers for PyClustering to use Pipeline and GridSearchCV from sklearn
     2. Hierarcical Clustering
         - [ ] Single, Average, Complete, Ward, Robust Single, maybe divisive
     3. End-to-End Approaches
@@ -33,7 +35,9 @@ Overall Structure:
             take 10% dataset & validate hierarchy
             - [ ] get TED running with appropriate costs via python
             - [ ] convert Dendrogram to .tree file
-6. Qestion that Project should answer:
+        - [ ] Visualization
+            
+6. Questions that Project should answer:
     1. Find label hierarchies
     2. Extract only robust sub-hierarchies (rates of convergence for tree clusters)
     3. How distant are two instances

@@ -10,203 +10,131 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from scipy.cluster.hierarchy import dendrogram
+from scipy.stats import randint
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.cluster import DBSCAN, AgglomerativeClustering, AffinityPropagation, SpectralClustering, Birch, \
-    SpectralBiclustering, SpectralCoclustering
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from sklearn import metrics
-import hdbscan
+
+from sklearn.cluster import DBSCAN, AgglomerativeClustering, AffinityPropagation, SpectralClustering, Birch, \
+    SpectralBiclustering, SpectralCoclustering, OPTICS
 from pyclustering.cluster import rock, kmeans, kmedians, kmedoids, ema, bsas, ttsas, mbsas
+import hdbscan
 from concept_formation import cobweb3, trestle
+
+BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project"
+CACHE_PATH = "/tmp/"
 
 
 # Restructure into pipeline:
-#   1. generate & load data
-#   2. preprocess data
-#   3. Cluster data
-#   4. Evaluate
-#   5. Visualize
+#   1. generate/sample
+#   2. load data
+#   3. preprocess data
+#   4. Cluster data
+#   5. Evaluate
+#   6. Visualize
 
 
 class Dataset(Enum):
-    SYNTHETIC = 0
-    YELP = 1
+    SYNTHETIC = (BASE + "/data/synthetic.json", BASE + "/data/synthetic.tree")
+    NOISY_SYNTHETIC = (BASE + "/data/synthetic_noisy.json", BASE + "/data/synthetic.tree")
+    YELP = (BASE + "/data/business.json", BASE + "/data/business.tree")
 
 
-def generate_synthetic(path: str, depth: int, width: int, rem_labels: bool, add_labels: bool, alter_labels: bool,
-                       prob: float):
-    command = "java -jar ../lib/synthetic_data_generator.jar -p '" + path + "' -d " + str(depth) + " -w " + str(width) \
+def generate_synthetic(depth: int, width: int = 2, path: str = BASE + "/data/", rem_labels: bool = True,
+                       add_labels: bool = False, alter_labels: bool = True, prob: float = 0.33):
+    command = "java -jar " + BASE + "/lib/synthetic_data_generator.jar -p '" + path + "' -d " + str(
+        depth) + " -w " + str(width) \
               + " -n " + str(rem_labels) + " " + str(add_labels) + " " + str(alter_labels) + " -pr " + str(prob)
     args = split(command)
     Popen(args)
 
 
-def sample_yelp(n_samples: int) -> List[str]:
+def sample_yelp(n_samples: int) -> List[List[str]]:
     sample = []
-    with open(BUSINESSES_PATH, "r") as read_file:
+    with open(Dataset.YELP.value[0], "r") as read_file:
         for i, line in enumerate(read_file):
             if i < n_samples:
                 sample.append(json.loads(line))
-            elif i >= n_samples and random.random() < n_samples/float(i + 1):
+            elif i >= n_samples and random.random() < n_samples / float(i + 1):
                 replace = random.randint(0, len(sample) - 1)
                 sample[replace] = json.loads(line)
-    return sample
+
+        labels = [entry['categories'] for entry in sample]
+
+        labels = [label for label in labels if label is not None]
+
+    return [labels]
+
+
+def open_synthetic(noisy: bool):
+    path = Dataset.SYNTHETIC.value[0] if noisy else Dataset.NOISY_SYNTHETIC.value[0]
+    with open(path, "r") as read_file:
+        data = json.load(read_file)
+
+    labels = [entry['labels'] for entry in data]
+
+    return labels
 
 
 # In: path, yelp/synthetic; Out: list of len no_samples
-def load(n_samples: int, dataset: Dataset):
-    raise NotImplementedError
+def load(n_samples: int, dataset: Dataset) -> List[List[str]]:
+    if dataset == Dataset.SYNTHETIC or Dataset.NOISY_SYNTHETIC:
+        generate_synthetic(int(n_samples / 2))
+        noisy = True if dataset == Dataset.NOISY_SYNTHETIC else False
+        return open_synthetic(noisy)
+    else:
+        return sample_yelp(n_samples)
 
 
-# in: list of labels per node, projection flag, out: vectorized np.array (already jaccard distance?),
-# PCA & tSNE'd if flaged
-def preprocess():
-    raise NotImplementedError
+# average, complete, single
+def cluster_agglomerative(n_samples: int):
+    return {'agglo_clusterer': AgglomerativeClustering(affinity='jaccard', linkage='complete', memory=CACHE_PATH)  #,
+            #'n_clusters': [1, 2, 4, 8, int(0.001 * n_samples) + 1, int(0.01 * n_samples) + 1, int(0.1 * n_samples) + 1,
+            #               int(0.2 * n_samples) + 1, 0.3 * n_samples],
+            #'linkage': ['single', 'average', 'complete']}
 
 
-# FIXME refactor
-@profile
-def cluster_agglomerative(transformed_data, projected_data, i):
-    start_time = time.time()
+def cluster_affinity_prop(data: np.array):
+    return {'pre_clusterer': AffinityPropagation(affinity='precomputed')}
 
-    agglo = AgglomerativeClustering(n_clusters=25, affinity='jaccard', memory=CACHE_PATH,
-                                    linkage='single')
-    agglo.fit(transformed_data)
 
-    time_taken = time.time() - start_time
-    plt.title('Hierarchical Clustering Dendrogram')
+def cluster_spectral():
+    return {'pre_clusterer': SpectralClustering(affinity='precomputed', n_jobs=-1)}
 
-    children = agglo.children_
 
-    # Distances between each pair of children
-    # Since we don't have this information, we can use a uniform one for plotting
-    distance = np.arange(children.shape[0])
+def cluster_dbscan(transformed_data, projected_data):
+    return {'pre_clusterer': DBSCAN(metric='precomputed', n_jobs=-1)}
 
-    # The number of observations contained in each cluster level
-    no_of_observations = np.arange(2, children.shape[0] + 2)
 
-    # Create linkage matrix and then plot the dendrogram
-    linkage_matrix = np.column_stack([children, distance, no_of_observations]).astype(float)
+def cluster_optics():
+    return {'pre_clusterer': OPTICS()}
 
-    # Plot the corresponding dendrogram
-    dendrogram(linkage_matrix, labels=agglo.labels_)
-    plt.savefig(IMG_PATH + str(i) + "agglo_dendro.svg")
 
-    plt.figure()
-    labels = agglo.labels_
-    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    unique_labels = set(labels)
-    cmap = cm.get_cmap("Spectral")
-    colors = [cmap(each)
-              for each in np.linspace(0, 1, len(unique_labels))]
-
-    for k, col in zip(unique_labels, colors):
-        if k == -1:
-            # Black used for noise.
-            col = [0, 0, 0, 1]
-
-        class_member_mask = (labels == k)
-
-        xy = projected_data[class_member_mask]
-        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                 markeredgecolor='k', markersize=10)
-
-    plt.title('Agglomerative: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(IMG_PATH + str(i) + "agglo_clust.svg")
-    plt.show()
-
-@profile
 def cluster_kmeans():
     start_time = time.time()
     time_taken = time.time() - start_time
     # pyclustering
     raise NotImplementedError
 
-@profile
+
 def cluster_kmedoids():
     start_time = time.time()
     time_taken = time.time() - start_time
     # pyclust
     raise NotImplementedError
 
-@profile
+
 def cluster_kmedians():
     start_time = time.time()
     time_taken = time.time() - start_time
     # pyclust
     raise NotImplementedError
 
-@profile
-def cluster_affinity_prop():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    #   sklearn
-    raise NotImplementedError
 
-@profile
-def cluster_spectral():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    #   sklearn
-    raise NotImplementedError
-
-
-# FIXME refactor
-@profile
-def cluster_dbscan(transformed_data, projected_data):
-    start_time = time.time()
-    db = DBSCAN(eps=0.99, metric='jaccard', min_samples=40, n_jobs=-1)
-    db.fit(transformed_data)
-    time_taken = time.time() - start_time
-    # DBSCAN Plotting and measures
-    core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-    core_samples_mask[db.core_sample_indices_] = True
-    labels = db.labels_
-
-    # Number of clusters in labels, ignoring noise if present.
-    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    n_noise_ = list(labels).count(-1)
-
-    print('Estimated number of clusters: %d' % n_clusters_)
-    print('Estimated number of noise points: %d' % n_noise_)
-    print("Silhouette Coefficient: %0.3f"
-          % metrics.silhouette_score(transformed_data, labels))
-
-    unique_labels = set(labels)
-    cmap = cm.get_cmap("Spectral")
-    colors = [cmap(each)
-              for each in np.linspace(0, 1, len(unique_labels))]
-    for k, col in zip(unique_labels, colors):
-        if k == -1:
-            # Black used for noise.
-            col = [0, 0, 0, 1]
-
-        class_member_mask = (labels == k)
-
-        xy = projected_data[class_member_mask & core_samples_mask]
-        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                 markeredgecolor='k', markersize=14)
-
-        xy = projected_data[class_member_mask & ~core_samples_mask]
-        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                 markeredgecolor='k', markersize=6)
-
-    plt.title('DBSCAN: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(IMG_PATH + "dbscan_clusters.svg")
-    plt.show()
-
-
-@profile
-def cluster_optics():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    #   sklearn
-    raise NotImplementedError
-
-
-@profile
 def cluster_gaussian():
     start_time = time.time()
     time_taken = time.time() - start_time
@@ -214,7 +142,6 @@ def cluster_gaussian():
     raise NotImplementedError
 
 
-@profile
 def cluster_bsas():
     start_time = time.time()
     time_taken = time.time() - start_time
@@ -222,7 +149,6 @@ def cluster_bsas():
     raise NotImplementedError
 
 
-@profile
 def cluster_mbsas():
     start_time = time.time()
     time_taken = time.time() - start_time
@@ -230,7 +156,6 @@ def cluster_mbsas():
     raise NotImplementedError
 
 
-@profile
 def cluster_ttsas():
     start_time = time.time()
     time_taken = time.time() - start_time
@@ -306,6 +231,15 @@ def cluster_cobweb_3():
     raise NotImplementedError
 
 
+@profile
+def bench_estimator(estimator, params, data):
+    start_time = time.time()
+    result = estimator(params).fit(data)
+    time_taken = time.time() - start_time
+
+    return result, time_taken
+
+
 # In: result of clustering, Out: results of TED
 def compute_ted(linkage_tree: np.array, dataset: Dataset) -> int:
     # apted
@@ -324,21 +258,85 @@ def cross_validate():
     raise NotImplementedError
 
 
-# In
-def visualize_dendro():
-    # scipy.cluster.hierarchy.dendrogram
+def create_bracket_tree_from_dendrogram(children: np.array):
     raise NotImplementedError
 
 
-def visualize_preclust():
-    # matplotlib
-    raise NotImplementedError
+def visualize_dendro(children: np.array, labels: np.array, distance: np.array, path: str):
+    no_of_observations = np.arange(2, children.shape[0] + 2)
+    linkage_matrix = np.column_stack([children, distance, no_of_observations]).astype(float)
+
+    plt.title('Hierarchical Clustering Dendrogram')
+    dendrogram(linkage_matrix, labels=labels)
+    plt.show()
+    plt.savefig(path + "Dendrogram.svg")
 
 
-def tune_hyper_params():
-    raise NotImplementedError
+def visualize_clusters(path: str, labels: np.array, projected_data: np.array):
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    unique_labels = set(labels)
+    cmap = cm.get_cmap("Spectral")
+    colors = [cmap(each) for each in np.linspace(0, 1, len(unique_labels))]
 
-# SKlearn 3.2 and sklearn 5.1
+    plt.figure()
+    for k, col in zip(unique_labels, colors):
+        if k == -1:
+            # Black used for noise.
+            col = [0, 0, 0, 1]
+
+        class_member_mask = (labels == k)
+
+        xy = projected_data[class_member_mask]
+        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+                 markeredgecolor='k', markersize=10)
+
+    plt.title('Number of clusters: %d' % n_clusters_)
+    plt.savefig(path + "Clusters.svg")
+    plt.show()
+    # # DBSCAN Plotting and measures
+    # core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+    # core_samples_mask[db.core_sample_indices_] = True
+    # labels = db.labels_
+    #
+    # # Number of clusters in labels, ignoring noise if present.
+    # n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    # n_noise_ = list(labels).count(-1)
+    #
+    # print('Estimated number of clusters: %d' % n_clusters_)
+    # print('Estimated number of noise points: %d' % n_noise_)
+    # print("Silhouette Coefficient: %0.3f"
+    #       % metrics.silhouette_score(transformed_data, labels))
+    #
+    # unique_labels = set(labels)
+    # cmap = cm.get_cmap("Spectral")
+    # colors = [cmap(each)
+    #           for each in np.linspace(0, 1, len(unique_labels))]
+    # for k, col in zip(unique_labels, colors):
+    #     if k == -1:
+    #         # Black used for noise.
+    #         col = [0, 0, 0, 1]
+    #
+    #     class_member_mask = (labels == k)
+    #
+    #     xy = projected_data[class_member_mask & core_samples_mask]
+    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+    #              markeredgecolor='k', markersize=14)
+    #
+    #     xy = projected_data[class_member_mask & ~core_samples_mask]
+    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+    #              markeredgecolor='k', markersize=6)
+    #
+    # plt.title('DBSCAN: Estimated number of clusters: %d' % n_clusters_)
+    # plt.savefig(IMG_PATH + "dbscan_clusters.svg")
+    #plt.show()
+
+
+def transform_numeric(vectorized_data: np.array) -> np.array:
+    transformed_data = np.array(vectorized_data)
+    pca_data = PCA(n_components=0.7, svd_solver='full').fit_transform(transformed_data)
+    tsne_data = TSNE(metric='jaccard').fit_transform(pca_data)
+
+    return tsne_data
 
 
 # With transformed data:
@@ -421,89 +419,47 @@ def cluster_birch(transformed_data):
     plt.show()
 
 
-def main(dataset: str):
-    # TODO add time bench propperly
-    # Start the clustering with a timer
+def main(n_samples: int, dataset: Dataset):
+    print("Generating/Sampling and loading data")
+    data = load(n_samples, dataset)
+    vectorized_data = CountVectorizer(binary=True).fit(data)
 
+    distance_matrix = metrics.pairwise_distances(vectorized_data, metric='jaccard', n_jobs=-1)
 
-    if dataset == 'synthetic':
-        sets = [open_synthetic(path) for path in [SYNTHETIC_PLAIN_PATH, SYNTHETIC_BRANCH_PATH, SYNTHETIC_LEVELS_PATH,
-                                                  SYNTHETIC_NAMES_PATH, SYNTHETIC_ALL_PATH]]
-    elif dataset == 'businesses':
-        sets = open_businesses()
-    else:
-        raise Exception("Specify implemented dataset! synthetic or businesses")
+    # Case 1: Plain Agglomerative Clustering
+    print("Loading finished, starting to cluster")
+    pipeline = Pipeline([
+        ('agglo_clusterer', 'passthrough')
+    ])
+    params = cluster_agglomerative(n_samples)
+    searcher = RandomizedSearchCV(pipeline, param_distributions=params, cv=3, n_jobs=-1, n_iter=20,
+                                  scoring=[metrics.calinski_harabaz_score, metrics.silhouette_score], refit=True)
 
-    i = 0
-    for labels in sets:
-        print("Loading finished, starting vectorization")
-        vectorizer = CountVectorizer(binary=True)  # or ordinal
-        transformed_data = np.array(vectorizer.fit_transform(labels).toarray())  # .astype(bool, copy=False)
+    searcher.fit(vectorized_data)
+    estimator = searcher.best_estimator_
+    params = searcher.best_params_
+    result, time_taken = bench_estimator(estimator, params, distance_matrix)
+    print(time_taken)
 
-        print("Finished vectorization, starting projection")
+    # Case 2: Pipeline of 2 algos: first standard clustering, then agglomerative
+    pipe = Pipeline([
+        ('pre_clusterer', 'passthrough'),
+        ('agglo_clusterer', 'passthrough')
+    ])
+    pre_params = cluster_affinity_prop()
+    # pre_params = cluster_spectral()
+    # pre_params = cluster_dbscan()
+    # pre_params = cluster_optics()
+    agglo_params = cluster_agglomerative(n_samples)
+    searcher = GridSearchCV(pipe, param_grid=[pre_params, agglo_params], cv=3, n_jobs=-1,
+                            scoring=[metrics.calinski_harabaz_score, metrics.silhouette_score], refit=True)
 
-        # projected_data_umap = umap.UMAP(metric='jaccard').fit_transform(transformed_data)
-
-        projected_data_tsne = TSNE(metric='jaccard').fit_transform(transformed_data)
-
-        # projected_data_pca = PCA(n_components=0.8, svd_solver='full').fit_transform(transformed_data)
-
-        # projected_data_ica = FastICA().fit_transform(transformed_data)
-
-        # projected_data_feat_agglo = FeatureAgglomeration(n_clusters=5, affinity='jaccard', memory=CACHE_PATH,
-        #                                                linkage='single')
-
-        # Clustering on Vectorized data3
-        # cluster_rock(projected_data_tsne)
-
-        # cluster_birch(projected_data_tsne)
-        # print("Birch finished")
-
-        # print("Projection finished, starting clustering")
-        cluster_agglomerative(transformed_data, projected_data_tsne, i)
-        # print("Agglomerative finished")
-        # cluster_hdbscan(projected_data_tsne, projected_data_tsne, i)
-        # print("HDBScan finished")
-        # i += 1
-
-    # cluster_dbscan(transformed_data, projected_data),
-    # print("DBScan finished")
-
-    # Clustering on projected data
-    # for projected_data in [projected__data_umap, projected_data_tsne, projected_data_pca, projected_data_ica,
-    #                       projected_data_feat_agglo]:
-
-
-def open_synthetic(path):
-    with open(path, "r") as read_file:
-        data = json.load(read_file)
-
-    labels = [entry['labels'] for entry in data]
-
-    return labels
-
-
-def open_businesses():
-    with open(BUSINESSES_PATH, "r") as read_file:
-        data = [json.loads(line) for line in read_file]
-
-    labels = [entry['categories'] for entry in data]
-
-    labels = [label for label in labels if label is not None]
-
-    return [labels]
+    searcher.fit(distance_matrix)
+    estimator = searcher.best_estimator_
+    params = searcher.best_params_
+    result, time_taken = bench_estimator(estimator, params, vectorized_data)
+    print(time_taken)
 
 
 if __name__ == '__main__':
-    BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor/bachelor_project/"
-    IMG_ID = "5/"
-    IMG_PATH = BASE + "doc/img/" + IMG_ID
-    SYNTHETIC_PLAIN_PATH = BASE + "data/synthetic.json"
-    SYNTHETIC_ALL_PATH = BASE + "data/synthetic_all.json"
-    SYNTHETIC_BRANCH_PATH = BASE + "data/synthetic_branch.json"
-    SYNTHETIC_LEVELS_PATH = BASE + "data/synthetic_levels.json"
-    SYNTHETIC_NAMES_PATH = BASE + "data/synthetic_names.json"
-    BUSINESSES_PATH = BASE + "data/business.json"
-    CACHE_PATH = "/tmp/"
-    # 'synthetic' or 'businesses'
-    main('synthetic')
+    main(1000, Dataset.SYNTHETIC)
