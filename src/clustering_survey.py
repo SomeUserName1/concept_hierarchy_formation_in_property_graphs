@@ -13,7 +13,6 @@ import matplotlib.cm as cm
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from scipy.cluster.hierarchy import dendrogram
-from scipy.stats import randint
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
@@ -92,10 +91,10 @@ def load(n_samples: int, dataset: Dataset) -> List[List[str]]:
 
 # average, complete, single
 def cluster_agglomerative(n_samples: int):
-    return {'agglo_clusterer': AgglomerativeClustering(affinity='jaccard', linkage='complete', memory=CACHE_PATH)  #,
-            #'n_clusters': [1, 2, 4, 8, int(0.001 * n_samples) + 1, int(0.01 * n_samples) + 1, int(0.1 * n_samples) + 1,
-            #               int(0.2 * n_samples) + 1, 0.3 * n_samples],
-            #'linkage': ['single', 'average', 'complete']}
+    return {'agglo_clusterer': AgglomerativeClustering(affinity='jaccard', linkage='complete', memory=CACHE_PATH)}  # ,
+    # 'n_clusters': [1, 2, 4, 8, 16, 32, 64, int(0.001 * n_samples) + 1, int(0.01 * n_samples) + 1,
+    # int(0.1 * n_samples) + 1, int(0.2 * n_samples) + 1, 0.3 * n_samples],
+    # 'linkage': ['single', 'average', 'complete']}
 
 
 def cluster_affinity_prop(data: np.array):
