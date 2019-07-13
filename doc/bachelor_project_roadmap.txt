@@ -9,10 +9,10 @@ Overall Structure:
 2. Data: Yelp and Synthetic 
     - [x] Make callable from python
     - [x] Create Tree from whats generated
-    ⁻ [ ]and hand-crafted one for Yelp data set
+    ⁻ [ ] and hand-crafted one for Yelp data set
 
 3. Preprocessing: Binary Count Vectorization, SVD/PCA/ICA or tSNE/UMAP/MDS. 
-    - [ ] Binary count vectorization and Jaccard distance
+    - [ ] Binary count vectorization
     - [ ] Try SVD/PCA/ICA/tSNE/UMAP/MDS combination for data vis. Try but WITH ALL OR NOTHING. 
 
 4. Clustering:
@@ -79,7 +79,7 @@ how it supports our scenario, why/why not
 
 
 Presentation:
-1. 
+1. Introduction
     1. Motivation: Yelp, got hierarchy of some struct, dont wanna extract by hand (ex.); In Neo4J: vehicle => car, vehicle =>bus, bus, car; need to explicitly state. But concetually there is an hioerarchy, just not explitly in the data. Cant do iut by hand so => hierarchical clustering 
     2.  Probelm definition (formal, proper terminology)
 2. Solution
