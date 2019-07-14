@@ -11,16 +11,16 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+from sklearn.model_selection import GridSearchCV
 from scipy.cluster.hierarchy import dendrogram
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from sklearn import metrics
 
-from sklearn.cluster import DBSCAN, AgglomerativeClustering, AffinityPropagation, SpectralClustering, Birch, \
-    SpectralBiclustering, SpectralCoclustering, OPTICS
-from pyclustering.cluster import rock, kmeans, kmedians, kmedoids, ema, bsas, ttsas, mbsas
+from sklearn.cluster import DBSCAN, AgglomerativeClustering, AffinityPropagation, SpectralClustering, OPTICS
+from .pyclustering_wrapper import KMeansWrapper, KMediansWrapper, KMedoidsWrapper, ExpectationMaximizationWrapper, \
+    BSASWrapper, MBSASWrapper, TTSASWrapper, RockWrapper, SOMSCWrapper
 import hdbscan
 from concept_formation import cobweb3, trestle
 
@@ -79,7 +79,6 @@ def open_synthetic(noisy: bool):
     return labels
 
 
-# In: path, yelp/synthetic; Out: list of len no_samples
 def load(n_samples: int, dataset: Dataset) -> List[List[str]]:
     if dataset == Dataset.SYNTHETIC or Dataset.NOISY_SYNTHETIC:
         generate_synthetic(int(n_samples / 2))
@@ -89,15 +88,16 @@ def load(n_samples: int, dataset: Dataset) -> List[List[str]]:
         return sample_yelp(n_samples)
 
 
+# TODO add robust single linkage/condensed tree
 # average, complete, single
-def cluster_agglomerative(n_samples: int):
+def cluster_agglomerative():
     return {'agglo_clusterer': AgglomerativeClustering(affinity='jaccard', linkage='complete', memory=CACHE_PATH)}  # ,
     # 'n_clusters': [1, 2, 4, 8, 16, 32, 64, int(0.001 * n_samples) + 1, int(0.01 * n_samples) + 1,
     # int(0.1 * n_samples) + 1, int(0.2 * n_samples) + 1, 0.3 * n_samples],
     # 'linkage': ['single', 'average', 'complete']}
 
 
-def cluster_affinity_prop(data: np.array):
+def cluster_affinity_prop():
     return {'pre_clusterer': AffinityPropagation(affinity='precomputed')}
 
 
@@ -105,7 +105,7 @@ def cluster_spectral():
     return {'pre_clusterer': SpectralClustering(affinity='precomputed', n_jobs=-1)}
 
 
-def cluster_dbscan(transformed_data, projected_data):
+def cluster_dbscan():
     return {'pre_clusterer': DBSCAN(metric='precomputed', n_jobs=-1)}
 
 
@@ -114,107 +114,46 @@ def cluster_optics():
 
 
 def cluster_kmeans():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # pyclustering
-    raise NotImplementedError
+    return {'pre_clusterer': KMeansWrapper(n_clusters=5)}
 
 
 def cluster_kmedoids():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # pyclust
-    raise NotImplementedError
+    return {'pre_clusterer': KMedoidsWrapper(n_clusters=5)}
 
 
 def cluster_kmedians():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # pyclust
-    raise NotImplementedError
+    return {'pre_clusterer': KMediansWrapper(n_clusters=5)}
 
 
-def cluster_gaussian():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # pyclustering with kmeans jaccard init
-    raise NotImplementedError
+def cluster_em():
+    return {'pre_clusterer': ExpectationMaximizationWrapper(n_clusters=5)}
 
 
 def cluster_bsas():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # pyclustering
-    raise NotImplementedError
+    return {'pre_clusterer': BSASWrapper(max_n_clusters=5)}
 
 
 def cluster_mbsas():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # pyclustering
-    raise NotImplementedError
+    return {'pre_clusterer': MBSASWrapper(max_n_clusters=5)}
 
 
 def cluster_ttsas():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # pyclustering
-    raise NotImplementedError
+    return {'pre_clusterer': TTSASWrapper(max_n_clusters=5)}
 
 
-# FIXME refactor
-@profile
-def cluster_hdbscan(transformed_data, projected_data, i):
-    start_time = time.time()
-    hdb = hdbscan.HDBSCAN(metric='euclidean', min_cluster_size=24, memory=CACHE_PATH, core_dist_n_jobs=-1)
-    hdb.fit(transformed_data)
-    time_taken = time.time() - start_time
-    labels = hdb.labels_
-
-    # Number of clusters in labels, ignoring noise if present.
-    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    n_noise_ = list(labels).count(-1)
-
-    print('Estimated number of clusters: %d' % n_clusters_)
-    print('Estimated number of noise points: %d' % n_noise_)
-    print("Silhouette Coefficient: %0.3f"
-          % metrics.silhouette_score(transformed_data, labels))
-    print("Cluster  stability per cluster:")
-    for val in hdb.cluster_persistence_:
-        print("\t %0.3f" % val)
-
-    unique_labels = set(labels)
-    cmap = cm.get_cmap("Spectral")
-    colors = [cmap(each)
-              for each in np.linspace(0, 1, len(unique_labels))]
-    for k, col in zip(unique_labels, colors):
-        if k == -1:
-            # Black used for noise.
-            col = [0, 0, 0, 1]
-
-        class_member_mask = (labels == k)
-
-        xy = projected_data[class_member_mask]
-        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                 markeredgecolor='k', markersize=14)
-
-        xy = projected_data[class_member_mask]
-        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                 markeredgecolor='k', markersize=6)
-    plt.title('HDBSCAN*: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(IMG_PATH + str(i) + "hdbscan_clusters.svg")
-    plt.show()
-    plt.figure()
-    hdb.single_linkage_tree_.plot()
-    plt.savefig(IMG_PATH + str(i) + "hdbscan_dendro.svg")
-    plt.show()
-    plt.figure()
-    hdb.condensed_tree_.plot()
-    plt.savefig(IMG_PATH + str(i) + "hdbscan_condensed.svg")
-    plt.show()
+def cluster_rock():
+    return {'pre_clusterer': RockWrapper(n_clusters=5)}
 
 
-@profile
+def cluster_som():
+    return {'pre_clusterer': SOMSCWrapper(n_clusters=5)}
+
+
+# TODO API for End-to-End approaches: 1. fit, 2. flat clusters, 3. tree
+def cluster_hdbscan():
+    return {'end-to-end_clusterer': hdbscan.HDBSCAN(metric='precomputed', memory=CACHE_PATH, core_dist_n_jobs=-1)}
+
+
 def cluster_trestle():
     start_time = time.time()
     time_taken = time.time() - start_time
@@ -222,7 +161,6 @@ def cluster_trestle():
     raise NotImplementedError
 
 
-@profile
 def cluster_cobweb_3():
     start_time = time.time()
     time_taken = time.time() - start_time
@@ -245,7 +183,7 @@ def compute_ted(linkage_tree: np.array, dataset: Dataset) -> int:
     # FIXME load .tree for groundtruth and generate bracket tree for result from child array
 
     groundtruth_tree = dataset
-    result_tree = linkage_tree
+    result_tree = create_bracket_tree_from_dendrogram(linkage_tree)
     command = "java -jar apted.jar -t " + str(groundtruth_tree) + " " + result_tree
     args = split(command)
     with Popen(args, stdout=PIPE) as apted:
@@ -263,6 +201,7 @@ def create_bracket_tree_from_dendrogram(children: np.array):
 
 def visualize_dendro(children: np.array, labels: np.array, distance: np.array, path: str):
     no_of_observations = np.arange(2, children.shape[0] + 2)
+    # FIXME adjust distance: is it right like that
     linkage_matrix = np.column_stack([children, distance, no_of_observations]).astype(float)
 
     plt.title('Hierarchical Clustering Dendrogram')
@@ -271,6 +210,7 @@ def visualize_dendro(children: np.array, labels: np.array, distance: np.array, p
     plt.savefig(path + "Dendrogram.svg")
 
 
+# TODO Refactor and find way to visualize all kinds propperly
 def visualize_clusters(path: str, labels: np.array, projected_data: np.array):
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     unique_labels = set(labels)
@@ -327,7 +267,90 @@ def visualize_clusters(path: str, labels: np.array, projected_data: np.array):
     #
     # plt.title('DBSCAN: Estimated number of clusters: %d' % n_clusters_)
     # plt.savefig(IMG_PATH + "dbscan_clusters.svg")
-    #plt.show()
+    # plt.show()
+    # plt.title('Hierarchical Clustering Dendrogram')
+    #
+    # children = agglo.children_
+    #
+    # # Distances between each pair of children
+    # # Since we don't have this information, we can use a uniform one for plotting
+    # distance = np.arange(children.shape[0])
+    #
+    # # The number of observations contained in each cluster level
+    # no_of_observations = np.arange(2, children.shape[0] + 2)
+    #
+    # # Create linkage matrix and then plot the dendrogram
+    # linkage_matrix = np.column_stack([children, distance, no_of_observations]).astype(float)
+    #
+    # # Plot the corresponding dendrogram
+    # dendrogram(linkage_matrix, labels=birch.labels_)
+    # plt.savefig(IMG_PATH + "agglo_dendro.svg")
+    #
+    # plt.figure()
+    # labels = birch.labels_
+    # n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    # unique_labels = set(labels)
+    # cmap = cm.get_cmap("Spectral")
+    # colors = [cmap(each)
+    #           for each in np.linspace(0, 1, len(unique_labels))]
+    #
+    # for k, col in zip(unique_labels, colors):
+    #     if k == -1:
+    #         # Black used for noise.
+    #         col = [0, 0, 0, 1]
+    #
+    #     class_member_mask = (labels == k)
+    #
+    #     xy = transformed_data[class_member_mask]
+    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+    #              markeredgecolor='k', markersize=10)
+    #
+    # plt.title('BIRCH + Agglo: Estimated number of clusters: %d' % n_clusters_)
+    # plt.savefig(IMG_PATH + "agglo_clust.svg")
+    # plt.show()
+    # labels = hdb.labels_
+    #
+    # # Number of clusters in labels, ignoring noise if present.
+    # n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    # n_noise_ = list(labels).count(-1)
+    #
+    # print('Estimated number of clusters: %d' % n_clusters_)
+    # print('Estimated number of noise points: %d' % n_noise_)
+    # print("Silhouette Coefficient: %0.3f"
+    #       % metrics.silhouette_score(transformed_data, labels))
+    # print("Cluster  stability per cluster:")
+    # for val in hdb.cluster_persistence_:
+    #     print("\t %0.3f" % val)
+    #
+    # unique_labels = set(labels)
+    # cmap = cm.get_cmap("Spectral")
+    # colors = [cmap(each)
+    #           for each in np.linspace(0, 1, len(unique_labels))]
+    # for k, col in zip(unique_labels, colors):
+    #     if k == -1:
+    #         # Black used for noise.
+    #         col = [0, 0, 0, 1]
+    #
+    #     class_member_mask = (labels == k)
+    #
+    #     xy = projected_data[class_member_mask]
+    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+    #              markeredgecolor='k', markersize=14)
+    #
+    #     xy = projected_data[class_member_mask]
+    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+    #              markeredgecolor='k', markersize=6)
+    # plt.title('HDBSCAN*: Estimated number of clusters: %d' % n_clusters_)
+    # plt.savefig(IMG_PATH + str(i) + "hdbscan_clusters.svg")
+    # plt.show()
+    # plt.figure()
+    # hdb.single_linkage_tree_.plot()
+    # plt.savefig(IMG_PATH + str(i) + "hdbscan_dendro.svg")
+    # plt.show()
+    # plt.figure()
+    # hdb.condensed_tree_.plot()
+    # plt.savefig(IMG_PATH + str(i) + "hdbscan_condensed.svg")
+    # plt.show()
 
 
 def transform_numeric(vectorized_data: np.array) -> np.array:
@@ -338,86 +361,6 @@ def transform_numeric(vectorized_data: np.array) -> np.array:
     return tsne_data
 
 
-# With transformed data:
-# birch, mean shift, soms, rock, cure, ga, bang, clarans, xmeans, ...
-@profile
-def bicluster_spectral():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    raise NotImplementedError
-
-
-@profile
-def cocluster_spectral():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    raise NotImplementedError
-
-
-@profile
-def cluster_rock(transformed_data: np.array):
-    start_time = time.time()
-    rock_inst = rock.rock(transformed_data, 2, 5)
-    rock_inst.process()
-    time_taken = time.time() - start_time
-    clusters = rock_inst.get_clusters()
-    for cluster in clusters:
-        print(cluster)
-
-
-# TODO Refactor
-@profile
-def cluster_birch(transformed_data):
-    start_time = time.time()
-    transformed_data = np.transpose(transformed_data)
-    agglo = AgglomerativeClustering(n_clusters=5, affinity='jaccard', memory=CACHE_PATH,
-                                    linkage='single')
-    birch = Birch(threshold=0.0000001, n_clusters=agglo).fit(transformed_data)
-    time_taken = time.time() - start_time
-    print(birch)
-
-    plt.title('Hierarchical Clustering Dendrogram')
-
-    children = agglo.children_
-
-    # Distances between each pair of children
-    # Since we don't have this information, we can use a uniform one for plotting
-    distance = np.arange(children.shape[0])
-
-    # The number of observations contained in each cluster level
-    no_of_observations = np.arange(2, children.shape[0] + 2)
-
-    # Create linkage matrix and then plot the dendrogram
-    linkage_matrix = np.column_stack([children, distance, no_of_observations]).astype(float)
-
-    # Plot the corresponding dendrogram
-    dendrogram(linkage_matrix, labels=birch.labels_)
-    plt.savefig(IMG_PATH + "agglo_dendro.svg")
-
-    plt.figure()
-    labels = birch.labels_
-    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    unique_labels = set(labels)
-    cmap = cm.get_cmap("Spectral")
-    colors = [cmap(each)
-              for each in np.linspace(0, 1, len(unique_labels))]
-
-    for k, col in zip(unique_labels, colors):
-        if k == -1:
-            # Black used for noise.
-            col = [0, 0, 0, 1]
-
-        class_member_mask = (labels == k)
-
-        xy = transformed_data[class_member_mask]
-        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                 markeredgecolor='k', markersize=10)
-
-    plt.title('BIRCH + Agglo: Estimated number of clusters: %d' % n_clusters_)
-    plt.savefig(IMG_PATH + "agglo_clust.svg")
-    plt.show()
-
-
 def main(n_samples: int, dataset: Dataset):
     print("Generating/Sampling and loading data")
     data = load(n_samples, dataset)
@@ -425,14 +368,14 @@ def main(n_samples: int, dataset: Dataset):
 
     distance_matrix = metrics.pairwise_distances(vectorized_data, metric='jaccard', n_jobs=-1)
 
-    # Case 1: Plain Agglomerative Clustering
+    # Case 1: Plain Agglomerative Clustering and End-to-End approaches
     print("Loading finished, starting to cluster")
     pipeline = Pipeline([
-        ('agglo_clusterer', 'passthrough')
+        ('to-tree', 'passthrough')
     ])
-    params = cluster_agglomerative(n_samples)
-    searcher = RandomizedSearchCV(pipeline, param_distributions=params, cv=3, n_jobs=-1, n_iter=20,
-                                  scoring=[metrics.calinski_harabaz_score, metrics.silhouette_score], refit=True)
+    params = cluster_agglomerative()
+    searcher = GridSearchCV(pipeline, param_grid=params, cv=3, n_jobs=-1, n_iter=20,
+                            scoring=[metrics.calinski_harabaz_score, metrics.silhouette_score], refit=True)
 
     searcher.fit(vectorized_data)
     estimator = searcher.best_estimator_
@@ -445,12 +388,10 @@ def main(n_samples: int, dataset: Dataset):
         ('pre_clusterer', 'passthrough'),
         ('agglo_clusterer', 'passthrough')
     ])
-    pre_params = cluster_affinity_prop()
-    # pre_params = cluster_spectral()
-    # pre_params = cluster_dbscan()
-    # pre_params = cluster_optics()
-    agglo_params = cluster_agglomerative(n_samples)
-    searcher = GridSearchCV(pipe, param_grid=[pre_params, agglo_params], cv=3, n_jobs=-1,
+    grid_params = [cluster_kmeans(), cluster_kmedians(), cluster_kmedoids(), cluster_bsas(), cluster_mbsas(),
+                   cluster_ttsas(), cluster_em(), cluster_affinity_prop(), cluster_spectral(), cluster_rock(),
+                   cluster_dbscan(), cluster_optics(), cluster_som(), cluster_agglomerative()]
+    searcher = GridSearchCV(pipe, param_grid=grid_params, cv=3, n_jobs=-1,
                             scoring=[metrics.calinski_harabaz_score, metrics.silhouette_score], refit=True)
 
     searcher.fit(distance_matrix)
