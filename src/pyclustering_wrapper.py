@@ -16,7 +16,7 @@ import random
 
 
 class SOMSCWrapper(BaseEstimator, ClusterMixin):
-    def __init__(self, n_clusters, epoch=100):
+    def __init__(self, n_clusters=5, epoch=100):
         self.n_clusters = n_clusters
         self.epoch = epoch
         self.wrapped_instance = None
@@ -50,7 +50,7 @@ class SOMSCWrapper(BaseEstimator, ClusterMixin):
 
 
 class RockWrapper(BaseEstimator, ClusterMixin):
-    def __init__(self, n_clusters, eps=1.0, threshold=0.5):
+    def __init__(self, n_clusters=5, eps=1.0, threshold=0.5):
         self.n_clusters = n_clusters
         self.eps = eps
         self.threshold = threshold
@@ -87,7 +87,7 @@ class RockWrapper(BaseEstimator, ClusterMixin):
 
 
 class TTSASWrapper(BaseEstimator, ClusterMixin):
-    def __init__(self, max_n_clusters, threshold_1=3, threshold_2=6):
+    def __init__(self, max_n_clusters=5, threshold_1=0.3, threshold_2=0.8):
         self.max_n_clusters = max_n_clusters
         self.threshold_1 = threshold_1
         self.threshold_2 = threshold_2
@@ -134,7 +134,7 @@ class TTSASWrapper(BaseEstimator, ClusterMixin):
 
 
 class MBSASWrapper(BaseEstimator, ClusterMixin):
-    def __init__(self, max_n_clusters, threshold=3):
+    def __init__(self, max_n_clusters=5, threshold=0.5):
         self.max_n_clusters = max_n_clusters
         self.threshold = threshold
         self.metric = self.__jaccard
@@ -178,7 +178,7 @@ class MBSASWrapper(BaseEstimator, ClusterMixin):
 
 
 class BSASWrapper(BaseEstimator, ClusterMixin):
-    def __init__(self, max_n_clusters, threshold=3):
+    def __init__(self, max_n_clusters=5, threshold=0.5):
         self.max_n_clusters = max_n_clusters
         self.threshold = threshold
         self.metric = self.__jaccard
@@ -223,7 +223,7 @@ class BSASWrapper(BaseEstimator, ClusterMixin):
 
 class ExpectationMaximizationWrapper(BaseEstimator, ClusterMixin):
 
-    def __init__(self, n_clusters, tolerance=0.00001, max_iter=100):
+    def __init__(self, n_clusters=5, tolerance=0.00001, max_iter=100):
         self.n_clusters = n_clusters
         self.tolerance = tolerance
         self.max_iter = max_iter
@@ -294,7 +294,7 @@ class ExpectationMaximizationWrapper(BaseEstimator, ClusterMixin):
 
 class KMediansWrapper(BaseEstimator, ClusterMixin):
 
-    def __init__(self, n_clusters, tolerance=0.001):
+    def __init__(self, n_clusters=5, tolerance=0.001):
         self.n_clusters = n_clusters
         self.tolerance = tolerance
         self.metric = self.__jaccard
@@ -337,7 +337,7 @@ class KMediansWrapper(BaseEstimator, ClusterMixin):
 
 class KMedoidsWrapper(BaseEstimator, ClusterMixin):
 
-    def __init__(self, n_clusters, tolerance=0.001):
+    def __init__(self, n_clusters=5, tolerance=0.001):
         self.n_clusters = n_clusters
         self.tolerance = tolerance
         self.metric = self.__jaccard
@@ -380,7 +380,7 @@ class KMedoidsWrapper(BaseEstimator, ClusterMixin):
 
 class KMeansWrapper(BaseEstimator, ClusterMixin):
 
-    def __init__(self, n_clusters, tolerance=0.001, max_iter=200):
+    def __init__(self, n_clusters=5, tolerance=0.001, max_iter=200):
         self.n_clusters = n_clusters
         self.tolerance = tolerance
         self.metric = self.__jaccard

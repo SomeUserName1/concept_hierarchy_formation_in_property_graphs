@@ -9,9 +9,9 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from sklearn.metrics import make_scorer
 
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 from scipy.cluster.hierarchy import dendrogram
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.manifold import TSNE
@@ -21,19 +21,24 @@ from sklearn import metrics
 from sklearn.cluster import DBSCAN, AgglomerativeClustering, AffinityPropagation, SpectralClustering, OPTICS
 from .pyclustering_wrapper import KMeansWrapper, KMediansWrapper, KMedoidsWrapper, ExpectationMaximizationWrapper, \
     BSASWrapper, MBSASWrapper, TTSASWrapper, RockWrapper, SOMSCWrapper
-import hdbscan
+from hdbscan import HDBSCAN, RobustSingleLinkage
+from .hdbscan import condense_tree, label
 from concept_formation import cobweb3, trestle
 
 BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project"
 CACHE_PATH = "/tmp/"
+chs = make_scorer(metrics.calinski_harabaz_score)
+sc = make_scorer(metrics.silhouette_score)
 
 
 # Restructure into pipeline:
-#   1. generate/sample
-#   2. load data
-#   3. preprocess data
-#   4. Cluster data
-#   5. Evaluate
+
+
+#   4. Cluster data: TODO grid searcher for each precluster algo, tuning the hyper params
+#                    TODO apply Robust single linkage on top of all
+#                    TODO add end to end approaches
+#
+#   5. Evaluate     TODO create bracket tree from robust single linkage output
 #   6. Visualize
 
 
@@ -88,9 +93,17 @@ def load(n_samples: int, dataset: Dataset) -> List[List[str]]:
         return sample_yelp(n_samples)
 
 
+def cluster_robust_single_linkage():
+    return {'cluster_agglo': RobustSingleLinkage(metric='jaccard')}
+
+
 # TODO add robust single linkage/condensed tree
 # average, complete, single
 def cluster_agglomerative():
+    raise NotImplementedError
+
+
+def grid_params_agglomerative():
     return {'agglo_clusterer': AgglomerativeClustering(affinity='jaccard', linkage='complete', memory=CACHE_PATH)}  # ,
     # 'n_clusters': [1, 2, 4, 8, 16, 32, 64, int(0.001 * n_samples) + 1, int(0.01 * n_samples) + 1,
     # int(0.1 * n_samples) + 1, int(0.2 * n_samples) + 1, 0.3 * n_samples],
@@ -98,78 +111,184 @@ def cluster_agglomerative():
 
 
 def cluster_affinity_prop():
-    return {'pre_clusterer': AffinityPropagation(affinity='precomputed')}
+    grid_params = {
+        "damping": random.triangular(0.5, 1.0, 0.7)
+    }
+    clust = AffinityPropagation(affinity='precomputed')
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_spectral():
-    return {'pre_clusterer': SpectralClustering(affinity='precomputed', n_jobs=-1)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+    }
+    clust = SpectralClustering(affinity='precomputed', eigen_solver='amg', n_jobs=-1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_dbscan():
-    return {'pre_clusterer': DBSCAN(metric='precomputed', n_jobs=-1)}
+    grid_params = {
+        "eps": random.uniform(0.1, 1),
+        "min_samples": random.triangular(5, 100, 15),
+        "leaf_size": random.triangular(5, 100, 30)
+    }
+    clust = DBSCAN(metric='precomputed', n_jobs=-1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_optics():
-    return {'pre_clusterer': OPTICS()}
+    grid_params = {
+        "max_eps": random.uniform(0.1, 1),
+        "min_samples": random.uniform(0.01, 1),
+        "leaf_size": random.uniform(5, 100),
+        "xi": random.triangular(0, 1, 0.05),
+        "min_cluster_size": random.triangular(0, 1, 0.2)
+    }
+    clust = OPTICS(metric='precomputed', n_jobs=-1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_kmeans():
-    return {'pre_clusterer': KMeansWrapper(n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "tolerance": random.triangular(0.00001, 0.3, 0.001)
+    }
+    clust = KMeansWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_kmedoids():
-    return {'pre_clusterer': KMedoidsWrapper(n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "tolerance": random.triangular(0.00001, 0.3, 0.001)
+    }
+    clust = KMedoidsWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_kmedians():
-    return {'pre_clusterer': KMediansWrapper(n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "tolerance": random.triangular(0.00001, 0.3, 0.001)
+    }
+    clust = KMedoidsWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_em():
-    return {'pre_clusterer': ExpectationMaximizationWrapper(n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "tolerance": random.triangular(0.00001, 0.3, 0.00001)
+    }
+    clust = ExpectationMaximizationWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_bsas():
-    return {'pre_clusterer': BSASWrapper(max_n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "threshold": random.triangular(0.0, 1, 0.5)
+    }
+    clust = BSASWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_mbsas():
-    return {'pre_clusterer': MBSASWrapper(max_n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "threshold": random.triangular(0.0, 1, 0.5)
+    }
+    clust = MBSASWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_ttsas():
-    return {'pre_clusterer': TTSASWrapper(max_n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "threshold_1": random.triangular(0.0, 1, 0.3),
+        "threshold_2": random.triangular(0.0, 1, 0.8)
+    }
+    clust = TTSASWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_rock():
-    return {'pre_clusterer': RockWrapper(n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "eps": random.uniform(0.0, 1),
+        "threshold": random.triangular(0.0, 1, 0.5)
+    }
+    clust = RockWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
 def cluster_som():
-    return {'pre_clusterer': SOMSCWrapper(n_clusters=5)}
+    grid_params = {
+        "n_clusters": random.triangular(4, 100, 15),
+        "epoch": random.uniform(10, 300)
+    }
+    clust = SOMSCWrapper()
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
+
+    return searcher
 
 
-# TODO API for End-to-End approaches: 1. fit, 2. flat clusters, 3. tree
 def cluster_hdbscan():
-    return {'end-to-end_clusterer': hdbscan.HDBSCAN(metric='precomputed', memory=CACHE_PATH, core_dist_n_jobs=-1)}
+    grid_params = {
+        "min_cluster_size": random.triangular(5, 100, 15),
+        "min_samples": random.uniform(10, 300),
+        "alpha": random.triangular(0.1, 2.0, 1.0),
+        "leaf_size": random.triangular(5, 100, 40)
+    }
+    clust = HDBSCAN(metric='precomputed', memory=CACHE_PATH, core_dist_n_jobs=-1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=1, n_jobs=-1,
+                                  scoring={sc, chs}, refit=True, n_iter=50)
 
-
-def cluster_trestle():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # concept formation
-    raise NotImplementedError
-
-
-def cluster_cobweb_3():
-    start_time = time.time()
-    time_taken = time.time() - start_time
-    # concept formation
-    raise NotImplementedError
+    return searcher
 
 
 @profile
-def bench_estimator(estimator, params, data):
+def bench_estimator(estimator, params, data, precomputed):
+    if precomputed:
+        data = metrics.pairwise_distances(data, metric='jaccard', n_jobs=-1)
+
     start_time = time.time()
     result = estimator(params).fit(data)
     time_taken = time.time() - start_time
@@ -196,6 +315,49 @@ def cross_validate():
 
 
 def create_bracket_tree_from_dendrogram(children: np.array):
+    raise NotImplementedError
+
+
+def main(n_samples: int, dataset: Dataset):
+    print("Generating/Sampling and loading data")
+    data = load(n_samples, dataset)
+    vectorized_data = CountVectorizer(binary=True).fit_transform(data).toarray()
+
+    distance_matrix = metrics.pairwise_distances(vectorized_data, metric='jaccard', n_jobs=-1)
+
+    for searcher in [cluster_kmeans(), cluster_kmedians(), cluster_kmedoids(), cluster_bsas(), cluster_mbsas(),
+                     cluster_ttsas(), cluster_em(), cluster_affinity_prop(), cluster_spectral(), cluster_rock(),
+                     cluster_dbscan(), cluster_optics(), cluster_som(), cluster_agglomerative(), cluster_hdbscan()]:
+        if isinstance(searcher.get_params()['estimator'], SpectralClustering):
+            searcher.fit(np.exp(- distance_matrix ** 2 / (2. * 1.0 ** 2)))
+        elif 'precomputed' in searcher.get_params()['param_grid'][0]['cluster'][0].get_params().values():
+            searcher.fit(distance_matrix)
+        else:
+            searcher.fit(vectorized_data)
+
+        estimator = searcher.best_estimator_
+        params = searcher.best_params_
+        result, time_taken = bench_estimator(estimator, params, vectorized_data)
+        print(time_taken)
+        # compute ted
+        # visualize
+
+
+if __name__ == '__main__':
+    main(1000, Dataset.SYNTHETIC)
+
+
+def cluster_trestle():
+    start_time = time.time()
+    time_taken = time.time() - start_time
+    # concept formation
+    raise NotImplementedError
+
+
+def cluster_cobweb_3():
+    start_time = time.time()
+    time_taken = time.time() - start_time
+    # concept formation
     raise NotImplementedError
 
 
@@ -359,47 +521,3 @@ def transform_numeric(vectorized_data: np.array) -> np.array:
     tsne_data = TSNE(metric='jaccard').fit_transform(pca_data)
 
     return tsne_data
-
-
-def main(n_samples: int, dataset: Dataset):
-    print("Generating/Sampling and loading data")
-    data = load(n_samples, dataset)
-    vectorized_data = CountVectorizer(binary=True).fit(data)
-
-    distance_matrix = metrics.pairwise_distances(vectorized_data, metric='jaccard', n_jobs=-1)
-
-    # Case 1: Plain Agglomerative Clustering and End-to-End approaches
-    print("Loading finished, starting to cluster")
-    pipeline = Pipeline([
-        ('to-tree', 'passthrough')
-    ])
-    params = cluster_agglomerative()
-    searcher = GridSearchCV(pipeline, param_grid=params, cv=3, n_jobs=-1, n_iter=20,
-                            scoring=[metrics.calinski_harabaz_score, metrics.silhouette_score], refit=True)
-
-    searcher.fit(vectorized_data)
-    estimator = searcher.best_estimator_
-    params = searcher.best_params_
-    result, time_taken = bench_estimator(estimator, params, distance_matrix)
-    print(time_taken)
-
-    # Case 2: Pipeline of 2 algos: first standard clustering, then agglomerative
-    pipe = Pipeline([
-        ('pre_clusterer', 'passthrough'),
-        ('agglo_clusterer', 'passthrough')
-    ])
-    grid_params = [cluster_kmeans(), cluster_kmedians(), cluster_kmedoids(), cluster_bsas(), cluster_mbsas(),
-                   cluster_ttsas(), cluster_em(), cluster_affinity_prop(), cluster_spectral(), cluster_rock(),
-                   cluster_dbscan(), cluster_optics(), cluster_som(), cluster_agglomerative()]
-    searcher = GridSearchCV(pipe, param_grid=grid_params, cv=3, n_jobs=-1,
-                            scoring=[metrics.calinski_harabaz_score, metrics.silhouette_score], refit=True)
-
-    searcher.fit(distance_matrix)
-    estimator = searcher.best_estimator_
-    params = searcher.best_params_
-    result, time_taken = bench_estimator(estimator, params, vectorized_data)
-    print(time_taken)
-
-
-if __name__ == '__main__':
-    main(1000, Dataset.SYNTHETIC)

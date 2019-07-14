@@ -17,23 +17,23 @@ Overall Structure:
 
 4. Clustering:
     1. Pre-Clustering: (sklearn, pyclustering)
-        - [x] Use pipeline and Grid search for hyper param tuning
+        - [] Randomized search for hyper param tuning
         - [x] SkLearn: AffinityProp, Spectral, Optics, DBScan
-        - [ ] PyClustering: KMeans, KMedoid, KMedians, EM, BSAS, MBSAS, TTSAS
-        - [ ] Wrappers for PyClustering to use Pipeline and GridSearchCV from sklearn
+        - [x] PyClustering: KMeans, KMedoid, KMedians, EM, BSAS, MBSAS, TTSAS
+        - [x] Wrappers for PyClustering to use Pipeline and GridSearchCV from sklearn
     2. Hierarcical Clustering
-        - [ ] Single, Average, Complete, Ward, Robust Single, maybe divisive
+        - [x] Single, Average, Complete, Ward, Robust Single, maybe divisive
     3. End-to-End Approaches
-        - [ ] HDBScan (hdbscan package)
+        - [x] HDBScan (hdbscan package)
         - [ ] Conceptual Clustering (concept_formation package)
 
 5. Evaluation:
-        - [ ] (Optional: First Phase: Shilouette Coef., Adjusted Rand Index, MI based scores, V-meassure, FMI, CHI, DBI)
+        - [x] First Phase: Shilouette Coef., CHI is optimized for in the GridSearch
         - [ ] Second Phase: Tree Edit Distance & KFold Cross Validation
             Cross validation:
             Take 90% dataset & create hierachy
             take 10% dataset & validate hierarchy
-            - [ ] get TED running with appropriate costs via python
+            - [x] get TED running with appropriate costs via python
             - [ ] convert Dendrogram to .tree file
         - [ ] Visualization
             
@@ -61,23 +61,13 @@ Presentation slides finished
 MAX 1 MIN LONGER: better 1 min earlier
 
 
-Find methods to introduce noise in data set
-1. Baseline
-2. Take random node, remove random label
-
-
 
 Cost vs accuracy per algo 
 Algos   | Runtime   | Accuracy  | ...   |
 __________________________
 
-TODO
-0. Find methods to destroy hierarchy: Found only complex graph and genetic algo. based version
+
 1. TED running
-2. port data: call jar for py
-2. Fix algos: restructure code
-3. Bench Pure algo runtime (memory): find propper way to do so
-4. Try SCD/tSNE/... and bench runtime-accuracy trade off
 
 how it supports our scenario, why/why not
 
