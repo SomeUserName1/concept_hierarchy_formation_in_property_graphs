@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import random
 import time
 from enum import Enum
@@ -11,6 +12,7 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
 from memory_profiler import profile
+from line_profiler import LineProfiler
 from scipy.cluster.hierarchy import dendrogram
 from scipy.stats import randint, uniform
 from sklearn import metrics
@@ -25,7 +27,7 @@ from src.pyclustering_wrapper import KMeansWrapper, KMediansWrapper, KMedoidsWra
 
 from hdbscan import HDBSCAN, RobustSingleLinkage, condense_tree, label
 
-BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project"
+BASE = "/home/someusername/Nextcloud/workspace/uni/8/bachelor_project"
 CACHE_PATH = "/tmp/"
 
 
@@ -49,6 +51,7 @@ class DisabledCV:
 
     def get_n_splits(self, X, y, groups=None):
         return self.n_splits
+
 
 # Restructure into pipeline:
 
@@ -103,7 +106,7 @@ def open_synthetic(noisy: bool):
 
 def load(n_samples: int, dataset: Dataset) -> List[List[str]]:
     if dataset == Dataset.SYNTHETIC or Dataset.NOISY_SYNTHETIC:
-        # generate_synthetic(int(n_samples / 2))
+        generate_synthetic(int(math.log2(n_samples)))
         noisy = True if dataset == Dataset.NOISY_SYNTHETIC else False
         return open_synthetic(noisy)
     else:
@@ -300,8 +303,8 @@ def cluster_hdbscan():
     return searcher
 
 
-@profile
-def bench_estimator(estimator, params, base_data, precomputed, spectral):
+# @profile
+def bench_estimator(estimator, base_data, precomputed, spectral):
     if precomputed:
         data = metrics.pairwise_distances(base_data, metric='jaccard', n_jobs=-1)
         if spectral:
@@ -311,7 +314,6 @@ def bench_estimator(estimator, params, base_data, precomputed, spectral):
 
     start_time = time.time()
     estimator.fit(data)
-    print(estimator.labels_)
 
     # convert clusters to representatives taking the intersection of all cluster points
     representatives = np.empty(shape=(0, base_data.shape[1]))
@@ -322,28 +324,28 @@ def bench_estimator(estimator, params, base_data, precomputed, spectral):
                 attrib_union = np.logical_or(attrib_union, base_data[i])
         representatives = np.vstack((representatives, attrib_union))
 
-    print(representatives)
     hierarchy = cluster_agglomerative()
     hierarchy.fit_predict(representatives)
     time_taken = time.time() - start_time
-    print(time_taken)
-    print(hierarchy.labels_)
+    print(estimator.labels_)
     print(hierarchy.children_)
 
-    return hierarchy.children_, time_taken
+    return hierarchy, set(estimator.labels_)
 
 
 # In: result of clustering, Out: results of TED
-def compute_ted(linkage_tree: np.array, dataset: Dataset) -> int:
+def compute_ted(children: np.array, n_clusters, dataset: Dataset) :
     # apted
-    # FIXME load .tree for groundtruth and generate bracket tree for result from child array
 
-    groundtruth_tree = dataset
-    result_tree = create_bracket_tree_from_dendrogram(linkage_tree)
-    command = "java -jar apted.jar -t " + str(groundtruth_tree) + " " + result_tree
+    with open(dataset.value[1], "r") as read_file:
+        groundtruth_tree = read_file.readline()
+
+    result_tree = create_bracket_tree_from_agglo(children, n_clusters)
+
+    command = "java -jar " + BASE + "/lib/apted.jar -t " + groundtruth_tree + " " + result_tree
     args = split(command)
     with Popen(args, stdout=PIPE) as apted:
-        return int(apted.stdout.read().decode("utf-8"))
+        return apted.stdout.read().decode("utf-8")
 
 
 # in: preproc. data, out: result of cv as accuracy
@@ -351,10 +353,51 @@ def cross_validate():
     raise NotImplementedError
 
 
-def create_bracket_tree_from_dendrogram(children: np.array):
+def find_matching_brack(res_string, fix_point_idx):
+    while True:
+        candidate = res_string.find("}", fix_point_idx)
+        if res_string.find("{", fix_point_idx, candidate) == -1:
+            return candidate
+        else:
+            fix_point_idx = candidate + 1
+
+
+def create_bracket_tree_from_agglo(children: np.array, n_clusters):
+    print(n_clusters)
+    result = ""
+    i = n_clusters-1
     for merge in children:
-        break
-    return
+        if merge[0] > n_clusters-1 and merge[1] > n_clusters-1:
+
+            fix_1 = result.find("{" + str(merge[0])) + 1
+            matching_bracket_1 = find_matching_brack(result, fix_1-1)
+            fix_2 = result.find("{" + str(merge[1])) + 1
+            matching_bracket_2 = find_matching_brack(result, fix_2-1)
+
+            temp = result
+            i += 1
+            result = result[0: fix_1 - 1] + "{" + str(i) + result[fix_1 - 1: matching_bracket_1 + 1] + \
+                     result[fix_2 - 1: matching_bracket_2 + 1] + "}"
+            print("case 1: " + result)
+            print(result + temp[matching_bracket_1 + 1: fix_2 - 1] + temp[matching_bracket_2 + 1:])
+            result = result + temp[matching_bracket_1 + 1: fix_2 - 1] + temp[matching_bracket_2 + 1:] if fix_1 < fix_2 \
+                else result + temp[matching_bracket_2 + 1: fix_1 - 1] + temp[matching_bracket_2 + 1:]
+
+        elif merge[0] > n_clusters-1 or merge[1] > n_clusters-1:
+            fix_point = result.find("{" + str(merge[0])) + 1 if merge[0] > n_clusters-1 else result.find("{" + str(merge[1])) + 1
+            matching_bracket = find_matching_brack(result, fix_point)
+            base_clust = merge[0] if merge[0] < n_clusters else merge[1]
+
+            i += 1
+            result = result[0: fix_point - 1] + "{" + str(i) + result[fix_point - 1: matching_bracket + 1] + "{" \
+                     + str(base_clust) + "}}" + result[matching_bracket + 1:]
+        else:
+            # Two of the base clusters are merged, declare a "new" intermediate one for the merged
+            i += 1
+            result += "{" + str(i) + "{" + str(merge[0]) + "}{" + str(merge[1]) + "}}"
+
+    print(result)
+    return result
 
 
 def main(n_samples: int, dataset: Dataset):
@@ -381,7 +424,7 @@ def main(n_samples: int, dataset: Dataset):
 
     distance_matrix = metrics.pairwise_distances(vectorized_data, metric='jaccard', n_jobs=-1)
 
-    precomputed = False
+    # precomputed = False
     spectral = False
 
     searcher = cluster_dbscan()
@@ -391,10 +434,9 @@ def main(n_samples: int, dataset: Dataset):
     logger.info(estimator)
     params = searcher.best_params_
     logger.info(params)
-    children, time_taken = bench_estimator(estimator, params, vectorized_data, True, spectral)
-    logger.info("Time taken to fit: " + str(time_taken))
+    hierarchy, unique_labels = bench_estimator(estimator, vectorized_data, True, spectral)
 
-    create_bracket_tree_from_dendrogram(children)
+    print(compute_ted(hierarchy.children_, len(unique_labels), dataset))
 
     # for searcher in [cluster_kmeans(), cluster_kmedians(), cluster_kmedoids(), cluster_bsas(), cluster_mbsas(),
     #                 cluster_ttsas(), cluster_em(), cluster_affinity_prop(), cluster_spectral(), cluster_rock(),
@@ -422,19 +464,19 @@ def main(n_samples: int, dataset: Dataset):
 
 
 if __name__ == '__main__':
-    main(100, Dataset.SYNTHETIC)
+    main(128, Dataset.SYNTHETIC)
 
 
 def cluster_trestle():
-    start_time = time.time()
-    time_taken = time.time() - start_time
+    # start_time = time.time()
+    # time_taken = time.time() - start_time
     # concept formation
     raise NotImplementedError
 
 
 def cluster_cobweb_3():
-    start_time = time.time()
-    time_taken = time.time() - start_time
+    # start_time = time.time()
+    # time_taken = time.time() - start_time
     # concept formation
     raise NotImplementedError
 
