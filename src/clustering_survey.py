@@ -27,7 +27,7 @@ from src.pyclustering_wrapper import KMeansWrapper, KMediansWrapper, KMedoidsWra
 
 from hdbscan import HDBSCAN, RobustSingleLinkage, condense_tree, label
 
-BASE = "/home/someusername/Nextcloud/workspace/uni/8/bachelor_project"
+BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project"
 CACHE_PATH = "/tmp/"
 
 
@@ -76,7 +76,7 @@ def generate_synthetic(depth: int, width: int = 2, path: str = BASE + "/data/", 
         depth) + " -w " + str(width) \
               + " -n " + str(rem_labels) + " " + str(add_labels) + " " + str(alter_labels) + " -pr " + str(prob)
     args = split(command)
-    Popen(args)
+    Popen(args).wait()
 
 
 def sample_yelp(n_samples: int) -> List[List[str]]:
@@ -354,12 +354,19 @@ def cross_validate():
 
 
 def find_matching_brack(res_string, fix_point_idx):
+    # TODO with stack
+    i = fix_point_idx
+    br_count = 1
     while True:
-        candidate = res_string.find("}", fix_point_idx)
-        if res_string.find("{", fix_point_idx, candidate) == -1:
-            return candidate
+        if res_string[i] == "{":
+            br_count += 1
+        elif res_string[i] == "}":
+            br_count -= 1
+
+        if br_count == 0:
+            return i
         else:
-            fix_point_idx = candidate + 1
+            i += 1
 
 
 def create_bracket_tree_from_agglo(children: np.array, n_clusters):
@@ -370,19 +377,20 @@ def create_bracket_tree_from_agglo(children: np.array, n_clusters):
         if merge[0] > n_clusters-1 and merge[1] > n_clusters-1:
 
             fix_1 = result.find("{" + str(merge[0])) + 1
-            matching_bracket_1 = find_matching_brack(result, fix_1-1)
+            matching_bracket_1 = find_matching_brack(result, fix_1)
             fix_2 = result.find("{" + str(merge[1])) + 1
-            matching_bracket_2 = find_matching_brack(result, fix_2-1)
+            matching_bracket_2 = find_matching_brack(result, fix_2)
 
             temp = result
             i += 1
+            # FIXME here
+            print(temp)
             result = result[0: fix_1 - 1] + "{" + str(i) + result[fix_1 - 1: matching_bracket_1 + 1] + \
                      result[fix_2 - 1: matching_bracket_2 + 1] + "}"
-            print("case 1: " + result)
-            print(result + temp[matching_bracket_1 + 1: fix_2 - 1] + temp[matching_bracket_2 + 1:])
+            print(result)
             result = result + temp[matching_bracket_1 + 1: fix_2 - 1] + temp[matching_bracket_2 + 1:] if fix_1 < fix_2 \
                 else result + temp[matching_bracket_2 + 1: fix_1 - 1] + temp[matching_bracket_2 + 1:]
-
+            print(result)
         elif merge[0] > n_clusters-1 or merge[1] > n_clusters-1:
             fix_point = result.find("{" + str(merge[0])) + 1 if merge[0] > n_clusters-1 else result.find("{" + str(merge[1])) + 1
             matching_bracket = find_matching_brack(result, fix_point)
@@ -464,7 +472,7 @@ def main(n_samples: int, dataset: Dataset):
 
 
 if __name__ == '__main__':
-    main(128, Dataset.SYNTHETIC)
+    main(1024, Dataset.SYNTHETIC)
 
 
 def cluster_trestle():
