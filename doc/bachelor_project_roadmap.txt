@@ -4,7 +4,7 @@ Give That Thing A Name: Label/Property/Concept Hierarchy Inference
 Overall Structure: 
 
 1. General:
-    - [ ] Make code modular and functional to execute different varieties of the pipeline
+    - [x] Make code modular and functional to execute different varieties of the pipeline
 
 2. Data: Yelp and Synthetic 
     - [x] Make callable from python
@@ -17,7 +17,7 @@ Overall Structure:
 
 4. Clustering:
     1. Pre-Clustering: (sklearn, pyclustering)
-        - [] Randomized search for hyper param tuning
+        - [x] Randomized search for hyper param tuning
         - [x] SkLearn: AffinityProp, Spectral, Optics, DBScan
         - [x] PyClustering: KMeans, KMedoid, KMedians, EM, BSAS, MBSAS, TTSAS
         - [x] Wrappers for PyClustering to use Pipeline and GridSearchCV from sklearn
@@ -25,27 +25,31 @@ Overall Structure:
         - [x] Single, Average, Complete, Ward, Robust Single, maybe divisive
     3. End-to-End Approaches
         - [x] HDBScan (hdbscan package)
-        - [ ] Conceptual Clustering (concept_formation package)
+        - [x] Conceptual Clustering (concept_formation package)
 
 5. Evaluation:
         - [x] First Phase: Shilouette Coef., CHI is optimized for in the GridSearch
-        - [ ] Second Phase: Tree Edit Distance & KFold Cross Validation
-            Cross validation:
+        - Tree Edit Distance:
+            - [x] get TED running with appropriate costs via python
+            - [x] RSL -> .tree -> TED
+            - [ ] Trestle -> .tree -> TED
+        - [ ] KFold Cross Validation
             Take 90% dataset & create hierachy
             take 10% dataset & validate hierarchy
-            - [x] get TED running with appropriate costs via python
-            - [ ] convert Dendrogram to .tree file
-        - [ ] Visualization
+        - Visualization:
+            - [x] Dendro
+            - [ ] Pre-Clustering
             
 6. Questions that Project should answer:
-    1. Find label hierarchies
-    2. Extract only robust sub-hierarchies (rates of convergence for tree clusters)
-    3. How distant are two instances
-    4. Deal with noise
-    5. How can we make such an existing algorithm graph aware: By considering the structure of a graph (in the clustering) regain deleted labels
+    1. [x] Find label hierarchies
+    2. [x] Extract only robust sub-hierarchies
+    3. [ ] How distant are two instances
+    4. [x] Deal with noise
+    5. [ ] How can we make such an existing algorithm graph aware: (impl in Trestle,
+            By considering the structure of a graph (in the clustering) regain deleted labels
         - for each node how many edges of each type: Introduce new properties with graphy traits
         - Neighbours, types of neighbours, type of relationships, cumulative relationship, 
-    6. How much do we need to sample to get a correct hierarchy?
+    6. [ ] How much do we need to sample to get a correct hierarchy?
  
 Project: Ignore the graph
 Belivable results of how good the results are ignoring the graph structure

@@ -7,11 +7,12 @@ public class Main {
     String path = null;
     int depth = 0;
     int width = 0;
+    int iter = 0;
     boolean remLabels = false;
     boolean addLabels = false;
     boolean alterLabels = false;
     double probability = 0;
-    boolean[] valid = new boolean[7];
+    boolean[] valid = new boolean[8];
 
 
     String helpMessage = "\n" +
@@ -36,6 +37,9 @@ public class Main {
         "\n" +
         "    -w width,\n" +
         "        the depth of the hierarcy.\n" +
+        "\n" +
+        "    -i iteration \n" +
+        "        how many times w^d samples are generated.\n" +
         "\n" +
         "    -n remLabels addLabels alterLabels\n" +
         "        specifies the output directory.\n" +
@@ -66,21 +70,27 @@ public class Main {
             i = i + 1;
             valid[2] = true;
             break;
+          case "-i":
+          case "--iteration":
+            iter =  Integer.valueOf(args[i + 1]);
+            i = i + 1;
+            valid[3] = true;
+            break;
           case "-n":
           case "--noise":
             remLabels = Integer.valueOf(args[i+1]) == 1;
             addLabels = Integer.valueOf(args[i+2]) == 1;
             alterLabels = Integer.valueOf(args[i+3]) == 1;
             i = i + 3;
-            valid[3] = true;
             valid[4] = true;
             valid[5] = true;
+            valid[6] = true;
             break;
           case "-pr":
           case "--probability":
             probability =  Double.valueOf(args[i + 1]);
             i = i + 1;
-            valid[6] = true;
+            valid[7] = true;
             break;
           default:
             System.out.println(helpMessage);
@@ -102,7 +112,7 @@ public class Main {
     System.out.println("Executing synthetic data generation\n"
     + "Noise parameters:" + remLabels + " " + addLabels + " " + alterLabels + " prob "
         + probability);
-    SyntheticNodeGenerator sNG = new SyntheticNodeGenerator(path, width, depth);
+    SyntheticNodeGenerator sNG = new SyntheticNodeGenerator(path, width, depth, iter);
     sNG.introduce_noise(remLabels, addLabels, alterLabels, probability);
   }
 }

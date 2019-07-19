@@ -18,7 +18,7 @@ class SyntheticNodeGenerator {
   private String path;
 
   @SuppressWarnings("unchecked")
-  SyntheticNodeGenerator(String path, int width, int depth) {
+  SyntheticNodeGenerator(String path, int width, int depth, int iter) {
     StringBuilder sb = new StringBuilder();
     this.width = width;
     this.depth = depth;
@@ -26,20 +26,22 @@ class SyntheticNodeGenerator {
     int amount = (int) Math.pow(width, depth);
     this.path = path;
 
-    for (int i = 0; i < amount; i++) {
-      JSONObject syntheticNode = new JSONObject();
-      syntheticNode.put("id", i);
-      for (int j = 0; j < depth; j++) {
-        sb.append("l");
-        for (int k = 0; k < j+1; k++) {
-          sb.append(index[k]);
+    for (int step = 0; step < iter; step += amount) {
+        for (int i = 0; i < amount; i++) {
+          JSONObject syntheticNode = new JSONObject();
+          syntheticNode.put("id", i + step);
+          for (int j = 0; j < depth; j++) {
+            sb.append("l");
+            for (int k = 0; k < j+1; k++) {
+              sb.append(index[k]);
+            }
+            if (j < depth-1) sb.append(", ");
+          }
+          syntheticNode.put("labels", sb.toString());
+          index = incrementIndex(index, depth-1);
+          sb.setLength(0);
+          this.nodeList.add(syntheticNode);
         }
-        if (j < depth-1) sb.append(", ");
-      }
-      syntheticNode.put("labels", sb.toString());
-      index = incrementIndex(index, depth-1);
-      sb.setLength(0);
-      this.nodeList.add(syntheticNode);
     }
 
     sb.setLength(0);
