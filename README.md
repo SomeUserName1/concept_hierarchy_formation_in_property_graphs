@@ -1,3 +1,5 @@
+# FIXME: Update readme
+
 # Graph Structuring Toolbox
 
 Integrate with: Neo4J  
