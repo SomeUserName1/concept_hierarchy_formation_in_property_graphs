@@ -1,6 +1,5 @@
 import json
 import logging
-import math
 import random
 import time
 from enum import Enum
@@ -11,8 +10,8 @@ from typing import List
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
-from memory_profiler import profile
-from line_profiler import LineProfiler
+# from memory_profiler import profile
+# from line_profiler import LineProfiler
 from scipy.cluster.hierarchy import dendrogram
 from scipy.stats import randint, uniform
 from sklearn import metrics
@@ -27,7 +26,7 @@ from src.pyclustering_wrapper import KMeansWrapper, KMediansWrapper, KMedoidsWra
 
 from hdbscan import HDBSCAN, RobustSingleLinkage, condense_tree, label
 
-BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project"
+BASE = "/home/someusername/Nextcloud/workspace/uni/8/bachelor_project"
 CACHE_PATH = "/tmp/"
 
 
@@ -46,19 +45,14 @@ class DisabledCV:
     def __init__(self):
         self.n_splits = 1
 
-    def split(self, X, y, groups=None):
-        yield np.arange(len(X)), np.arange(len(X))
+    @staticmethod
+    def split(x, y, groups=None):
+        yield np.arange(len(x)), np.arange(len(x))
 
     def get_n_splits(self, X, y, groups=None):
         return self.n_splits
 
-
-# Restructure into pipeline:
-
-
 #   4. Cluster data:
-#                    TODO apply Robust single linkage on top of all: what are the distances between clusters
-#                    TODO add conceptual clustering
 #
 #   5. Evaluate     TODO create bracket tree from robust single linkage output
 #   6. Visualize
@@ -95,18 +89,17 @@ def sample_yelp(n_samples: int) -> List[List[str]]:
 
 
 def open_synthetic(noisy: bool):
-    path = Dataset.SYNTHETIC.value[0] if noisy else Dataset.NOISY_SYNTHETIC.value[0]
+    path = Dataset.SYNTHETIC.value[0] if not noisy else Dataset.NOISY_SYNTHETIC.value[0]
     with open(path, "r") as read_file:
         data = json.load(read_file)
 
     labels = [entry['labels'] for entry in data]
-
     return labels
 
 
 def load(n_samples: int, dataset: Dataset) -> List[List[str]]:
-    if dataset == Dataset.SYNTHETIC or Dataset.NOISY_SYNTHETIC:
-        generate_synthetic(int(math.log2(n_samples)))
+    if dataset == Dataset.SYNTHETIC or dataset == Dataset.NOISY_SYNTHETIC:
+        generate_synthetic(width=3, depth=2)  # int(math.log2(n_samples)))
         noisy = True if dataset == Dataset.NOISY_SYNTHETIC else False
         return open_synthetic(noisy)
     else:
@@ -115,13 +108,13 @@ def load(n_samples: int, dataset: Dataset) -> List[List[str]]:
 
 def cluster_robust_single_linkage():
     grid_params = {
-        "cut": triangular_generator(0.1, 1.0, 0.4),
-        "k": triangular_generator(1, 100, 5),
-        "alpha": triangular_generator(0.1, 5, 1.4142),
-        "gamma": triangular_generator(1, 30, 5),
+        "cut": uniform(),
+        "k": randint(3, 25),
+        "alpha": uniform(loc=1, scale=3),
+        "gamma": randint(3, 20),
     }
-    clust = RobustSingleLinkage(metric='jaccard', core_dist_n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    clust = RobustSingleLinkage(metric='jaccard', core_dist_n_jobs=1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1,
                                   scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
@@ -134,20 +127,20 @@ def cluster_agglomerative():
 
 def cluster_affinity_prop():
     grid_params = {
-        "damping": triangular_generator(0.5, 1.0, 0.7)
+        "damping": uniform(loc=0.5, scale=0.5)
     }
     clust = AffinityPropagation(affinity='precomputed')
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
     return searcher
 
 
 def cluster_spectral():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
+        "n_clusters": randint(5, 30, 15),
     }
     clust = SpectralClustering(affinity='precomputed', eigen_solver='amg', n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
     return searcher
 
@@ -169,11 +162,11 @@ def cluster_optics():
         "max_eps": randint(0.1, 1),
         "min_samples": randint(0.01, 1),
         "leaf_size": randint(5, 100),
-        "xi": triangular_generator(0, 1, 0.05),
-        "min_cluster_size": triangular_generator(0, 1, 0.2)
+        "xi": uniform(loc=0, scale=0.2),
+        "min_cluster_size": uniform(0, 0.3)
     }
     clust = OPTICS(metric='precomputed', n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -181,11 +174,11 @@ def cluster_optics():
 
 def cluster_kmeans():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
-        "tolerance": triangular_generator(0.00001, 0.3, 0.001)
+        "n_clusters": randint(4, 30),
+        "tolerance": uniform(0.00001, 0.1)
     }
     clust = KMeansWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -193,11 +186,11 @@ def cluster_kmeans():
 
 def cluster_kmedoids():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
-        "tolerance": triangular_generator(0.00001, 0.3, 0.001)
+        "n_clusters": randint(4, 30),
+        "tolerance": uniform(0.00001, 0.1)
     }
     clust = KMedoidsWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -205,11 +198,11 @@ def cluster_kmedoids():
 
 def cluster_kmedians():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
-        "tolerance": triangular_generator(0.00001, 0.3, 0.001)
+        "n_clusters": randint(4, 30),
+        "tolerance": uniform(0.00001, 0.1)
     }
     clust = KMediansWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -217,11 +210,11 @@ def cluster_kmedians():
 
 def cluster_em():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
-        "tolerance": triangular_generator(0.00001, 0.3, 0.00001)
+        "n_clusters": randint(4, 30),
+        "tolerance": uniform(0.00001, 0.1)
     }
     clust = ExpectationMaximizationWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -229,11 +222,11 @@ def cluster_em():
 
 def cluster_bsas():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
-        "threshold": triangular_generator(0.0, 1, 0.5)
+        "n_clusters": randint(4, 30),
+        "threshold": uniform(0, 1)
     }
     clust = BSASWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -241,11 +234,11 @@ def cluster_bsas():
 
 def cluster_mbsas():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
-        "threshold": triangular_generator(0.0, 1, 0.5)
+        "n_clusters": randint(4, 30),
+        "threshold": uniform(0, 1)
     }
     clust = MBSASWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -253,12 +246,12 @@ def cluster_mbsas():
 
 def cluster_ttsas():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
-        "threshold_1": triangular_generator(0.0, 1, 0.3),
-        "threshold_2": triangular_generator(0.0, 1, 0.8)
+        "n_clusters": randint(4, 30),
+        "threshold": uniform(loc=0, scale=0.5),
+        "threshold_2": uniform(0.5, 1)
     }
     clust = TTSASWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -266,12 +259,12 @@ def cluster_ttsas():
 
 def cluster_rock():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
-        "eps": randint(0.0, 1),
-        "threshold": triangular_generator(0.0, 1, 0.5)
+        "n_clusters": randint(4, 30),
+        "eps": uniform(0.0, 1),
+        "threshold": uniform(0.0, 1)
     }
     clust = RockWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -279,11 +272,11 @@ def cluster_rock():
 
 def cluster_som():
     grid_params = {
-        "n_clusters": triangular_generator(4, 100, 15),
+        "n_clusters": randint(4, 30),
         "epoch": randint(10, 300)
     }
     clust = SOMSCWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -291,13 +284,13 @@ def cluster_som():
 
 def cluster_hdbscan():
     grid_params = {
-        "min_cluster_size": triangular_generator(5, 100, 15),
+        "min_cluster_size": randint(5, 30),
         "min_samples": randint(10, 300),
-        "alpha": triangular_generator(0.1, 2.0, 1.0),
-        "leaf_size": triangular_generator(5, 100, 40)
+        "alpha": uniform(loc=0.1, scale=2),
+        "leaf_size": randint(5, 50)
     }
     clust = HDBSCAN(metric='precomputed', memory=CACHE_PATH, core_dist_n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=ShuffleSplit(test_size=0.1, n_splits=1),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
                                   n_jobs=-1, scoring=cv_silhouette_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -312,25 +305,35 @@ def bench_estimator(estimator, base_data, precomputed, spectral):
     else:
         data = base_data
 
+    # TODO use line_profiler to benchmark
     start_time = time.time()
     estimator.fit(data)
+    first_estimator_time = time.time() - start_time
 
     # convert clusters to representatives taking the intersection of all cluster points
     representatives = np.empty(shape=(0, base_data.shape[1]))
     for label_ in set(estimator.labels_):
-        attrib_union = np.zeros(shape=(1, base_data.shape[1]))
+        attrib_union = np.ones(shape=(1, base_data.shape[1]))
         for i, elem in enumerate(estimator.labels_):
             if elem == label_:
-                attrib_union = np.logical_or(attrib_union, base_data[i])
+                attrib_union = np.logical_and(attrib_union, base_data[i])
         representatives = np.vstack((representatives, attrib_union))
 
-    hierarchy = cluster_agglomerative()
-    hierarchy.fit_predict(representatives)
-    time_taken = time.time() - start_time
     print(estimator.labels_)
-    print(hierarchy.children_)
+    print(representatives)
 
-    return hierarchy, set(estimator.labels_)
+    hierarchy_searcher = cluster_robust_single_linkage()
+    hierarchy_searcher.fit(representatives)
+    rsl = hierarchy_searcher.estimator
+
+    start_time = time.time()
+    rsl.fit(representatives)
+    time_taken = time.time() - start_time
+
+    total_time = first_estimator_time + time_taken
+    print(total_time)
+
+    return rsl, set(estimator.labels_)
 
 
 # In: result of clustering, Out: results of TED
@@ -354,7 +357,6 @@ def cross_validate():
 
 
 def find_matching_brack(res_string, fix_point_idx):
-    # TODO with stack
     i = fix_point_idx
     br_count = 1
     while True:
@@ -370,7 +372,7 @@ def find_matching_brack(res_string, fix_point_idx):
 
 
 def create_bracket_tree_from_agglo(children: np.array, n_clusters):
-    print(n_clusters)
+    print(children)
     result = ""
     i = n_clusters-1
     for merge in children:
@@ -383,14 +385,13 @@ def create_bracket_tree_from_agglo(children: np.array, n_clusters):
 
             temp = result
             i += 1
-            # FIXME here
-            print(temp)
+
             result = result[0: fix_1 - 1] + "{" + str(i) + result[fix_1 - 1: matching_bracket_1 + 1] + \
                      result[fix_2 - 1: matching_bracket_2 + 1] + "}"
-            print(result)
+
             result = result + temp[matching_bracket_1 + 1: fix_2 - 1] + temp[matching_bracket_2 + 1:] if fix_1 < fix_2 \
                 else result + temp[matching_bracket_2 + 1: fix_1 - 1] + temp[matching_bracket_2 + 1:]
-            print(result)
+
         elif merge[0] > n_clusters-1 or merge[1] > n_clusters-1:
             fix_point = result.find("{" + str(merge[0])) + 1 if merge[0] > n_clusters-1 else result.find("{" + str(merge[1])) + 1
             matching_bracket = find_matching_brack(result, fix_point)
@@ -404,31 +405,15 @@ def create_bracket_tree_from_agglo(children: np.array, n_clusters):
             i += 1
             result += "{" + str(i) + "{" + str(merge[0]) + "}{" + str(merge[1]) + "}}"
 
-    print(result)
+    print("bracket_tree " + result)
     return result
 
 
 def main(n_samples: int, dataset: Dataset):
-    logger = logging.getLogger("clusering_survey")
-    logger.setLevel(logging.DEBUG)
-    # create file handler which logs even debug messages
-    fh = logging.FileHandler('clustering_survey.log')
-    fh.setLevel(logging.DEBUG)
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    fh.setFormatter(formatter)
-    # add the handlers to logger
-    logger.addHandler(ch)
-    logger.addHandler(fh)
-
     logger.info("Generating/Sampling and loading data")
 
     data = load(n_samples, dataset)
-    vectorized_data = CountVectorizer(binary=True).fit_transform(data).toarray()
+    vectorized_data = CountVectorizer(binary=True).fit_transform(data).toarray().astype(bool)
 
     distance_matrix = metrics.pairwise_distances(vectorized_data, metric='jaccard', n_jobs=-1)
 
@@ -444,7 +429,9 @@ def main(n_samples: int, dataset: Dataset):
     logger.info(params)
     hierarchy, unique_labels = bench_estimator(estimator, vectorized_data, True, spectral)
 
-    print(compute_ted(hierarchy.children_, len(unique_labels), dataset))
+    children = hierarchy.cluster_hierarchy_
+
+    print(compute_ted(children._linkage[:, :2].astype(int), len(unique_labels), dataset))
 
     # for searcher in [cluster_kmeans(), cluster_kmedians(), cluster_kmedoids(), cluster_bsas(), cluster_mbsas(),
     #                 cluster_ttsas(), cluster_em(), cluster_affinity_prop(), cluster_spectral(), cluster_rock(),
@@ -469,10 +456,6 @@ def main(n_samples: int, dataset: Dataset):
     # visualize & safe img
     #    precomputed = False
     #    spectral = False
-
-
-if __name__ == '__main__':
-    main(1024, Dataset.SYNTHETIC)
 
 
 def cluster_trestle():
@@ -650,3 +633,23 @@ def transform_numeric(vectorized_data: np.array) -> np.array:
     tsne_data = TSNE(metric='jaccard').fit_transform(pca_data)
 
     return tsne_data
+
+
+if __name__ == '__main__':
+    logger = logging.getLogger("clusering_survey")
+    logger.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler('clustering_survey.log')
+    fh.setLevel(logging.DEBUG)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.ERROR)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    fh.setFormatter(formatter)
+    # add the handlers to logger
+    logger.addHandler(ch)
+    logger.addHandler(fh)
+
+    main(8, Dataset.SYNTHETIC)

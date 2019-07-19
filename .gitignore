@@ -8,3 +8,5 @@ gradle/
 ressources/
 venv/
 data/
+__pycache__
+*.log

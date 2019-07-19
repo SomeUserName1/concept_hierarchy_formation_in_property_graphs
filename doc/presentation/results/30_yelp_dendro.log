@@ -1,0 +1,59 @@
+1.0001 Node
+	1.0001 Node
+		Leaf(YelpBusiness id: wbQj, categories:  Auto Parts & Supplies, Automotive, )
+		0.9167667 Node
+			0.9001 Node
+				0.8572429 Node
+					Leaf(YelpBusiness id: 8RJU, categories:  Nightlife,  Pubs, Bars, )
+					0.83343333 Node
+						Leaf(YelpBusiness id: 9V3Y, categories:  American (Traditional),  Bars,  Nightlife, Restaurants, )
+						0.7501 Node
+							Leaf(YelpBusiness id: l4v4, categories:  Chinese, Restaurants, )
+							0.7501 Node
+								Leaf(YelpBusiness id: qntl, categories:  Italian, Restaurants, )
+								Leaf(YelpBusiness id: OY6w, categories:  Steakhouses, Restaurants, )
+				0.8889889 Node
+					Leaf(YelpBusiness id: ViZu, categories:  American (Traditional),  Event Planning & Services,  Food,  Restaurants,  Venues & Event Spaces, Tea Rooms, )
+					0.8751 Node
+						Leaf(YelpBusiness id: 5Dq4, categories:  Falafel,  Mediterranean,  Middle Eastern,  Restaurants, Lebanese, )
+						0.8572429 Node
+							0.8001 Node
+								Leaf(YelpBusiness id: bnQZ, categories:  Burgers,  Fast Food,  Restaurants, Sandwiches, )
+								Leaf(YelpBusiness id: mSs5, categories:  Breakfast & Brunch,  Chicken Wings,  Fast Food,  Restaurants,  Southern, Chicken Shop, )
+							0.8572429 Node
+								Leaf(YelpBusiness id: ViWh, categories:  Restaurants,  Seafood,  Sushi Bars, Hawaiian, )
+								Leaf(YelpBusiness id: dD33, categories:  Pizza,  Restaurants, Italian, )
+			0.9167667 Node
+				Leaf(YelpBusiness id: HfkX, categories:  Horse Equipment Shops,  Livestock Feed & Supply,  Pet Adoption,  Pet Groomers,  Pet Services,  Pet Stores,  Pets,  Shopping, Pet Training, )
+				0.8889889 Node
+					0.8751 Node
+						0.8751 Node
+							Leaf(YelpBusiness id: eAaQ, categories:  Awnings,  Furniture Stores,  Home & Garden,  Home Services,  Local Services,  Outdoor Furniture Stores,  Patio Coverings,  Shades & Blinds, Shopping, )
+							0.8572429 Node
+								0.8001 Node
+									Leaf(YelpBusiness id: WB45, categories:  Local Services, Pest Control, )
+									Leaf(YelpBusiness id: lkN0, categories:  Laundry Services,  Local Services, Dry Cleaning & Laundry, )
+								0.83343333 Node
+									Leaf(YelpBusiness id: QkkY, categories:  Grocery,  Home & Garden,  Honey,  Local Services,  Pest Control,  Shopping, Food, )
+									0.8001 Node
+										Leaf(YelpBusiness id: Nqb5, categories:  Local Services,  Mailbox Centers,  Printing Services,  Shipping Centers, Notaries, )
+										Leaf(YelpBusiness id: DZb3, categories:  Local Services,  Office Equipment,  Printing Services,  Shopping, IT Services & Computer Repair, )
+						0.8751 Node
+							Leaf(YelpBusiness id: dNCe, categories:  Floral Designers,  Florists,  Flowers & Gifts,  Shopping, Event Planning & Services, )
+							0.8572429 Node
+								Leaf(YelpBusiness id: Bguf, categories:  Hobby Shops,  Mobile Phones,  Shopping, Electronics, )
+								Leaf(YelpBusiness id: vuni, categories:  Shopping,  Women's Clothing, Fashion, )
+					0.8889889 Node
+						Leaf(YelpBusiness id: jlH-, categories:  Beauty & Spas,  Convenience Stores,  Drugstores,  Food,  Shopping, Cosmetics & Beauty Supply, )
+						0.8572429 Node
+							Leaf(YelpBusiness id: 5aHa, categories:  Barbers,  Beauty & Spas, Hair Salons, )
+							Leaf(YelpBusiness id: JDbl, categories:  Beauty & Spas,  Tanning,  Tanning Beds, Spray Tanning, )
+	1.0001 Node
+		1.0001 Node
+			Leaf(YelpBusiness id: qfOf, categories:  Architects, Professional Services, )
+			Leaf(YelpBusiness id: ZiB4, categories:  Auto Repair,  Automotive,  Body Shops,  Smog Check Stations,  Tires, Transmission Repair, )
+		1.0001 Node
+			Leaf(YelpBusiness id: qmq8, categories:  Religious Organizations, Churches, )
+			0.8889889 Node
+				Leaf(YelpBusiness id: 2ZAO, categories:  Active Life,  Education,  Fitness & Instruction,  Kids Activities,  Specialty Schools,  Yoga, Dance Schools, )
+				Leaf(YelpBusiness id: tExa, categories:  Active Life, Hiking, )

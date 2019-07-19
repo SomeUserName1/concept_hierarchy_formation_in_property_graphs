@@ -1,0 +1,57 @@
+0.74037266 Node
+	Leaf(YelpBusiness id: RgLN, attributes: BusinessAcceptsBitcoin, BusinessAcceptsCreditCards, GoodForKids, )
+	0.6129416 Node
+		Leaf(YelpBusiness id: bVvT, attributes: Alcohol, BusinessAcceptsCreditCards, Caters, DogsAllowed, RestaurantsDelivery, RestaurantsTakeOut, WheelchairAccessible, WiFi, )
+		0.44547164 Node
+			0.3397861 Node
+				Leaf(YelpBusiness id: 1o26, attributes: BikeParking, BusinessParking, OutdoorSeating, RestaurantsPriceRange2, WiFi, )
+				0.26529738 Node
+					1.66893E-6 Node
+						Leaf(YelpBusiness id: kAr4, attributes: BusinessAcceptsCreditCards, BusinessParking, RestaurantsPriceRange2, )
+						Leaf(YelpBusiness id: nGa1, attributes: BusinessAcceptsCreditCards, BusinessParking, RestaurantsPriceRange2, )
+					0.26006398 Node
+						Leaf(YelpBusiness id: eXBq, attributes: BikeParking, BusinessAcceptsCreditCards, RestaurantsPriceRange2, )
+						0.13427287 Node
+							0.11197361 Node
+								0.033333827 Node
+									Leaf(YelpBusiness id: N2j7, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, Caters, OutdoorSeating, RestaurantsPriceRange2, RestaurantsTakeOut, WiFi, )
+									Leaf(YelpBusiness id: 6dHX, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, OutdoorSeating, RestaurantsPriceRange2, RestaurantsTakeOut, WiFi, )
+									7.1525574E-7 Node
+										Leaf(YelpBusiness id: WVNm, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, Caters, RestaurantsPriceRange2, RestaurantsTakeOut, WiFi, )
+										Leaf(YelpBusiness id: Ay7t, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, Caters, RestaurantsPriceRange2, RestaurantsTakeOut, WiFi, )
+								0.045455147 Node
+									Leaf(YelpBusiness id: 5aCA, attributes: BikeParking, BusinessParking, Caters, RestaurantsPriceRange2, RestaurantsTakeOut, )
+									Leaf(YelpBusiness id: EoT0, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, Caters, RestaurantsPriceRange2, RestaurantsTakeOut, )
+							0.11408754 Node
+								Leaf(YelpBusiness id: cLSB, attributes: BikeParking, BusinessParking, RestaurantsTakeOut, )
+								0.06666721 Node
+									1.2516975E-6 Node
+										Leaf(YelpBusiness id: 948M, attributes: BikeParking, BusinessParking, RestaurantsPriceRange2, RestaurantsTakeOut, )
+										Leaf(YelpBusiness id: RwLa, attributes: BikeParking, BusinessParking, RestaurantsPriceRange2, RestaurantsTakeOut, )
+									0.045455147 Node
+										Leaf(YelpBusiness id: YqiY, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, RestaurantsPriceRange2, RestaurantsTakeOut, WheelchairAccessible, )
+										1.013279E-6 Node
+											Leaf(YelpBusiness id: l6rQ, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, RestaurantsPriceRange2, RestaurantsTakeOut, )
+											Leaf(YelpBusiness id: XhXm, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, RestaurantsPriceRange2, RestaurantsTakeOut, )
+											Leaf(YelpBusiness id: CkHp, attributes: BikeParking, BusinessAcceptsCreditCards, BusinessParking, RestaurantsPriceRange2, RestaurantsTakeOut, )
+			0.43116516 Node
+				Leaf(YelpBusiness id: y5LI, attributes: BusinessParking, GoodForKids, RestaurantsPriceRange2, )
+				0.32213038 Node
+					0.18749985 Node
+						Leaf(YelpBusiness id: sC8_, attributes: BusinessAcceptsCreditCards, GoodForKids, GoodForMeal, HasTV, NoiseLevel, RestaurantsDelivery, RestaurantsGoodForGroups, RestaurantsPriceRange2, RestaurantsReservations, RestaurantsTakeOut, WiFi, )
+						Leaf(YelpBusiness id: m-On, attributes: BusinessAcceptsCreditCards, GoodForKids, RestaurantsDelivery, RestaurantsReservations, RestaurantsTakeOut, )
+					0.25911844 Node
+						Leaf(YelpBusiness id: QJDk, attributes: Alcohol, BikeParking, BusinessParking, OutdoorSeating, RestaurantsDelivery, RestaurantsPriceRange2, RestaurantsReservations, RestaurantsTakeOut, )
+						0.14506525 Node
+							Leaf(YelpBusiness id: 6N3e, attributes: Ambience, BusinessParking, GoodForKids, HasTV, OutdoorSeating, RestaurantsAttire, RestaurantsDelivery, RestaurantsGoodForGroups, RestaurantsPriceRange2, RestaurantsTakeOut, )
+							0.11879014 Node
+								Leaf(YelpBusiness id: XyDC, attributes: Ambience, BikeParking, GoodForKids, HasTV, OutdoorSeating, RestaurantsAttire, RestaurantsDelivery, RestaurantsGoodForGroups, RestaurantsPriceRange2, RestaurantsReservations, RestaurantsTakeOut, WiFi, )
+								0.07818294 Node
+									0.05263171 Node
+										Leaf(YelpBusiness id: 1VPJ, attributes: Alcohol, Ambience, BikeParking, BusinessAcceptsBitcoin, BusinessAcceptsCreditCards, BusinessParking, Caters, GoodForKids, GoodForMeal, HasTV, NoiseLevel, OutdoorSeating, RestaurantsAttire, RestaurantsDelivery, RestaurantsGoodForGroups, RestaurantsPriceRange2, RestaurantsReservations, RestaurantsTableService, RestaurantsTakeOut, WheelchairAccessible, WiFi, )
+										2.682209E-7 Node
+											Leaf(YelpBusiness id: eopG, attributes: Alcohol, Ambience, BikeParking, BusinessParking, Caters, GoodForKids, GoodForMeal, HasTV, NoiseLevel, OutdoorSeating, RestaurantsAttire, RestaurantsDelivery, RestaurantsGoodForGroups, RestaurantsPriceRange2, RestaurantsReservations, RestaurantsTakeOut, WiFi, )
+											Leaf(YelpBusiness id: Y4WY, attributes: Alcohol, Ambience, BikeParking, BusinessParking, Caters, GoodForKids, GoodForMeal, HasTV, NoiseLevel, OutdoorSeating, RestaurantsAttire, RestaurantsDelivery, RestaurantsGoodForGroups, RestaurantsPriceRange2, RestaurantsReservations, RestaurantsTakeOut, WiFi, )
+									0.067567684 Node
+										Leaf(YelpBusiness id: Yl_Q, attributes: Alcohol, Ambience, BestNights, BikeParking, BusinessAcceptsCreditCards, BusinessParking, Caters, GoodForDancing, GoodForKids, GoodForMeal, HasTV, Music, NoiseLevel, OutdoorSeating, RestaurantsAttire, RestaurantsDelivery, RestaurantsGoodForGroups, RestaurantsPriceRange2, RestaurantsReservations, RestaurantsTakeOut, WiFi, )
+										Leaf(YelpBusiness id: fC-g, attributes: Alcohol, Ambience, BusinessAcceptsCreditCards, BusinessParking, Caters, GoodForKids, HasTV, NoiseLevel, OutdoorSeating, RestaurantsAttire, RestaurantsDelivery, RestaurantsGoodForGroups, RestaurantsPriceRange2, RestaurantsReservations, RestaurantsTakeOut, WiFi, )
