@@ -1,52 +1,96 @@
-# FIXME: Update readme
+# Label/Property/Concept Hierarchy/Taxonomy Inference
+__Presentation: 25th July 14:00__
 
-# Graph Structuring Toolbox
+## Overall Structure: ## 
 
-Integrate with: Neo4J  
-[NeoProfiler](https://github.com/moxious/neoprofiler)
-Example with Cypher only on only one data set done by hand: [Barrasa, 2017](https://jbarrasa.com/2017/03/31/quickgraph5-learning-a-taxonomy-from-your-tagged-data/)
-[Second Example; brief](https://neo4j.com/blog/data-profiling-holistic-view-neo4j/)
+1. General:
+    - [x] Make code modular and functional to execute different varieties of the pipeline
 
-This project is intended to provide tools that help to extract further structure 
-from graphs, especially Neo4J data sets, in order to support cardinality estimation  
+2. Data: Yelp and Synthetic 
+    - [x] Make callable from python
+    - [x] Create Tree from whats generated
+    ⁻ [ ] and hand-crafted one for Yelp data set
 
-## 1. Pre-Processing
-Currently only data set specific loaders and an interface  
-Shall be able to sample and filter data to induce certain conditions
-(e.g. only cluster instances with a certain category as property)  
+3. Preprocessing: Binary Count Vectorization, SVD/PCA/ICA or tSNE/UMAP/MDS. 
+    - [x] Binary count vectorization
+    - [x] PCA-tSNE combination for data vis. and numeric only methods. 
 
-## 2. Clustering
-Currently only multi-line properties of nodes.  
-Shall at some point discover sub-labels/"types" for Nodes, later maybe also for
-edges, incoming and outgoing sets and sub-graphs
+4. Clustering:
+    1. Pre-Clustering: (sklearn, pyclustering)
+        - [x] Randomized search for hyper param tuning
+        - [x] SkLearn: AffinityProp, Spectral, Optics, DBScan
+        - [x] PyClustering: KMeans, KMedoid, KMedians, EM, BSAS, MBSAS, TTSAS
+        - [x] Wrappers for PyClustering to use Pipeline and GridSearchCV from sklearn
+    2. Hierarcical Clustering
+        - [x] Single, Average, Complete, Ward, Robust Single, maybe divisive
+    3. End-to-End Approaches
+        - [x] HDBScan (hdbscan package)
+        - [x] Conceptual Clustering (concept_formation package)
 
-Algorithms to implement:  
-- Linkage-based clustering (single and complete linkage) (for nodes)  => Finished, bad performance!
-- HDBSCAN: state of the art, performance comparable to K-Means, hierarchical, supports soft clustering (200000 2d points in < 60s reference implementation: [SkLearn](https://github.com/scikit-learn-contrib/hdbscan))
-    Implement extending [SMILE](https://github.com/haifengl/smile/tree/master/core/src/main/java/smile/clustering)  
-    eventually extend using min cuts based on relative inter cluster connectivity and closeness;
-- Adapted version of chameleon clustering (for sub-graphs) (maybe considered later, if HDBSCAN is bad)
+5. Evaluation:
+        - [x] First Phase: Shilouette Coef., CHI is optimized for in the GridSearch
+        - Tree Edit Distance:
+            - [x] get TED running with appropriate costs via python
+            - [x] RSL -> .tree -> TED
+            - [ ] Trestle -> .tree -> TED
+        - [ ] KFold Cross Validation
+            Take 90% dataset & create hierachy
+            take 10% dataset & validate hierarchy
+        - Visualization:
+            - [x] Dendro
+            - [ ] Pre-Clustering
+            
+6. Questions that Project should answer:
+    1. [x] Find label hierarchies
+    2. [x] Extract only robust sub-hierarchies
+    3. [ ] How distant are two instances
+    4. [x] Deal with noise
+    5. [ ] How can we make such an existing algorithm graph aware: (impl in Trestle,
+            By considering the structure of a graph (in the clustering) regain deleted labels
+        - for each node how many edges of each type: Introduce new properties with graphy traits
+        - Neighbours, types of neighbours, type of relationships, cumulative relationship, 
+    6. [ ] How much do we need to sample to get a correct hierarchy?
+ 
+Project: Ignore the graph
+Belivable results of how good the results are ignoring the graph structure
+Thesis: reintroduce graph structure => algos more robust
 
-TODO: Metrics (e.g. InfoGain, Fisher Info/Score, Shilouette coef., lift, ...)  
 
-## 3. Sub-Graph Mining
-future work, maybe FP-Tree and Apriori-Based. See literature/GraphMining  
-Maybe DIMSpan?
-
-## 4. Visualization
-Shall provide a wrapper to call algorithm specific visualizations 
-(e.g. Dendrogram, ...) and put them into the profiler report
+## TODO
+23.07:
+Presentation slides finished
+MAX 1 MIN LONGER: better 1 min earlier
 
 
-__Update 05.05.19:__  
-Depending on the workload of implementing the neccessary clustering and graph analysis algorithms in Java e.g. with SMILE and if working ultimately with Neo4J, another approach would be to interface Java with Python using [Py4J](https://www.py4j.org/index.html).  
-This would evade all implementation costs but only work for a prototype as this exposes the JVM on the network, letting any user on the machine execute arbitary Java code.
-Definitely not useful when integrating with a database; maybe look up what parts are already there from N4J and add features as feasible and neccessary.
+Cost vs accuracy per algo 
+Algos   | Runtime   | Accuracy  | ...   |
+__________________________
 
 
+TED: how it supports our scenario, why/why not
 
 
-Todo: 
-- Canopoy
-- Svd/PCA/tSNE on data => all other of sklearn
-- Cobweb
+## Presentation:
+1. Introduction
+    1. Motivation: Yelp, got hierarchy of some struct, dont wanna extract by hand (ex.); In Neo4J: vehicle => car, vehicle =>bus, bus, car; need to explicitly state. But concetually there is an hioerarchy, just not explitly in the data. Cant do iut by hand so => hierarchical clustering 
+    2.  Probelm definition (formal, proper terminology)
+2. Solution
+    1. Related Work: Algorithms, Brief how they work; include examples and weioght by how well they work
+3. Evaluation
+    1. Setup
+        1. synthetic baseline: generation, noise intro, ground truth, measures: runtime and accuracy (ted)
+        2. 1 Slide on the pipeline
+    2. Results: if time also for yelp, but only if propperly
+        1 Base experiment
+            1. Table
+            2. Graphs
+        2. Noise exp 1
+        3. NOise exp n
+    preliminary yelp experiment for transition
+        
+4. Conclusions and What do we want to acheive:
+    - multiple hioerarchies: either relationship or disjoint
+    - hierarcical info on labels (selectivity)
+    => HOW: Take structural info, neibhbourhood to infer hierarcy from noisy data again
+    
+    doesnt need to be exact but should make sense
