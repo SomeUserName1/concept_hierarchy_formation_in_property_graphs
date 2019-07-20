@@ -26,18 +26,18 @@ __Presentation: 25th July 14:00__
         - [x] HDBScan (hdbscan package)
         - [x] Conceptual Clustering (concept_formation package)
 
-5. Evaluation:
-        - [x] First Phase: Shilouette Coef., CHI is optimized for in the GridSearch
-        - Tree Edit Distance:
-            - [x] get TED running with appropriate costs via python
-            - [x] RSL -> .tree -> TED
-            - [ ] Trestle -> .tree -> TED
-        - [ ] KFold Cross Validation
-            Take 90% dataset & create hierachy
-            take 10% dataset & validate hierarchy
-        - Visualization:
-            - [x] Dendro
-            - [ ] Pre-Clustering
+5. Evaluation:  
+    - [x] First Phase: Shilouette Coef., CHI is optimized for in the GridSearch  
+    - [x] Tree Edit Distance:  
+        - [x] get TED running with appropriate costs via python  
+        - [x] RSL -> .tree -> TED  
+        - [x] Trestle -> .tree -> TED  
+    - [ ] KFold Cross Validation  
+       - Take 90% dataset & create hierachy  
+       - take 10% dataset & validate hierarchy  
+    - [x] Visualization:  
+        - [x] Dendro  
+        - [x] Pre-Clustering  
             
 6. Questions that Project should answer:
     1. [x] Find label hierarchies
@@ -48,7 +48,7 @@ __Presentation: 25th July 14:00__
             By considering the structure of a graph (in the clustering) regain deleted labels
         - for each node how many edges of each type: Introduce new properties with graphy traits
         - Neighbours, types of neighbours, type of relationships, cumulative relationship, 
-    6. [ ] How much do we need to sample to get a correct hierarchy?
+    6. [ ] How much do we need to sample to get a correct hierarchy? Or how many distinct labels do we need?  
  
 Project: Ignore the graph
 Belivable results of how good the results are ignoring the graph structure
