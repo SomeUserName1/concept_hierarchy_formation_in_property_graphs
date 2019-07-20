@@ -2,7 +2,6 @@
 __Presentation: 25th July 14:00__
 
 ## Overall Structure: ## 
-
 1. General:
     - [x] Make code modular and functional to execute different varieties of the pipeline
 

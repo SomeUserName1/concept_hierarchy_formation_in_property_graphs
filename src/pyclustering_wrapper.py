@@ -8,6 +8,7 @@ from pyclustering.cluster.ttsas import ttsas
 from pyclustering.cluster.rock import rock
 from pyclustering.cluster.somsc import somsc
 from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer
+from pyclustering.utils import distance_metric, metric
 from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.utils import check_array
 from scipy.stats import randint
@@ -91,7 +92,7 @@ class TTSASWrapper(BaseEstimator, ClusterMixin):
         self.max_n_clusters = max_n_clusters
         self.threshold_1 = threshold_1
         self.threshold_2 = threshold_2
-        self.metric = self.__jaccard
+        self.metric = distance_metric(metric.type_metric.MANHATTAN)
         self.wrapped_instance = None
         self.labels_ = None
         self.representatives_ = None
@@ -125,19 +126,13 @@ class TTSASWrapper(BaseEstimator, ClusterMixin):
 
         self.labels_ = self.wrapped_instance.get_clusters()
         self.representatives_ = self.wrapped_instance.get_representatives()
-
-        return self
-
-    @staticmethod
-    def __jaccard(p1, p2):
-        return (np.logical_and(p1, p2).sum() / float(np.logical_or(p1, p2).sum())).T
 
 
 class MBSASWrapper(BaseEstimator, ClusterMixin):
     def __init__(self, max_n_clusters=5, threshold=0.5):
         self.max_n_clusters = max_n_clusters
         self.threshold = threshold
-        self.metric = self.__jaccard
+        self.metric = metric.distance_metric(metric.type_metric.MANHATTAN)
         self.wrapped_instance = None
         self.labels_ = None
         self.representatives_ = None
@@ -171,17 +166,13 @@ class MBSASWrapper(BaseEstimator, ClusterMixin):
         self.representatives_ = self.wrapped_instance.get_representatives()
 
         return self
-
-    @staticmethod
-    def __jaccard(p1, p2):
-        return (np.logical_and(p1, p2).sum() / float(np.logical_or(p1, p2).sum())).T
 
 
 class BSASWrapper(BaseEstimator, ClusterMixin):
     def __init__(self, max_n_clusters=5, threshold=0.5):
         self.max_n_clusters = max_n_clusters
         self.threshold = threshold
-        self.metric = self.__jaccard
+        self.metric = metric.distance_metric(metric.type_metric.MANHATTAN)
         self.wrapped_instance = None
         self.labels_ = None
         self.representatives_ = None
@@ -215,10 +206,6 @@ class BSASWrapper(BaseEstimator, ClusterMixin):
         self.representatives_ = self.wrapped_instance.get_representatives()
 
         return self
-
-    @staticmethod
-    def __jaccard(p1, p2):
-        return (np.logical_and(p1, p2).sum() / float(np.logical_or(p1, p2).sum())).T
 
 
 class ExpectationMaximizationWrapper(BaseEstimator, ClusterMixin):
@@ -227,7 +214,7 @@ class ExpectationMaximizationWrapper(BaseEstimator, ClusterMixin):
         self.n_clusters = n_clusters
         self.tolerance = tolerance
         self.max_iter = max_iter
-        self.metric = self.__jaccard
+        self.metric = metric.distance_metric(metric.type_metric.MANHATTAN)
         self.wrapped_instance = None
         self.labels_ = None
         self.centers_ = None
@@ -287,17 +274,13 @@ class ExpectationMaximizationWrapper(BaseEstimator, ClusterMixin):
 
         return means, covariances
 
-    @staticmethod
-    def __jaccard(p1, p2):
-        return (np.logical_and(p1, p2).sum() / float(np.logical_or(p1, p2).sum())).T
-
 
 class KMediansWrapper(BaseEstimator, ClusterMixin):
 
     def __init__(self, n_clusters=5, tolerance=0.001):
         self.n_clusters = n_clusters
         self.tolerance = tolerance
-        self.metric = self.__jaccard
+        self.metric = metric.distance_metric(metric.type_metric.MANHATTAN)
         self.wrapped_instance = None
         self.labels_ = None
         self.medians_ = None
@@ -305,7 +288,7 @@ class KMediansWrapper(BaseEstimator, ClusterMixin):
     def fit_predict(self, x, y=None):
         x = check_array(x, accept_sparse='csr')
         self.wrapped_instance = kmedians(data=x,
-                                         initial_centers=kmeans_plusplus_initializer(x, self.n_clusters),
+                                         initial_centers=kmeans_plusplus_initializer(x, self.n_clusters).initialize(),
                                          tolerance=self.tolerance,
                                          metric=self.metric
                                          )
@@ -319,7 +302,7 @@ class KMediansWrapper(BaseEstimator, ClusterMixin):
     def fit(self, x):
         x = check_array(x, accept_sparse='csr')
         self.wrapped_instance = kmedians(data=x,
-                                         initial_centers=kmeans_plusplus_initializer(x, self.n_clusters),
+                                         initial_centers=kmeans_plusplus_initializer(x, self.n_clusters).initialize(),
                                          tolerance=self.tolerance,
                                          metric=self.metric
                                          )
@@ -330,17 +313,13 @@ class KMediansWrapper(BaseEstimator, ClusterMixin):
 
         return self
 
-    @staticmethod
-    def __jaccard(p1, p2):
-        return (np.logical_and(p1, p2).sum() / float(np.logical_or(p1, p2).sum())).T
-
 
 class KMedoidsWrapper(BaseEstimator, ClusterMixin):
 
     def __init__(self, n_clusters=5, tolerance=0.001):
         self.n_clusters = n_clusters
         self.tolerance = tolerance
-        self.metric = self.__jaccard
+        self.metric = metric.distance_metric(metric.type_metric.MANHATTAN)
         self.wrapped_instance = None
         self.labels_ = None
         self.medoids_ = None
@@ -373,17 +352,13 @@ class KMedoidsWrapper(BaseEstimator, ClusterMixin):
 
         return self
 
-    @staticmethod
-    def __jaccard(p1, p2):
-        return (np.logical_and(p1, p2).sum() / float(np.logical_or(p1, p2).sum())).T
-
 
 class KMeansWrapper(BaseEstimator, ClusterMixin):
 
     def __init__(self, n_clusters=5, tolerance=0.001, max_iter=200):
         self.n_clusters = n_clusters
         self.tolerance = tolerance
-        self.metric = self.__jaccard
+        self.metric = metric.distance_metric(metric.type_metric.MANHATTAN)
         self.max_iter = max_iter
         self.wrapped_instance = None
         self.labels_ = None
@@ -392,7 +367,7 @@ class KMeansWrapper(BaseEstimator, ClusterMixin):
     def fit_predict(self, x, y=None):
         x = check_array(x, accept_sparse='csr')
         self.wrapped_instance = kmeans(data=x,
-                                       initial_centers=kmeans_plusplus_initializer(x, self.n_clusters),
+                                       initial_centers=kmeans_plusplus_initializer(x, self.n_clusters).initialize(),
                                        tolerance=self.tolerance,
                                        metric=self.metric,
                                        itermax=self.max_iter)
@@ -405,7 +380,7 @@ class KMeansWrapper(BaseEstimator, ClusterMixin):
     def fit(self, x):
         x = check_array(x, accept_sparse='csr')
         self.wrapped_instance = kmeans(data=x,
-                                       initial_centers=kmeans_plusplus_initializer(x, self.n_clusters),
+                                       initial_centers=kmeans_plusplus_initializer(x, self.n_clusters).initialize(),
                                        tolerance=self.tolerance,
                                        metric=self.metric,
                                        itermax=self.max_iter)
@@ -415,7 +390,3 @@ class KMeansWrapper(BaseEstimator, ClusterMixin):
         self.centers_ = self.wrapped_instance.get_centers()
 
         return self
-
-    @staticmethod
-    def __jaccard(p1, p2):
-        return (np.logical_and(p1, p2).sum() / float(np.logical_or(p1, p2).sum())).T

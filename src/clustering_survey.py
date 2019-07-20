@@ -3,6 +3,8 @@ import logging
 import random
 import time
 from enum import Enum
+from os import path
+import os
 from shlex import split
 from subprocess import Popen, PIPE
 from typing import List
@@ -12,10 +14,10 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
 from memory_profiler import profile
+from scipy.cluster.hierarchy import dendrogram
 from scipy.stats import randint, uniform
 from sklearn import metrics
 from sklearn.cluster import DBSCAN, AffinityPropagation, SpectralClustering, OPTICS
-from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.manifold import TSNE
 from sklearn.model_selection import RandomizedSearchCV
@@ -25,14 +27,17 @@ from src.pyclustering_wrapper import KMeansWrapper, KMediansWrapper, KMedoidsWra
 
 # When you want to run this you need to recompile hdbscan: go to lib/hdbscan folder & run python3 setup.py install
 from hdbscan import HDBSCAN, RobustSingleLinkage, condense_tree, label
+from hdbscan.plots import CondensedTree
 from concept_formation.trestle import TrestleTree
 from concept_formation.cluster import cluster
+from concept_formation.visualize import visualize as visualize_trestle
+from concept_formation.visualize import visualize_clusters as visualize_trestle_clusters
 
 # ____________ CONSTANTS: Paths ________________--
 BASE = "/home/someusername/Nextcloud/workspace/uni/8/bachelor_project"
 IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
-log = open('clustering_survey.log', 'w+')
+log = open(path.join(BASE, "doc") + 'clustering_survey_memory.log', 'w')
 
 
 class Dataset(Enum):
@@ -41,11 +46,15 @@ class Dataset(Enum):
     YELP = (BASE + "/data/business.json", BASE + "/data/business.tree")
 
 
-def two_step(vectorized_data, distance_matrix, dataset):
-    for searcher in [cluster_kmeans(), cluster_kmedians(), cluster_kmedoids(), cluster_bsas(), cluster_mbsas(),
-                     cluster_ttsas(), cluster_em(), cluster_affinity_prop(), cluster_spectral(), cluster_rock(),
-                     cluster_dbscan(), cluster_optics(), cluster_som()]:
-        logger.info("====================== " + searcher + " RobustSingleLinkage ====================================")
+def two_step(vectorized_data, distance_matrix, dataset, n_samples, noise):
+    for searcher in [cluster_affinity_prop(), cluster_spectral(n_samples), cluster_dbscan(n_samples),
+                     cluster_optics(n_samples)]:
+        # cluster_kmeans(n_samples), cluster_kmedians(n_samples), cluster_kmedoids(n_samples), cluster_rock(n_samples),
+        #            cluster_bsas(n_samples), cluster_mbsas(n_samples), cluster_ttsas(n_samples), cluster_em(n_samples),
+        #            cluster_som(n_samples)
+
+        logger.info("======================" + type(searcher.estimator).__name__ +
+                    " RobustSingleLinkage with Noise? " + str(noise) + "====================================")
         precomputed = False
         spectral = False
 
@@ -53,28 +62,33 @@ def two_step(vectorized_data, distance_matrix, dataset):
             searcher.fit(np.exp(- distance_matrix ** 2 / (2. * 1.0 ** 2)))
             precomputed = True
             spectral = True
-        elif 'precomputed' in searcher.get_params()['param_grid'][0]['cluster'][0].get_params().values():
+        elif 'precomputed' in searcher.get_params().values():
             searcher.fit(distance_matrix)
             precomputed = True
         else:
             searcher.fit(vectorized_data)
 
         estimator = searcher.best_estimator_
-        logger.info("Found parameters: " + estimator)
+        logger.info(estimator)
+
+        visualize_clusters(estimator, vectorized_data, path.join(IMG_BASE, type(estimator).__name__, str(noise)))
 
         start = time.time()
         rsl = bench_two_step_estimator(estimator, vectorized_data, precomputed, spectral)
         total = time.time() - start
         logger.info("Fitting took: " + str(total) + " s")
 
-        logger.info("Tree Edit Distance: " + compute_ted(rsl.cluster_hierarchy_._linkage[:, :2].astype(int),
-                                                         len(estimator.labels_), dataset))
-        vis_rsl(estimator, IMG_BASE + type(estimator).__name__)
+        compute_ted(
+            children_or_tree=rsl.cluster_hierarchy_._linkage[:, :2].astype(int),
+            n_clusters=len(set(estimator.labels_)), dataset=dataset)
+
+        visualize(rsl, path.join(IMG_BASE + type(estimator).__name__), noise)
 
 
-def single(vectorized_data, dataset):
-    for searcher in [cluster_robust_single_linkage(), cluster_hdbscan()]:
-        logger.info("======================== " + searcher + " ==========================")
+def single(vectorized_data, dataset, noise, n_samples):
+    for searcher in [cluster_robust_single_linkage(), cluster_hdbscan(n_samples)]:
+        logger.info("======================== " + type(searcher.estimator).__name__ + " with Noise? " + str(noise)
+                    + " ==========================")
 
         searcher.fit(vectorized_data)
         estimator = searcher.best_estimator_
@@ -85,54 +99,67 @@ def single(vectorized_data, dataset):
         total = time.time() - start
         logger.info("Fitting took: " + str(total) + " s")
 
-        logger.info("Tree Edit distance: " + compute_ted(estimator.cluster_hierarchy_._linkage[:, :2].astype(int),
-                                                         vectorized_data.shape[0], dataset))
+        num_initial_clusters = vectorized_data.shape[0]
+
         if isinstance(searcher.get_params()['estimator'], RobustSingleLinkage):
-            vis_rsl(estimator, IMG_BASE + type(estimator).__name__)
+            merge_mat = estimator.cluster_hierarchy_._linkage[:, :2].astype(int)
+
+            p = path.join(IMG_BASE, type(estimator).__name__)
+
+            compute_ted(children_or_tree=merge_mat, n_clusters=num_initial_clusters, dataset=dataset)
+            visualize(estimator, p, noise)
 
         else:
+            merge_mat = estimator.single_linkage_tree_._linkage[:, :2].astype(int)
+
+            p = path.join(IMG_BASE, type(estimator).__name__, str(noise))
+            if not os.path.exists(p):
+                os.makedirs(p)
+
+            compute_ted(children_or_tree=merge_mat, n_clusters=num_initial_clusters, dataset=dataset)
+
+            visualize_clusters(estimator, vectorized_data, p)
+
             plt.figure()
-            estimator.single_linkage_tree_plot(cmap='viridis', colorbar=True)
-            plt.savefig(IMG_BASE + type(estimator).__name__ + "_dendro")
+            estimator.single_linkage_tree_.plot(cmap='viridis', colorbar=True)
+            plt.savefig(path.join(p, "noise_" + str(noise) + "_dendro"))
             plt.clf()
 
             plt.figure()
             estimator.condensed_tree_.plot()
-            plt.savefig(IMG_BASE + type(estimator).__name__ + "_condensed")
+            plt.savefig(path.join(p, "noise_" + str(noise) + "_condensed"))
             plt.clf()
 
             plt.figure()
             estimator.condensed_tree_.plot(select_clusters=True, selection_palette=sns.color_palette())
-            plt.savefig(IMG_BASE + type(estimator).__name__ + "_extracted")
-            plt.clf()
+            plt.savefig(path.join(p, "noise_" + str(noise) + "_extracted"))
+            plt.close('all')
 
 
-def main(n_samples: int, dataset: Dataset):
-    for noise in [True, False]:
+def main(n_samples: int, dataset: Dataset, width=3, depth=2):
+    for noise in [False, True]:
         logger.info("############ Noise = " + str(noise) + "#######################################################")
         logger.info("Generating/Sampling, Loading and Vectorizing Data")
-        data = load(n_samples, dataset, noise)
+        data = load(n_samples, dataset, noise, width, depth)
 
-        vectorized_data = CountVectorizer(binary=True).fit_transform(data).toarray().astype(bool)
-        distance_matrix = metrics.pairwise_distances(vectorized_data, metric='jaccard', n_jobs=-1)
+        vectorized_data = np.array(CountVectorizer(binary=True).fit_transform(data).toarray())
+        distance_matrix = metrics.pairwise_distances(vectorized_data.astype(int), metric='l1', n_jobs=-1)
 
-        single(vectorized_data, data)
+        single(vectorized_data, dataset, noise, n_samples)
 
         logger.info("==================== Two Step =========================")
-        two_step(vectorized_data, distance_matrix, dataset)
+        two_step(vectorized_data, distance_matrix, dataset, n_samples, noise)
 
         logger.info("================== Conceptual =======================")
-        path = Dataset.SYNTHETIC.value[0] if not noise else Dataset.NOISY_SYNTHETIC.value[0]
-        with open(path, "r") as read_file:
-            data = json.load(read_file)
-        cluster_synthetic_trestle(data)
+        dataset = Dataset.SYNTHETIC if not noise else Dataset.NOISY_SYNTHETIC
+        cluster_synthetic_trestle(dataset)
 
 
 # ____________________________________Generating & Loading __________________________________________
 
-def generate_synthetic(depth: int, width: int = 2, iteration: int = 10, path: str = BASE + "/data/",
+def generate_synthetic(depth: int, width: int = 2, iteration: int = 10, m_path: str = BASE + "/data/",
                        rem_labels: int = 1, add_labels: int = 0, alter_labels: int = 1, prob: float = 0.33):
-    command = "java -jar " + BASE + "/lib/synthetic_data_generator.jar -p '" + path + "' -d " + str(depth) + " -w " \
+    command = "java -jar " + BASE + "/lib/synthetic_data_generator.jar -p '" + m_path + "' -d " + str(depth) + " -w " \
               + str(width) + " -i " + str(iteration) + " -n " + str(rem_labels) + " " + str(add_labels) + " " + \
               str(alter_labels) + " -pr " + str(prob)
     args = split(command)
@@ -155,17 +182,19 @@ def sample_yelp(n_samples: int) -> List[List[str]]:
 
 
 def open_synthetic(noisy: bool):
-    path = Dataset.SYNTHETIC.value[0] if not noisy else Dataset.NOISY_SYNTHETIC.value[0]
-    with open(path, "r") as read_file:
+    m_path = Dataset.SYNTHETIC.value[0] if not noisy else Dataset.NOISY_SYNTHETIC.value[0]
+    with open(m_path, "r") as read_file:
         data = json.load(read_file)
 
     labels = [entry['labels'] for entry in data]
     return labels
 
 
-def load(n_samples: int, dataset: Dataset, noise: bool) -> List[List[str]]:
+def load(n_samples: int, dataset: Dataset, noise: bool, width: int = 3, depth: int = 2) -> List[List[str]]:
     if dataset == Dataset.SYNTHETIC or dataset == Dataset.NOISY_SYNTHETIC:
-        generate_synthetic(width=3, depth=2, iteration=100)  # int(math.log2(n_samples)))
+        iteration = int(n_samples / (width ** depth))
+        iteration = iteration if iteration > 0 else 1
+        generate_synthetic(width=width, depth=depth, iteration=iteration)
         return open_synthetic(noise)
     else:
         return sample_yelp(n_samples)
@@ -176,7 +205,19 @@ def load(n_samples: int, dataset: Dataset, noise: bool) -> List[List[str]]:
 # __________________________End-to-End
 # ___________________________Conceptual
 @profile(stream=log)
-def cluster_synthetic_trestle(data):
+def cluster_synthetic_trestle(dataset):
+    p = path.join(IMG_BASE, "trestle")
+    p1 = path.join(IMG_BASE, "trestle" , "tree")
+
+    if not os.path.exists(p):
+        os.makedirs(p)
+
+    if not os.path.exists(p1):
+        os.makedirs(p1)
+
+    with open(dataset.value[0], "r") as read_file:
+        data = json.load(read_file)
+
     for entry in data:
         entry["id"] = "_" + str(entry["id"])
         del entry["id"]
@@ -193,35 +234,40 @@ def cluster_synthetic_trestle(data):
 
     logger.info("Took " + str(total) + " s! Trestle tree: ")
     logger.info(tree)
+    visualize_trestle(tree, dst=p1)
+    compute_ted(children_or_tree=tree, dataset=dataset, trestle=True)
 
     clustering = cluster(tree, data, mod=False)
-    logger.info("infered clusters by Trestle: " + clustering)
+    logger.info("inferred clusters by Trestle: ")
+    logger.info(clustering[0])
+
+    visualize_trestle_clusters(tree, clustering[0], dst=p)
 
 
 def cluster_robust_single_linkage():
     grid_params = {
-        "cut": uniform(),
-        "k": randint(3, 25),
-        "alpha": uniform(loc=1, scale=3),
-        "gamma": randint(3, 20),
+        # "cut": uniform(),
+        # "k": randint(3, 25),
+        # "alpha": uniform(loc=1, scale=3),
+        # "gamma": randint(3, 20),
     }
-    clust = RobustSingleLinkage(metric='jaccard', core_dist_n_jobs=1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    clust = RobustSingleLinkage(core_dist_n_jobs=1, metric='l1')
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1,
-                                  scoring=cv_scorer, refit=True, n_iter=50)
+                                  scoring=cv_scorer, refit=True, n_iter=1)
 
     return searcher
 
 
-def cluster_hdbscan():
+def cluster_hdbscan(n_samples):
     grid_params = {
-        "min_cluster_size": randint(5, 30),
-        "min_samples": randint(10, 300),
-        "alpha": uniform(loc=0.1, scale=2),
-        "leaf_size": randint(5, 50)
+        "min_cluster_size": randint(2, 5),
+        "min_samples": randint(2, 5),
+        # "alpha": uniform(loc=0.1, scale=5),
+        # "leaf_size": randint(5, round(0.3 * n_samples) + 5)
     }
-    clust = HDBSCAN(metric='precomputed', memory=CACHE_PATH, core_dist_n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    clust = HDBSCAN(metric='l1', memory=CACHE_PATH, core_dist_n_jobs=-1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -234,26 +280,26 @@ def cluster_affinity_prop():
         "damping": uniform(loc=0.5, scale=0.5)
     }
     clust = AffinityPropagation(affinity='precomputed')
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
     return searcher
 
 
-def cluster_spectral():
+def cluster_spectral(n_samples):
     grid_params = {
-        "n_clusters": randint(5, 30, 15),
+        "n_clusters": randint(5, n_samples / 2 + 5),
     }
-    clust = SpectralClustering(affinity='precomputed', eigen_solver='amg', n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    clust = SpectralClustering(affinity='precomputed', eigen_solver='arpack', n_jobs=-1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
     return searcher
 
 
-def cluster_dbscan():
+def cluster_dbscan(n_samples):
     grid_params = {
-        "eps": uniform(),
-        "min_samples": randint(2, 8),
-        "leaf_size": randint(3, 10)
+        "eps": uniform(loc=0.1, scale=5.0),
+        "min_samples": randint(2, round(0.1 * n_samples) + 2),
+        "leaf_size": randint(5, round(0.1 * n_samples) + 5)
     }
     clust = DBSCAN(metric='precomputed', n_jobs=-1)
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
@@ -261,126 +307,124 @@ def cluster_dbscan():
     return searcher
 
 
-def cluster_optics():
+def cluster_optics(n_samples):
     grid_params = {
-        "max_eps": randint(0.1, 1),
-        "min_samples": randint(0.01, 1),
+        "min_samples": randint(2, round(0.1 * n_samples) + 2),
         "leaf_size": randint(5, 100),
-        "xi": uniform(loc=0, scale=0.2),
-        "min_cluster_size": uniform(0, 0.3)
+        "min_cluster_size": uniform(0, 0.1)
     }
     clust = OPTICS(metric='precomputed', n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
-                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
+                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=10)
 
     return searcher
 
 
-def cluster_kmeans():
+def cluster_kmeans(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "n_clusters": randint(4, (n_samples / 2) + 4),
         "tolerance": uniform(0.00001, 0.1)
     }
     clust = KMeansWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
 
 
-def cluster_kmedoids():
+def cluster_kmedoids(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "n_clusters": randint(4, (n_samples / 2) + 4),
         "tolerance": uniform(0.00001, 0.1)
     }
     clust = KMedoidsWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
 
 
-def cluster_kmedians():
+def cluster_kmedians(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "n_clusters": randint(4, (n_samples / 2) + 4),
         "tolerance": uniform(0.00001, 0.1)
     }
     clust = KMediansWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
 
 
-def cluster_em():
+def cluster_em(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "n_clusters": randint(4, (n_samples / 2) + 4),
         "tolerance": uniform(0.00001, 0.1)
     }
     clust = ExpectationMaximizationWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
 
 
-def cluster_bsas():
+def cluster_bsas(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "n_clusters": randint(4, (n_samples / 2) + 4),
         "threshold": uniform(0, 1)
     }
     clust = BSASWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
 
 
-def cluster_mbsas():
+def cluster_mbsas(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "n_clusters": randint(4, (n_samples / 2) + 4),
         "threshold": uniform(0, 1)
     }
     clust = MBSASWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
 
 
-def cluster_ttsas():
+def cluster_ttsas(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "max_n_clusters": randint(4, (n_samples / 2) + 4),
         "threshold": uniform(loc=0, scale=0.5),
         "threshold_2": uniform(0.5, 1)
     }
     clust = TTSASWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
 
 
-def cluster_rock():
+def cluster_rock(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "n_clusters": randint(4, (n_samples / 2) + 4),
         "eps": uniform(0.0, 1),
         "threshold": uniform(0.0, 1)
     }
     clust = RockWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
 
 
-def cluster_som():
+def cluster_som(n_samples):
     grid_params = {
-        "n_clusters": randint(4, 30),
+        "n_clusters": randint(4, (n_samples / 2) + 4),
         "epoch": randint(10, 300)
     }
     clust = SOMSCWrapper()
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=50)
 
     return searcher
@@ -419,7 +463,7 @@ def bench_single_estimator(estimator, vectorized_data):
 @profile(stream=log)
 def bench_two_step_estimator(estimator, base_data, precomputed, spectral):
     if precomputed:
-        data = metrics.pairwise_distances(base_data, metric='jaccard', n_jobs=-1)
+        data = metrics.pairwise_distances(base_data.astype(bool), metric='l1', n_jobs=-1)
         if spectral:
             data = np.exp(- data ** 2 / (2. * 1.0 ** 2))
     else:
@@ -436,8 +480,10 @@ def bench_two_step_estimator(estimator, base_data, precomputed, spectral):
                 attrib_union = np.logical_and(attrib_union, base_data[i])
         representatives = np.vstack((representatives, attrib_union))
 
-    logger.info("First step clustering labels: " + estimator.labels_)
-    logger.info("Representative matrix: " + representatives)
+    logger.info("First step clustering labels: ")
+    logger.info(estimator.labels_)
+    logger.info("Representative matrix: ")
+    logger.info(representatives)
 
     hierarchy_searcher = cluster_robust_single_linkage()
     hierarchy_searcher.fit(representatives)
@@ -449,16 +495,19 @@ def bench_two_step_estimator(estimator, base_data, precomputed, spectral):
 
 
 # In: result of clustering, Out: results of TED
-def compute_ted(children: np.array, n_clusters, dataset: Dataset):
+def compute_ted(children_or_tree, dataset: Dataset, trestle: bool = False, n_clusters=0):
     with open(dataset.value[1], "r") as read_file:
-        groundtruth_tree = read_file.readline()
+        ground_truth = read_file.read()
 
-    result_tree = create_bracket_tree_rsl(children, n_clusters)
+    if trestle:
+        result = create_bracket_tree_trestle(children_or_tree)
+    else:
+        result = create_bracket_tree_rsl(children_or_tree, n_clusters)
 
-    command = "java -jar " + BASE + "/lib/apted.jar -t " + groundtruth_tree + " " + result_tree
+    command = "java -jar " + BASE + "/lib/apted.jar -t " + ground_truth + " " + result
     args = split(command)
     with Popen(args, stdout=PIPE) as apted:
-        return apted.stdout.read().decode("utf-8")
+        logger.info("Tree Edit Distance: " + apted.stdout.read().decode("utf-8"))
 
 
 # in: preproc. data, out: result of cv as accuracy
@@ -481,52 +530,104 @@ def find_matching_brack(res_string, fix_point_idx):
             i += 1
 
 
+def find_fix(result, elem):
+    fix = result.find("{" + str(elem)) + 1
+
+    while result[fix + len(str(elem))].isdigit():
+        fix = result.find("{" + str(elem)) + 1
+
+    return fix
+
+
 def create_bracket_tree_rsl(children: np.array, n_clusters):
-    print(children)
+    logger.info(n_clusters)
+    logger.info(children)
     result = ""
     i = n_clusters - 1
     for merge in children:
         if merge[0] > n_clusters - 1 and merge[1] > n_clusters - 1:
 
-            fix_1 = result.find("{" + str(merge[0])) + 1
+            fix_1 = find_fix(result, merge[0])
             matching_bracket_1 = find_matching_brack(result, fix_1)
-            fix_2 = result.find("{" + str(merge[1])) + 1
+            fix_2 = find_fix(result, merge[1])
             matching_bracket_2 = find_matching_brack(result, fix_2)
 
             temp = result
             i += 1
 
-            result = result[0: fix_1 - 1] + "{" + str(i) + result[fix_1 - 1: matching_bracket_1 + 1] \
-                     + result[fix_2 - 1: matching_bracket_2 + 1] + "}"
+            if fix_1 < fix_2:
+                moved = result[0: fix_1 - 1] + "{" + str(i) + result[fix_1 - 1: matching_bracket_1 + 1] \
+                        + result[fix_2 - 1: matching_bracket_2 + 1] + "}"
+                result = moved + temp[matching_bracket_1 + 1: fix_2 - 1] + temp[matching_bracket_2 + 1:]
 
-            result = result + temp[matching_bracket_1 + 1: fix_2 - 1] + temp[matching_bracket_2 + 1:] if fix_1 < fix_2 \
-                else result + temp[matching_bracket_2 + 1: fix_1 - 1] + temp[matching_bracket_2 + 1:]
+            else:
+                moved = result[0: fix_2 - 1] + "{" + str(i) + result[fix_2 - 1: matching_bracket_2 + 1] \
+                        + result[fix_1 - 1: matching_bracket_1 + 1] + "}"
+                result = moved + temp[matching_bracket_2 + 1: fix_1 - 1] + temp[matching_bracket_1 + 1:]
 
         elif merge[0] > n_clusters - 1 or merge[1] > n_clusters - 1:
-            fix_point = result.find("{" + str(merge[0])) + 1 if merge[0] > n_clusters - 1 else result.find(
-                "{" + str(merge[1])) + 1
+            fix_point = find_fix(result, merge[0]) if merge[0] > n_clusters - 1 else find_fix(result, merge[1])
             matching_bracket = find_matching_brack(result, fix_point)
             base_clust = merge[0] if merge[0] < n_clusters else merge[1]
 
             i += 1
-            result = result[0: fix_point - 1] + "{" + str(i) + result[fix_point - 1: matching_bracket + 1] + "{" \
-                     + str(base_clust) + "}}" + result[matching_bracket + 1:]
+            result = result[0: fix_point - 1] + "{" + str(i) + result[fix_point - 1: matching_bracket + 1] + "{" + \
+                     str(base_clust) + "}}" + result[matching_bracket + 1:]
         else:
             # Two of the base clusters are merged, declare a "new" intermediate one for the merged
             i += 1
             result += "{" + str(i) + "{" + str(merge[0]) + "}{" + str(merge[1]) + "}}"
 
-    print("bracket_tree " + result)
+    logging.info("Cluster result based bracket_tree ")
+    logger.info(result)
     return result
 
 
-# __________________ Visualization of first step (as second is impl. by hdbscan package)
-# TODO Refactor and find way to visualize all kinds properly
-def visualize_clusters(path: str, labels: np.array, projected_data: np.array):
+def create_bracket_tree_trestle(tree):
+    result = ""
+    i = 0
+    prev_tab_count = -1
+    tab_stack = 0
+
+    for elem in tree.__str__().split('\n'):
+        cur_tab_count = elem.count('\t')
+        if prev_tab_count == cur_tab_count:
+            result += "}"
+        elif prev_tab_count < cur_tab_count:
+            tab_stack += 1
+        else:
+            delta = prev_tab_count - cur_tab_count
+            for _ in range(0, delta + 1):
+                result += "}"
+            tab_stack -= delta
+
+        result += elem[:elem.find("{")].replace("|-", "{" + str(i)).replace("\t", "")
+
+        prev_tab_count = cur_tab_count
+
+        i += 1
+    logger.info("trestle result based bracket tree:")
+    logger.info(result)
+    return result
+
+
+def visualize_clusters(estimator, data, p_path):
+    labels = estimator.labels_
+
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise_ = list(labels).count(-1)
+
+    print('Estimated number of clusters: %d' % n_clusters_)
+    print('Estimated number of noise points: %d' % n_noise_)
+
     unique_labels = set(labels)
     cmap = cm.get_cmap("Spectral")
     colors = [cmap(each) for each in np.linspace(0, 1, len(unique_labels))]
+
+    print("Silhouette Coefficient: %0.3f" % metrics.silhouette_score(data, labels))
+    print("Calinski Harabasz Score: %0.3f" % metrics.calinski_harabasz_score(data, labels))
+
+    projected_data = transform_numeric(data)
 
     plt.figure()
     for k, col in zip(unique_labels, colors):
@@ -540,152 +641,39 @@ def visualize_clusters(path: str, labels: np.array, projected_data: np.array):
         plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
                  markeredgecolor='k', markersize=10)
 
-    plt.title('Number of clusters: %d' % n_clusters_)
-    plt.savefig(path + "Clusters.svg")
-    plt.show()
-    # # DBSCAN Plotting and measures
-    # core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-    # core_samples_mask[db.core_sample_indices_] = True
-    # labels = db.labels_
-    #
-    # # Number of clusters in labels, ignoring noise if present.
-    # n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    # n_noise_ = list(labels).count(-1)
-    #
-    # print('Estimated number of clusters: %d' % n_clusters_)
-    # print('Estimated number of noise points: %d' % n_noise_)
-    # print("Silhouette Coefficient: %0.3f"
-    #       % metrics.silhouette_score(transformed_data, labels))
-    #
-    # unique_labels = set(labels)
-    # cmap = cm.get_cmap("Spectral")
-    # colors = [cmap(each)
-    #           for each in np.linspace(0, 1, len(unique_labels))]
-    # for k, col in zip(unique_labels, colors):
-    #     if k == -1:
-    #         # Black used for noise.
-    #         col = [0, 0, 0, 1]
-    #
-    #     class_member_mask = (labels == k)
-    #
-    #     xy = projected_data[class_member_mask & core_samples_mask]
-    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-    #              markeredgecolor='k', markersize=14)
-    #
-    #     xy = projected_data[class_member_mask & ~core_samples_mask]
-    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-    #              markeredgecolor='k', markersize=6)
-    #
-    # plt.title('DBSCAN: Estimated number of clusters: %d' % n_clusters_)
-    # plt.savefig(IMG_PATH + "dbscan_clusters.svg")
-    # plt.show()
-    # plt.title('Hierarchical Clustering Dendrogram')
-    #
-    # children = agglo.children_
-    #
-    # # Distances between each pair of children
-    # # Since we don't have this information, we can use a uniform one for plotting
-    # distance = np.arange(children.shape[0])
-    #
-    # # The number of observations contained in each cluster level
-    # no_of_observations = np.arange(2, children.shape[0] + 2)
-    #
-    # # Create linkage matrix and then plot the dendrogram
-    # linkage_matrix = np.column_stack([children, distance, no_of_observations]).astype(float)
-    #
-    # # Plot the corresponding dendrogram
-    # dendrogram(linkage_matrix, labels=birch.labels_)
-    # plt.savefig(IMG_PATH + "agglo_dendro.svg")
-    #
-    # plt.figure()
-    # labels = birch.labels_
-    # n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    # unique_labels = set(labels)
-    # cmap = cm.get_cmap("Spectral")
-    # colors = [cmap(each)
-    #           for each in np.linspace(0, 1, len(unique_labels))]
-    #
-    # for k, col in zip(unique_labels, colors):
-    #     if k == -1:
-    #         # Black used for noise.
-    #         col = [0, 0, 0, 1]
-    #
-    #     class_member_mask = (labels == k)
-    #
-    #     xy = transformed_data[class_member_mask]
-    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-    #              markeredgecolor='k', markersize=10)
-    #
-    # plt.title('BIRCH + Agglo: Estimated number of clusters: %d' % n_clusters_)
-    # plt.savefig(IMG_PATH + "agglo_clust.svg")
-    # plt.show()
-    # labels = hdb.labels_
-    #
-    # # Number of clusters in labels, ignoring noise if present.
-    # n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    # n_noise_ = list(labels).count(-1)
-    #
-    # print('Estimated number of clusters: %d' % n_clusters_)
-    # print('Estimated number of noise points: %d' % n_noise_)
-    # print("Silhouette Coefficient: %0.3f"
-    #       % metrics.silhouette_score(transformed_data, labels))
-    # print("Cluster  stability per cluster:")
-    # for val in hdb.cluster_persistence_:
-    #     print("\t %0.3f" % val)
-    #
-    # unique_labels = set(labels)
-    # cmap = cm.get_cmap("Spectral")
-    # colors = [cmap(each)
-    #           for each in np.linspace(0, 1, len(unique_labels))]
-    # for k, col in zip(unique_labels, colors):
-    #     if k == -1:
-    #         # Black used for noise.
-    #         col = [0, 0, 0, 1]
-    #
-    #     class_member_mask = (labels == k)
-    #
-    #     xy = projected_data[class_member_mask]
-    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-    #              markeredgecolor='k', markersize=14)
-    #
-    #     xy = projected_data[class_member_mask]
-    #     plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-    #              markeredgecolor='k', markersize=6)
-    # plt.title('HDBSCAN*: Estimated number of clusters: %d' % n_clusters_)
-    # plt.savefig(IMG_PATH + str(i) + "hdbscan_clusters.svg")
-    # plt.show()
-    # plt.figure()
-    # hdb.single_linkage_tree_.plot()
-    # plt.savefig(IMG_PATH + str(i) + "hdbscan_dendro.svg")
-    # plt.show()
-    # plt.figure()
-    # hdb.condensed_tree_.plot()
-    # plt.savefig(IMG_PATH + str(i) + "hdbscan_condensed.svg")
-    # plt.show()
+    plt.title(type(estimator).__name__ + ' Number of clusters: %d' % n_clusters_)
+    plt.savefig(p_path + "_clusters.svg")
+    plt.close('all')
 
 
-def vis_rsl(estimator, path):
+def visualize(estimator, m_path, noise):
+    if not path.exists(m_path):
+        os.makedirs(m_path)
+    p_path = path.join(m_path, "noise_" + str(noise))
+
+    plt.figure()
+    dendrogram(estimator.cluster_hierarchy_._linkage)
+    plt.savefig(p_path + "_scipy_dendro.svg")
+
     plt.figure()
     estimator.cluster_hierarchy_.plot()
-    plt.savefig(path + "_dendro")
+    plt.savefig(p_path + "_rsl_dendro.svg")
     plt.clf()
 
     plt.figure()
-    ct = condense_tree(estimator.cluster_hierarchy_, 10)
+    ct = CondensedTree(condense_tree(estimator.cluster_hierarchy_._linkage, 2))
     ct.plot()
-    plt.savefig(path + "_condensed")
+    plt.savefig(p_path + "_condensed.svg")
     plt.clf()
 
     plt.figure()
     ct.plot(select_clusters=True, selection_palette=sns.color_palette())
-    plt.savefig(path + "_extracted")
-    plt.clf()
+    plt.savefig(p_path + "_extracted.svg")
+    plt.close('all')
 
 
 def transform_numeric(vectorized_data: np.array) -> np.array:
-    transformed_data = np.array(vectorized_data)
-    pca_data = PCA(n_components=0.7, svd_solver='full').fit_transform(transformed_data)
-    tsne_data = TSNE(metric='jaccard').fit_transform(pca_data)
+    tsne_data = TSNE(metric='l1').fit_transform(vectorized_data)
 
     return tsne_data
 
@@ -695,7 +683,7 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
 
     # create file handler which logs even debug messages
-    fh = logging.FileHandler('clustering_survey.log')
+    fh = logging.FileHandler(path.join(BASE, "doc", "clusering_survey.log"), mode='w')
     fh.setLevel(logging.DEBUG)
 
     # create console handler with a higher log level
@@ -703,7 +691,7 @@ if __name__ == '__main__':
     ch.setLevel(logging.ERROR)
 
     # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s: %(message)s')
     ch.setFormatter(formatter)
     fh.setFormatter(formatter)
 
@@ -711,4 +699,4 @@ if __name__ == '__main__':
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    main(8, Dataset.SYNTHETIC)
+    main(n_samples=(3 ** 4), dataset=Dataset.SYNTHETIC, width=3, depth=4)

@@ -25,8 +25,9 @@ class SyntheticNodeGenerator {
     int[] index = new int[depth];
     int amount = (int) Math.pow(width, depth);
     this.path = path;
+    int iterLim = iter * amount;
 
-    for (int step = 0; step < iter; step += amount) {
+    for (int step = 0; step < iterLim; step += amount) {
         for (int i = 0; i < amount; i++) {
           JSONObject syntheticNode = new JSONObject();
           syntheticNode.put("id", i + step);
