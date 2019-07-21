@@ -31,12 +31,12 @@ class SyntheticNodeGenerator {
         for (int i = 0; i < amount; i++) {
           JSONObject syntheticNode = new JSONObject();
           syntheticNode.put("id", i + step);
-          for (int j = 0; j < depth; j++) {
+          for (int j = 0; j < depth-1; j++) {
             sb.append("l");
             for (int k = 0; k < j+1; k++) {
               sb.append(index[k]);
             }
-            if (j < depth-1) sb.append(", ");
+            if (j < depth-2) sb.append(", ");
           }
           syntheticNode.put("labels", sb.toString());
           index = incrementIndex(index, depth-1);
@@ -67,7 +67,7 @@ class SyntheticNodeGenerator {
   }
 
   private void printBracketTree(StringBuilder sb, int width, int depth) {
-    if (depth == this.depth || width == this.width) {
+    if (depth == this.depth-1 || width == this.width) {
       return;
     }
     // print current node
@@ -105,19 +105,19 @@ class SyntheticNodeGenerator {
           ((String) ((JSONObject) node).get("labels")).split(",\\s+")));
       // why the 3? Randomly remove
       if (remLabels) {
-        labels.remove(rnd.nextInt(this.depth));
+        labels.remove(rnd.nextInt(this.depth-1));
       }
       if (addLabels) {
         labels.add("l" + rnd.nextInt(1 << this.width + 1));
       }
       for (int j = 0; j < labels.size(); j++) {
-        if (alterLabels && rnd.nextInt(this.depth) == j) {
+        if (alterLabels && rnd.nextInt(this.depth-1) == j) {
           sb.append("l");
           int i = 0;
           do {
-            sb.append((char) (rnd.nextInt(this.depth) + 48));
+            sb.append((char) (rnd.nextInt(this.depth-1) + 48));
             ++i;
-          } while (i < this.depth && rnd.nextInt(2) == 0);
+          } while (i < this.depth-1 && rnd.nextInt(2) == 0);
         } else {
           sb.append(labels.get(j));
         }

@@ -1,19 +1,18 @@
 from pyclustering.cluster.kmeans import kmeans
 from pyclustering.cluster.kmedoids import kmedoids
 from pyclustering.cluster.kmedians import kmedians
-from pyclustering.cluster.ema import ema
+from pyclustering.cluster.ema import ema, ema_initializer
 from pyclustering.cluster.bsas import bsas
 from pyclustering.cluster.mbsas import mbsas
 from pyclustering.cluster.ttsas import ttsas
 from pyclustering.cluster.rock import rock
 from pyclustering.cluster.somsc import somsc
-from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer
+from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer, random_center_initializer
 from pyclustering.utils import distance_metric, metric
 from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.utils import check_array
-from scipy.stats import randint
+from random import randint, random
 import numpy as np
-import random
 
 
 class SOMSCWrapper(BaseEstimator, ClusterMixin):
@@ -32,7 +31,12 @@ class SOMSCWrapper(BaseEstimator, ClusterMixin):
                                       )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
 
         return self.labels_
 
@@ -45,7 +49,12 @@ class SOMSCWrapper(BaseEstimator, ClusterMixin):
                                       )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
 
         return self
 
@@ -68,7 +77,12 @@ class RockWrapper(BaseEstimator, ClusterMixin):
                                      )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
 
         return self.labels_
 
@@ -82,14 +96,18 @@ class RockWrapper(BaseEstimator, ClusterMixin):
                                      )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
 
         return self
 
 
 class TTSASWrapper(BaseEstimator, ClusterMixin):
-    def __init__(self, max_n_clusters=5, threshold_1=0.3, threshold_2=0.8):
-        self.max_n_clusters = max_n_clusters
+    def __init__(self, threshold_1=0.3, threshold_2=0.8):
         self.threshold_1 = threshold_1
         self.threshold_2 = threshold_2
         self.metric = distance_metric(metric.type_metric.MANHATTAN)
@@ -101,14 +119,19 @@ class TTSASWrapper(BaseEstimator, ClusterMixin):
         x = check_array(x, accept_sparse='csr')
 
         self.wrapped_instance = ttsas(data=x,
-                                      maximum_clusters=self.max_n_clusters,
                                       threshold1=self.threshold_1,
                                       threshold2=self.threshold_2,
                                       metric=self.metric,
                                       )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.representatives_ = self.wrapped_instance.get_representatives()
 
         return self.labels_
@@ -117,14 +140,19 @@ class TTSASWrapper(BaseEstimator, ClusterMixin):
         x = check_array(x, accept_sparse='csr')
 
         self.wrapped_instance = ttsas(data=x,
-                                      maximum_clusters=self.max_n_clusters,
                                       threshold1=self.threshold_1,
                                       threshold2=self.threshold_2,
                                       metric=self.metric,
                                       )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.representatives_ = self.wrapped_instance.get_representatives()
 
 
@@ -147,7 +175,13 @@ class MBSASWrapper(BaseEstimator, ClusterMixin):
                                       )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.representatives_ = self.wrapped_instance.get_representatives()
 
         return self.labels_
@@ -162,7 +196,13 @@ class MBSASWrapper(BaseEstimator, ClusterMixin):
                                       )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.representatives_ = self.wrapped_instance.get_representatives()
 
         return self
@@ -187,7 +227,13 @@ class BSASWrapper(BaseEstimator, ClusterMixin):
                                      )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.representatives_ = self.wrapped_instance.get_representatives()
 
         return self.labels_
@@ -202,7 +248,13 @@ class BSASWrapper(BaseEstimator, ClusterMixin):
                                      )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.representatives_ = self.wrapped_instance.get_representatives()
 
         return self
@@ -221,58 +273,50 @@ class ExpectationMaximizationWrapper(BaseEstimator, ClusterMixin):
 
     def fit_predict(self, x, y=None):
         x = check_array(x, accept_sparse='csr')
-        means, covs = self.__initial_mean_cov(x)
+        initial_means, initial_covariance = ema_initializer(x, self.n_clusters).initialize()
 
         self.wrapped_instance = ema(data=x,
                                     amount_clusters=self.n_clusters,
-                                    means=means,
-                                    variances=covs,
+                                    means=initial_means,
+                                    variances=initial_covariance,
                                     tolerance=self.tolerance,
                                     )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.centers_ = self.wrapped_instance.get_centers()
 
         return self.labels_
 
     def fit(self, x):
         x = check_array(x, accept_sparse='csr')
-        means, covs = self.__initial_mean_cov(x)
+        initial_means, initial_covariance = ema_initializer(x, self.n_clusters).initialize()
+        print(initial_means)
 
         self.wrapped_instance = ema(data=x,
                                     amount_clusters=self.n_clusters,
-                                    means=means,
-                                    variances=covs,
+                                    means=initial_means,
+                                    variances=initial_covariance,
                                     tolerance=self.tolerance,
                                     )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.centers_ = self.wrapped_instance.get_centers()
 
         return self
-
-    def __initial_mean_cov(self, x):
-        kmeans_instance = kmeans(data=x,
-                                 initial_centers=kmeans_plusplus_initializer(x, self.n_clusters).initialize(),
-                                 metric=self.metric,
-                                 itermax=self.max_iter)
-        kmeans_instance.process()
-
-        means = kmeans_instance.get_centers()
-
-        covariances = []
-        initial_clusters = kmeans_instance.get_clusters()
-        for initial_cluster in initial_clusters:
-            if len(initial_cluster) > 1:
-                cluster_sample = [x[index_point] for index_point in initial_cluster]
-                covariances.append(np.cov(cluster_sample, rowvar=False))
-            else:
-                dimension = len(x[0])
-                covariances.append(np.zeros((dimension, dimension)) + random.random() / 10.0)
-
-        return means, covariances
 
 
 class KMediansWrapper(BaseEstimator, ClusterMixin):
@@ -294,7 +338,13 @@ class KMediansWrapper(BaseEstimator, ClusterMixin):
                                          )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.medians_ = self.wrapped_instance.get_medians()
 
         return self.labels_
@@ -308,7 +358,13 @@ class KMediansWrapper(BaseEstimator, ClusterMixin):
                                          )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.medians_ = self.wrapped_instance.get_medians()
 
         return self
@@ -324,16 +380,22 @@ class KMedoidsWrapper(BaseEstimator, ClusterMixin):
         self.labels_ = None
         self.medoids_ = None
 
-    def fit_predict(self, x, y=None):
+    def fit_predict(self, x: np.ndarray, y=None):
         x = check_array(x, accept_sparse='csr')
         self.wrapped_instance = kmedoids(data=x,
-                                         initial_index_medoids=[randint(0, x.shape[0]) for _ in range(0, x.shape[0])],
+                                         initial_index_medoids=[randint(0, len(x)-1) for _ in range(0, self.n_clusters+1)],
                                          tolerance=self.tolerance,
                                          metric=self.metric
                                          )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.medoids_ = self.wrapped_instance.get_medoids()
 
         return self.labels_
@@ -341,13 +403,19 @@ class KMedoidsWrapper(BaseEstimator, ClusterMixin):
     def fit(self, x):
         x = check_array(x, accept_sparse='csr')
         self.wrapped_instance = kmedoids(data=x,
-                                         initial_index_medoids=[randint(0, x.shape[0]) for _ in range(0, x.shape[0])],
+                                         initial_index_medoids=[randint(0, len(x)-1) for _ in range(0, self.n_clusters+1)],
                                          tolerance=self.tolerance,
                                          metric=self.metric
                                          )
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.medoids_ = self.wrapped_instance.get_medoids()
 
         return self
@@ -372,7 +440,14 @@ class KMeansWrapper(BaseEstimator, ClusterMixin):
                                        metric=self.metric,
                                        itermax=self.max_iter)
         self.wrapped_instance.process()
-        self.labels_ = self.wrapped_instance.get_clusters()
+
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.centers_ = self.wrapped_instance.get_centers()
 
         return self.labels_
@@ -386,7 +461,13 @@ class KMeansWrapper(BaseEstimator, ClusterMixin):
                                        itermax=self.max_iter)
         self.wrapped_instance.process()
 
-        self.labels_ = self.wrapped_instance.get_clusters()
+        self.labels_ = np.empty((len(x)))
+        i = 0
+        for cluster in self.wrapped_instance.get_clusters():
+            for index in cluster:
+                self.labels_[index] = i
+            i += 1
+
         self.centers_ = self.wrapped_instance.get_centers()
 
         return self

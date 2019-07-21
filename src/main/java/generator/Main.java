@@ -20,7 +20,7 @@ public class Main {
         "\n" +
         "SYNTAX\n" +
         "\n" +
-        "    java -jar generateSyntheticData.jar -p  -d  -w  -n -pr \n" +
+        "    java -jar generateSyntheticData.jar -p  -d  -w -i -n -pr \n" +
         "\n" +
         "    java -jar generateSyntheticData.jar -h\n" +
         "\n" +
