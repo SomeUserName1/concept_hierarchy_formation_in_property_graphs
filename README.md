@@ -12,7 +12,7 @@ __Presentation: 25th July 14:00__
 
 3. Preprocessing: Binary Count Vectorization, SVD/PCA/ICA or tSNE/UMAP/MDS. 
     - [x] Binary count vectorization
-    - [x] PCA-tSNE combination for data vis. and numeric only methods. 
+    - [x] tSNE combination for data vis. and numeric only methods. 
 
 4. Clustering:
     1. Pre-Clustering: (sklearn, pyclustering)
@@ -21,7 +21,7 @@ __Presentation: 25th July 14:00__
         - [x] PyClustering: KMeans, KMedoid, KMedians, EM, BSAS, MBSAS, TTSAS
         - [x] Wrappers for PyClustering to use Pipeline and GridSearchCV from sklearn
     2. Hierarcical Clustering
-        - [x] Single, Average, Complete, Ward, Robust Single, maybe divisive
+        - [x] Single, Robust Single
     3. End-to-End Approaches
         - [x] HDBScan (hdbscan package)
         - [x] Conceptual Clustering (concept_formation package)
@@ -57,14 +57,16 @@ Thesis: reintroduce graph structure => algos more robust
 
 ## TODO
 23.07:
-Presentation slides finished
-MAX 1 MIN LONGER: better 1 min earlier
 
-
+- [ ] Table
 Cost vs accuracy per algo 
-Algos   | Runtime   | Accuracy  | ...   |
-__________________________
 
+Algos   | Runtime   | Accuracy|    
+|--- |--- |--- |  
+|  a |  123s| 12 ted |  
+- [ ] Chose graphics
+- [ ] Slides ready (textual)
+- [x] Yelp preview
 
 TED: how it supports our scenario, why/why not
 
