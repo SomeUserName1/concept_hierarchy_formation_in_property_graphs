@@ -40,25 +40,149 @@ IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
 log = open(path.join(BASE, "doc", 'clustering_survey_memory.log'), 'w')
 
-results = {}
-results['single'] = [27, 28, 26, 25]
-results['rsl'] =  [27, 28, 29, 35]
-results['hdbscan'] = [30, 31, 29, 27]
-results['dbscan'] = [9, 2, 8, 5]
-results['optics'] = [9, 2, 3, 8]
-results['affinity_prop'] = [10, 9, 4, 5]
-Spectral
-cl. & 1 & 2 & 8 & 5 \\ \hline
-KMeans & 5 & 5 & 8 & 5 \\ \hline
-KMedians & 5 & 5 & 6 & 3 \\ \hline
-KMedoid & 7 & 7 & 10 & 6 \\ \hline
-Rock & 0 & 2 & 7 & 5 \\ \hline
-BSAS & 1 & 5 & 7 & 6 \\ \hline
-MBSAS & 1 & 5 & 7 & 6 \\ \hline
-TTSAS & 0 & 2 & 7 & 5 \\ \hline
-SOM & 5 & 1 & 6 & 6 \\ \hline
-Trestle & 0 & 1 & 8 & 7 \\ \hline
+results = {'single': [27, 28, 26, 25], 'rsl': [27, 28, 29, 35], 'hdbscan': [30, 31, 29, 27], 'dbscan': [9, 2, 8, 5],
+           'optics': [9, 2, 3, 8], 'affinity_prop': [10, 9, 4, 5], 'spectral': [1, 2, 8, 5], 'kmeans': [5, 5, 8, 5],
+           'kmedians': [5, 5, 6, 3], 'kmedoid': [7, 7, 10, 6], 'rock': [0, 2, 7, 5], 'bsas': [1, 5, 7, 6],
+           'mbsas': [1, 5, 7, 6], 'ttsas': [0, 2, 7, 5], 'som': [5, 1, 6, 6], 'trestle': [0, 1, 8, 7]}
 
+times = {'single': [0.000783, 0.029643], 'rsl': [0.00427, 0.058494], 'hdbscan': [0.027989, 0.00873947],
+         'dbscan': [0.1537, 0.227691], 'optics': [0.17996, 4.80953], 'affinity_prop': [0.146596, 22.96246],
+         'spectral': [0.25918, 1.89046], 'kmeans': [0.0664, 43.374066], 'kmedians': [0.0631, 55.23311],
+         'kmedoid': [0.0711, 0.141862], 'rock': [0.08715, 132.5041620], 'bsas': [0.06154, 0.04385],
+         'mbsas': [0.06174, 0.043392], 'ttsas': [0.06538, 0.02016234], 'som': [0.05452, 0.49852],
+         'trestle': [0.098921, 0.58683]}
+
+
+# \begin
+# {frame}
+# {Two
+# Step
+# numbers}
+# \begin
+# {tabular}
+# { | l | c | c | c | c |}
+# Approach & $0\ % $ & $10\ % $ & $33\ % $ & $50\ % $ \ \
+#     \multirow
+# {4}
+# {*}{HDBSCAN}
+# No.Clusters & 9 & 8 & 6 & \\ \hline
+# No.Noise & 0 & 1 & 5 &\\ \hline
+# Sihlouette
+# coef. & 1 & 0.804 & 0.457 &\\ \hline
+# Calinski
+# Harabasz & 1 & 39.306 & 7.69 &\\ \hline
+#
+# \multirow
+# {4}
+# {*}{DBSCAN} & No.Clusters & 3 & 9 & 2 &\\ \hline
+# No.Noise & 0 & 0 & 8 &\\ \hline
+# Sihlouette
+# coef. & 0.47 & 0.952 & 0.355 & \ \
+#     Calinski
+# Harabasz & 16 & 122.417 & 11.249 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{OPTICS} & No.Clusters & 3 & 9 & 7 &\ \
+#     No.Noise & 0 & 0 & 7 &\ \
+#     Sihlouette
+# coef. & 0.47 & 0.952 & 0.653 &\ \
+#     Calinski
+# Harabasz & 16 & 122.417 & 10.647 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{Affinity
+# Propagation} & No.Clusters & 2 & 3 & 10 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 0.138 & 0.011 & -0.127 &\ \
+#     Calinski
+# Harabasz & 3.981 & 2.791 & 1.005 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{Spectral
+# cl.} & No.Clusters & 8 & 9 & 14 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 0.867 & 0.9
+# 52 & 0.625 &\ \
+#     Calinski
+# Harabasz & 35.286 & 122.417 & 23.691 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{KMeans} & No.Clusters & 6 & 6 & 4 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 0.69 & 0.664 & 0.333 &\ \
+#     Calinski
+# Harabasz & 15.4 & 15.193 & 8.808 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{KMedians} & No.Clusters & 6 & 6 & 10 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 0.69 & 0.657 & 0.453 &\ \
+#     Calinski
+# Harabasz & 15.4 & 15.193 & 7.439 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{KMedoid} & No.Clusters & 10 & 13 & 15 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 0.6 & 0.415 & 0.441 &\ \
+#     Calinski
+# Harabasz & 11.33 & 14.224 & 9.725 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{Rock} & No.Clusters & 9 & 10 & 15 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 1 & 0.963 & 0.704 &\ \
+#     Calinski
+# Harabasz & 1 & 1 & 1 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{BSAS} & No.Clusters & 8 & 9 & 14 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 0.867 & 0.852 & 0.539 &\ \
+#     Calinski
+# Harabasz & 35.286 & 36.708 & 14.432 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{MBSAS} & No.Clusters & 8 & 9 & 14 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 0.867 & 0.852 & 0.593 &\ \
+#     Calinski
+# Harabasz & 35.1 & 36.708 & 14.432 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{TTSAS} & No.Clusters & 9 & 10 & 15 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 1 & 0.963 & 0.704 &\ \
+#     Calinski
+# Harabasz & 1 & 1 & 1 &\ \
+#  \
+#     \multirow
+# {4}
+# {*}{SOM} & No.Clusters & 6 & 8 & 7 &\ \
+#     No.Noise & 0 & 0 & 0 &\ \
+#     Sihlouette
+# coef. & 0.69 & 0.826 & 0.539 &\ \
+#     Calinski
+# Harabasz & 15.4 & 27.364 & 10.568 &
+#
 
 class Dataset(Enum):
     SYNTHETIC = (BASE + "/data/synthetic.json", BASE + "/data/synthetic.tree")
