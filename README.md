@@ -1,19 +1,17 @@
 # Label/Property/Concept Hierarchy/Taxonomy Inference
 
-Questions that Project should answer:
-    1. [x] Find label hierarchies
-    2. [x] Extract only robust sub-hierarchies
-    3. [ ] How distant are two instances
-    4. [x] Deal with noise
-    5. [ ] How can we make such an existing algorithm graph aware: (impl in Trestle,
-            By considering the structure of a graph (in the clustering) regain deleted labels
-        - for each node how many edges of each type: Introduce new properties with graphy traits
-        - Neighbours, types of neighbours, type of relationships, cumulative relationship, 
-    6. [ ] How much do we need to sample to get a correct hierarchy? Or how many distinct labels do we need?  
- 
-Project: Ignore the graph
-Belivable results of how good the results are ignoring the graph structure
-Thesis: reintroduce graph structure => algos more robust
+Questions that Project should answer:  
+- [x] Find label hierarchies  
+- [x] Extract only robust sub-hierarchies  
+- [x] Deal with noise  
+- [ ] How distant are two instances  
+- [ ] How can we make such an existing algorithm graph aware:  
+            By considering the structure of a graph (in the clustering) regain deleted labels/make clustering 
+            algorithms more robust  
+    - for each node how many edges of each type: Introduce new properties with graphy traits/new column in the feature vector  
+    - Neighbours, types of neighbours, type of relationships, cumulative relationship, ...  
+- [ ] How much do we need to sample to get a correct hierarchy? Or how many distinct labels do we need?    
+
 
 ### Previously:  
 - [x] Data: Synthetic node instances with one attribute, namely a field called labels containing a set of labels.
