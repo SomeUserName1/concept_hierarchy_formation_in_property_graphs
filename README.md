@@ -1,6 +1,38 @@
 # Label/Property/Concept Hierarchy/Taxonomy Inference
-__Presentation: 25th July 14:00__
 
+Questions that Project should answer:  
+- [x] Find label hierarchies  
+- [x] Extract only robust sub-hierarchies  
+- [x] Deal with noise  
+- [ ] How distant are two instances  
+- [ ] How can we make such an existing algorithm graph aware:  
+            By considering the structure of a graph (in the clustering) regain deleted labels/make clustering 
+            algorithms more robust  
+    - for each node how many edges of each type: Introduce new properties with graphy traits/new column in the feature vector  
+    - Neighbours, types of neighbours, type of relationships, cumulative relationship, ...  
+- [ ] How much do we need to sample to get a correct hierarchy? Or how many distinct labels do we need?    
+
+
+### Previously:  
+- [x] Data: Synthetic node instances with one attribute, namely a field called labels containing a set of labels.
+- [x] Algorithms: As many as applicable from SKlearn and PyClustering
+- [x] Features used to cluster: label sets 
+- [x] Experiments with varying noise
+
+### Now:
+- [x] Data: LDBC SNB generator
+- [ ] Algorithms: Single Linkage, TTSAS, OPTICS, HDBSCAN, Trestle
+- [ ] Features: label sets, neighbourhood & ego net
+- [ ] Experiments: What features shall be used?
+
+### Later
+- [ ] Data: LDBC SNB Generator, Synthetic data generator (cov. edges), maybe Yelp
+- [ ] Algorithms: as above, maybe adapted version Trestle
+- [ ] Features: label sets, neighbour hood, ego net, maybe higher order recursive feature extraction results, maybe all attributes (to make it usable like throw in data, get out hierarchy)
+- [ ] Experiments: varying noise and features
+
+Update 03.09.2019
+_______________________________________________________________________
 ## Overall Structure: ## 
 1. General:
     - [x] Make code modular and functional to execute different varieties of the pipeline
@@ -8,11 +40,10 @@ __Presentation: 25th July 14:00__
 2. Data: Yelp and Synthetic 
     - [x] Make callable from python
     - [x] Create Tree from whats generated
-    ⁻ [ ] and hand-crafted one for Yelp data set
 
 3. Preprocessing: Binary Count Vectorization, SVD/PCA/ICA or tSNE/UMAP/MDS. 
     - [x] Binary count vectorization
-    - [x] tSNE combination for data vis. and numeric only methods. 
+    - [x] PCA-tSNE combination for data vis. and numeric only methods. 
 
 4. Clustering:
     1. Pre-Clustering: (sklearn, pyclustering)
@@ -21,7 +52,7 @@ __Presentation: 25th July 14:00__
         - [x] PyClustering: KMeans, KMedoid, KMedians, EM, BSAS, MBSAS, TTSAS
         - [x] Wrappers for PyClustering to use Pipeline and GridSearchCV from sklearn
     2. Hierarcical Clustering
-        - [x] Single, Robust Single
+        - [x] Single, Average, Complete, Ward, Robust Single, maybe divisive
     3. End-to-End Approaches
         - [x] HDBScan (hdbscan package)
         - [x] Conceptual Clustering (concept_formation package)
@@ -32,44 +63,10 @@ __Presentation: 25th July 14:00__
         - [x] get TED running with appropriate costs via python  
         - [x] RSL -> .tree -> TED  
         - [x] Trestle -> .tree -> TED  
-    - [ ] KFold Cross Validation  
-       - Take 90% dataset & create hierachy  
-       - take 10% dataset & validate hierarchy  
     - [x] Visualization:  
         - [x] Dendro  
         - [x] Pre-Clustering  
             
-6. Questions that Project should answer:
-    1. [x] Find label hierarchies
-    2. [x] Extract only robust sub-hierarchies
-    3. [ ] How distant are two instances
-    4. [x] Deal with noise
-    5. [ ] How can we make such an existing algorithm graph aware: (impl in Trestle,
-            By considering the structure of a graph (in the clustering) regain deleted labels
-        - for each node how many edges of each type: Introduce new properties with graphy traits
-        - Neighbours, types of neighbours, type of relationships, cumulative relationship, 
-    6. [ ] How much do we need to sample to get a correct hierarchy? Or how many distinct labels do we need?  
- 
-Project: Ignore the graph
-Belivable results of how good the results are ignoring the graph structure
-Thesis: reintroduce graph structure => algos more robust
-
-
-## TODO
-23.07:
-
-- [ ] Table
-Cost vs accuracy per algo 
-
-Algos   | Runtime   | Accuracy|    
-|--- |--- |--- |  
-|  a |  123s| 12 ted |  
-- [ ] Chose graphics
-- [ ] Slides ready (textual)
-- [x] Yelp preview
-
-TED: how it supports our scenario, why/why not
-
 
 ## Presentation:
 1. Introduction
@@ -95,3 +92,4 @@ TED: how it supports our scenario, why/why not
     => HOW: Take structural info, neibhbourhood to infer hierarcy from noisy data again
     
     doesnt need to be exact but should make sense
+
