@@ -35,10 +35,10 @@ from concept_formation.visualize import visualize as visualize_trestle
 from concept_formation.visualize import visualize_clusters as visualize_trestle_clusters
 
 # ____________ CONSTANTS: Paths ________________--
-BASE = "/home/someusername/Nextcloud/workspace/uni/8/bachelor_project"
+BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project"
 IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
-log = open(path.join(BASE, "doc", 'clustering_survey_memory.log'), 'w')
+#log = open(path.join(BASE, "doc", 'clustering_survey_memory.log'), 'w')
 
 results = {'single': [27, 28, 26, 25], 'rsl': [27, 28, 29, 35], 'hdbscan': [30, 31, 29, 27], 'dbscan': [9, 2, 8, 5],
            'optics': [9, 2, 3, 8], 'affinity_prop': [10, 9, 4, 5], 'spectral': [1, 2, 8, 5], 'kmeans': [5, 5, 8, 5],
@@ -138,7 +138,7 @@ times = {'single': [0.000783, 0.029643], 'rsl': [0.00427, 0.058494], 'hdbscan': 
 #     Calinski
 # Harabasz & 11.33 & 14.224 & 9.725 &\ \
 #  \
-#     \multirow
+#     \multirowsomeusername
 # {4}
 # {*}{Rock} & No.Clusters & 9 & 10 & 15 &\ \
 #     No.Noise & 0 & 0 & 0 &\ \
@@ -328,22 +328,22 @@ def cluster_basic_single_linkage(vectorized_data, dataset, noise):
 
 
 def main(n_samples: int, dataset: Dataset, width=3, depth=2):
-    for noise in [False]:
+    for noise in [True]:
         logger.info("############ Noise = " + str(noise) + "#######################################################")
         logger.info("Generating/Sampling, Loading and Vectorizing Data")
         data = load(n_samples, dataset, noise, width, depth)
 
-        vectorized_data = np.array(CountVectorizer(binary=True).fit_transform(data).toarray())
-        distance_matrix = metrics.pairwise_distances(vectorized_data.astype(int), metric='l1', n_jobs=-1)
+        #vectorized_data = np.array(CountVectorizer(binary=True).fit_transform(data).toarray())
+        #distance_matrix = metrics.pairwise_distances(vectorized_data.astype(int), metric='l1', n_jobs=-1)
 
-        cluster_basic_single_linkage(vectorized_data, dataset, noise)
+        #cluster_basic_single_linkage(vectorized_data, dataset, noise)
 
-        one_step(vectorized_data, dataset, noise)
+        #one_step(vectorized_data, dataset, noise)
 
-        logger.info("==================== Two Step =========================")
-        two_step(vectorized_data, distance_matrix, dataset, n_samples, noise)
+        #logger.info("==================== Two Step =========================")
+        #two_step(vectorized_data, distance_matrix, dataset, n_samples, noise)
 
-        logger.info("================== Conceptual =======================")
+        #logger.info("================== Conceptual =======================")
         cluster_trestle(dataset, noise, n_samples)
 
 
@@ -426,7 +426,7 @@ def preprocess_trestle_synthetic(dataset):
     for entry in data:
         entry["id"] = "_" + str(entry["id"])
         del entry["id"]
-        for i, label in enumerate(entry["labels"].split()):
+        for i, label in enumerate(entry["labels"].split(',')):
             entry["label_" + str(i)] = label
 
         del entry["labels"]
@@ -853,6 +853,67 @@ def transform_numeric(vectorized_data: np.array) -> np.array:
     return tsne_data
 
 
+def plot_results():
+    p = path.join(IMG_BASE)
+    if not os.path.exists(p):
+        os.makedirs(p)
+
+    plt.figure()
+    for elem in results:
+        plt.plot([0.0, 0.1, 0.33, 0.5], results[elem], label=elem)
+
+    plt.locator_params(axis='x', nbins=4)
+    plt.ylabel('Tree Edit Distance')
+    plt.xlabel('% noise')
+    plt.title("Tree Edit Distance per Noise and Algorithm")
+
+    plt.legend(loc='upper left')
+    plt.savefig(p + "ted_results.svg")
+    plt.clf()
+
+    plt.figure()
+    for elem in results:
+        if elem in ['trestle', 'optics', 'single', 'ttsas']:
+            plt.plot([0.0, 0.1, 0.33, 0.5], results[elem], label=elem)
+
+    plt.locator_params(axis='x', nbins=4)
+    plt.ylabel('Tree Edit Distance')
+    plt.xlabel('% noise')
+    plt.title("Tree Edit Distance per Noise and Algorithm")
+
+    plt.legend(loc='upper right')
+    plt.savefig(p + "ted_results_reduced.svg")
+    plt.clf()
+
+    plt.figure()
+    for elem in times:
+        plt.plot([27, 2000], times[elem], label=elem)
+    plt.locator_params(axis='x', nbins=2)
+    plt.ylabel('runime in s')
+    plt.xlabel('No samples')
+    plt.title("Runtime per Samples and Algorithm")
+
+    plt.legend()
+    plt.savefig(p + "time_bench.svg")
+    plt.clf()
+
+    plt.figure()
+    for elem in times:
+        if elem in ['rock', 'kmedians', 'affinity_prop', 'kmeans', 'spectral', 'kmedoid', 'dbscan', 'som', 'bsas', 'mbsas', 'rsl', 'hdbscan']:
+            continue
+        plt.plot([27, 2000], times[elem], label=elem)
+    plt.locator_params(axis='x', nbins=2)
+    plt.ylabel('runime in s')
+    plt.xlabel('No samples')
+    plt.title("Runtime per Samples and Algorithm")
+
+    plt.legend()
+    plt.savefig(p + "time_bench_reduced.svg")
+
+
+
+
+
 if __name__ == '__main__':
     logger = logging.getLogger("clusering_survey")
     logger.setLevel(logging.DEBUG)
@@ -874,4 +935,5 @@ if __name__ == '__main__':
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    main(n_samples=2000, dataset=Dataset.SYNTHETIC, width=3, depth=3)
+    # main(n_samples=(3**3), dataset=Dataset.SYNTHETIC, width=3, depth=3)
+    plot_results()
