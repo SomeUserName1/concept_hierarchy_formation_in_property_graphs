@@ -11,7 +11,7 @@
     - [ ] Others
 - [ ] Improve Tree generation and feature selection
     - [ ] C4.5/C5.0
-    - [ ] Mechanisms from SUBDUE, ITERATE, AICC, CLASSIT,...
+    - [ ] Mechanisms from LABYRINTH, SUBDUE, ITERATE, AICC, CLASSIT,...
 
 Literature form the bib:
 - Concept formation: knowledge and experience in unsupervised learning, Douglas H. Fisher Michael J. Pazzani Pat Langley
