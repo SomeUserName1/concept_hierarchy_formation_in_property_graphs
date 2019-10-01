@@ -1,5 +1,28 @@
 # Label/Property/Concept Hierarchy/Taxonomy Inference
 
+- [ ] Read & Implement 
+    - [ ] Cobweb
+    - [ ] Cobweb/3
+    - [ ] Trestle
+- [ ] Extend by feature extraction
+    - [ ] Henderson et al 
+    - [ ] Perlich
+    - [ ] Devaney
+    - [ ] Others
+- [ ] Improve Tree generation and feature selection
+    - [ ] C4.5/C5.0
+    - [ ] Mechanisms from SUBDUE, ITERATE, AICC, CLASSIT,...
+
+Literature form the bib:
+- Concept formation: knowledge and experience in unsupervised learning, Douglas H. Fisher Michael J. Pazzani Pat Langley
+- C4.5: Programs for Machine Learning, J. Quinlan
+
+[Bibliography A](https://www.cs.cmu.edu/afs/cs/project/jair/pub/volume4/fisher96a-html/node22.html)
+[Bibliography B](https://web.archive.org/web/20110409095215/http://www.lsi.upc.es/~talavera/conceptual-clustering.html)
+
+Update 01.10
+_______________________________________________________________________
+
 Questions that Project should answer:  
 - [x] Find label hierarchies  
 - [x] Extract only robust sub-hierarchies  
@@ -12,12 +35,6 @@ Questions that Project should answer:
     - Neighbours, types of neighbours, type of relationships, cumulative relationship, ...  
 - [ ] How much do we need to sample to get a correct hierarchy? Or how many distinct labels do we need?    
 
-
-### Previously:  
-- [x] Data: Synthetic node instances with one attribute, namely a field called labels containing a set of labels.
-- [x] Algorithms: As many as applicable from SKlearn and PyClustering
-- [x] Features used to cluster: label sets 
-- [x] Experiments with varying noise
 
 ### Now:
 - [x] Data: LDBC SNB generator
