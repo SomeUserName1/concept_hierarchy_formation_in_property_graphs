@@ -1,6 +1,6 @@
 package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
 
-public class NominalValue implements Value {
+public class NominalValue implements Value, Cloneable {
     private String str;
 
     NominalValue(String value) {
@@ -11,6 +11,15 @@ public class NominalValue implements Value {
     }
     NominalValue(char value) {
         this.str = Character.toString(value);
+    }
+
+    public Value clone() {
+        try {
+            super.clone();
+        } catch (final CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return new NominalValue(this.str);
     }
 
     public String getStr() {

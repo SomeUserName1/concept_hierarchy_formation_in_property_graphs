@@ -4,6 +4,7 @@ package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
 
 
 public interface Value {
+    Value clone();
     boolean equals(Object o);
     static Value cast(Object o) {
         if (o instanceof String) {

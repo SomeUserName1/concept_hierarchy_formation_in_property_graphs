@@ -1,9 +1,10 @@
 # Label/Property/Concept Hierarchy/Taxonomy Inference
 
 - [ ] Read & Implement 
-    - [ ] Cobweb
-    - [ ] Cobweb/3
+    - [x] Cobweb/3
+    - [ ] Labyrinth preprocessing step
     - [ ] Trestle
+    - [ ] Subdue (Joyners version)
 - [ ] Extend by feature extraction
     - [ ] Henderson et al 
     - [ ] Perlich

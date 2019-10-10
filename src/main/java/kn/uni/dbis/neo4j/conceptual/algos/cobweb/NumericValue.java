@@ -1,12 +1,17 @@
 package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
 
-class NumericValue implements Value {
+class NumericValue implements Value, Cloneable {
     private double mean;
     private double std;
 
     NumericValue(final Number nr) {
         this.mean = nr.doubleValue();
         this.std = 0.0f;
+    }
+
+    private NumericValue(final double mean, final double std) {
+        this.mean = mean;
+        this.std = std;
     }
 
     public double getMean() {
@@ -23,6 +28,16 @@ class NumericValue implements Value {
 
     public void setStd(final double std) {
         this.std = std;
+    }
+
+    @Override
+    public Value clone() {
+        try {
+            super.clone();
+        } catch (final CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return new NumericValue(this.mean, this.std);
     }
 
     @Override
