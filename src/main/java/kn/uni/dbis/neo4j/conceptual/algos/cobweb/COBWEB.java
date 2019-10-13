@@ -1,14 +1,13 @@
 package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
 
-import org.neo4j.cypher.internal.v3_4.functions.Pi;
 import org.neo4j.graphdb.Node;
 
 import java.util.Map;
 
-class COBWEB {
+public class COBWEB {
     private ConceptNode root;
 
-    private COBWEB() {
+    public COBWEB() {
         this.root = new ConceptNode();
     }
 
@@ -19,8 +18,9 @@ class COBWEB {
     }
 
     public void cobweb(ConceptNode newNode, ConceptNode currentNode, boolean updateCurrent) {
-        currentNode.updateCounts(newNode, false);
-
+        if (updateCurrent) {
+            currentNode.updateCounts(newNode, false);
+        }
         if (currentNode.getChildren().isEmpty()) {
             currentNode.addChild(newNode);
         } else {
