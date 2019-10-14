@@ -14,13 +14,13 @@ public class TRESTLE extends COBWEB {
     public void integrate(Node node) {
         ConceptNode newChild = new ConceptNode();
         newChild.nodePropertiesToConcept(node);
-        newChild.match();
-        newChild.flatten();
-        newChild.cobweb(newChild, this.root, true);
+        match(newChild);
+        flatten(newChild);
+        cobweb(newChild, this.root, true);
     }
 
 
-    private void match() {
+    private void match(ConceptNode newNode) {
         // match to root using A*
         // How to map renaming to A*
         //
@@ -78,7 +78,7 @@ public class TRESTLE extends COBWEB {
 
     }
 
-    private void flatten() {
+    private void flatten(ConceptNode newNode) {
         // move components to top level using dot notation
         // make relations between components nominal attributes
     }

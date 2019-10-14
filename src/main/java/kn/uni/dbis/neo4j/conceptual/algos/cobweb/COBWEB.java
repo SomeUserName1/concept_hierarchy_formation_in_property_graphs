@@ -5,7 +5,7 @@ import org.neo4j.graphdb.Node;
 import java.util.Map;
 
 public class COBWEB {
-    private ConceptNode root;
+    protected ConceptNode root;
 
     public COBWEB() {
         this.root = new ConceptNode();
