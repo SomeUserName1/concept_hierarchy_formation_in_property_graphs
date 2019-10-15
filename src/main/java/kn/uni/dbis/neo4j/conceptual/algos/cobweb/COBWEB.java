@@ -123,6 +123,7 @@ public class COBWEB {
         return cu/(double)parent.getChildren().size();
     }
 
+    // TODO unbiassing
     private double getExpectedAttributePrediction(ConceptNode categroy) {
         double exp = 0;
         double total = categroy.getCount();

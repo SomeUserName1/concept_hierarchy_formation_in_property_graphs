@@ -40,6 +40,7 @@ public class ConceptNode implements Cloneable {
         return clone;
     }
 
+    // TODO chens online algo
     public void updateCounts(ConceptNode node, boolean merge) {
         this.count++;
         Map<Value, Integer> values;
