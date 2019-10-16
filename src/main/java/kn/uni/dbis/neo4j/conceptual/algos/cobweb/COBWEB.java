@@ -6,6 +6,7 @@ import java.util.Map;
 
 public class COBWEB {
     protected ConceptNode root;
+    private static double cont_cu_const = 4*Math.sqrt(Math.PI);
 
     public COBWEB() {
         this.root = new ConceptNode();
@@ -17,7 +18,7 @@ public class COBWEB {
         cobweb(newChild, this.root, true);
     }
 
-    public void cobweb(ConceptNode newNode, ConceptNode currentNode, boolean updateCurrent) {
+    protected static void cobweb(ConceptNode newNode, ConceptNode currentNode, boolean updateCurrent) {
         if (updateCurrent) {
             currentNode.updateCounts(newNode, false);
         }
@@ -63,20 +64,21 @@ public class COBWEB {
         }
     }
 
-    private OpResult findHost(ConceptNode parent, ConceptNode newNode) {
+    private static OpResult findHost(ConceptNode parent, ConceptNode newNode) {
         double curCU;
         double maxCU = -1;
         int i = 0;
         ConceptNode clone;
         ConceptNode best = parent;
         ConceptNode parentClone;
+        final double parentEAP = getExpectedAttributePrediction(parent);
 
         for (ConceptNode child : parent.getChildren()) {
             clone = child.clone();
             clone.updateCounts(newNode, false);
             parentClone = parent.clone();
             parentClone.getChildren().set(i, clone);
-            curCU = computeCU(parentClone);
+            curCU = computeCU(parentClone, parentEAP);
             if (maxCU < curCU) {
                 maxCU = curCU;
                 best = child;
@@ -86,13 +88,13 @@ public class COBWEB {
         return new OpResult(Op.RECURSE, maxCU, best);
     }
 
-    private OpResult createNewNode(ConceptNode currentNode, ConceptNode newNode) {
+    private static OpResult createNewNode(ConceptNode currentNode, ConceptNode newNode) {
         ConceptNode clone = currentNode.clone();
         clone.addChild(newNode);
         return new OpResult(Op.CREATE, computeCU(clone), clone);
     }
 
-    private OpResult splitNodes(ConceptNode host, ConceptNode current) {
+    private static OpResult splitNodes(ConceptNode host, ConceptNode current) {
         ConceptNode currentClone = current.clone();
         for (ConceptNode child : host.getChildren()) {
             currentClone.addChild(child);
@@ -101,7 +103,7 @@ public class COBWEB {
         return new OpResult(Op.SPLIT, computeCU(current), currentClone);
     }
 
-    private OpResult mergeNodes(ConceptNode current, ConceptNode host, ConceptNode newNode) {
+    private static OpResult mergeNodes(ConceptNode current, ConceptNode host, ConceptNode newNode) {
         ConceptNode clonedParent = current.clone();
         clonedParent.getChildren().remove(host);
         OpResult secondHost = findHost(clonedParent, newNode);
@@ -114,29 +116,41 @@ public class COBWEB {
     }
 
 
-    private double computeCU(ConceptNode parent) {
+    private static double computeCU(ConceptNode parent) {
         double cu = 0.0;
+        final double parentEAP = getExpectedAttributePrediction(parent);
+        double parentCount = parent.getCount();
         for (ConceptNode child : parent.getChildren()) {
-            cu += (double)child.getCount()/(double)parent.getCount()
-                    * ( this.getExpectedAttributePrediction(child) - this.getExpectedAttributePrediction(parent));
+            cu += (double)child.getCount()/parentCount
+                    * ( getExpectedAttributePrediction(child) - parentEAP);
         }
         return cu/(double)parent.getChildren().size();
     }
 
-    // TODO unbiassing
-    private double getExpectedAttributePrediction(ConceptNode categroy) {
+    private static double computeCU(ConceptNode parent, double parentEAP) {
+        double cu = 0.0;
+        double parentCount = parent.getCount();
+        for (ConceptNode child : parent.getChildren()) {
+            cu += (double)child.getCount()/parentCount
+                    * ( getExpectedAttributePrediction(child) - parentEAP);
+        }
+        return cu/(double)parent.getChildren().size();
+    }
+
+
+    public static double getExpectedAttributePrediction(ConceptNode category) {
         double exp = 0;
-        double total = categroy.getCount();
-        for (Map.Entry<String, Map<Value, Integer>> attrib : categroy.getAttributes().entrySet()) {
+        double total = category.getCount();
+        for (Map.Entry<String, Map<Value, Integer>> attrib : category.getAttributes().entrySet()) {
             for (Map.Entry<Value, Integer> val : attrib.getValue().entrySet()) {
                 if (val.getKey() instanceof NominalValue) {
                     exp += ((double) val.getValue() / total) * ((double) val.getValue() / total);
                 } else {
-                    exp += 1.0/(((NumericValue)val.getKey()).getStd() * 4 * Math.PI);
+                    exp += 1.0/(((NumericValue)val.getKey()).getStd() * cont_cu_const);
                 }
             }
         }
-        return exp/categroy.getAttributes().size();
+        return exp/category.getAttributes().size();
     }
 
     enum Op {
@@ -146,7 +160,7 @@ public class COBWEB {
         RECURSE
     }
 
-    private class OpResult {
+    private static class OpResult {
         private Op operation;
         private double cu;
         private ConceptNode node;
