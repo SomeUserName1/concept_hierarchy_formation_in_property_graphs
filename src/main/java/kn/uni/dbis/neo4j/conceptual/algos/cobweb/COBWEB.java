@@ -14,7 +14,7 @@ public class COBWEB {
 
     public void integrate(Node node) {
         ConceptNode newChild = new ConceptNode();
-        newChild.nodePropertiesToConcept(node);
+        newChild.propertyContainerToConceptNode(node);
         cobweb(newChild, this.root, true);
     }
 

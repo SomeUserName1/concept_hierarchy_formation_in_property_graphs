@@ -1,6 +1,9 @@
 package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
 
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -103,7 +106,7 @@ public class ConceptNode implements Cloneable {
         }
     }
 
-    public void nodePropertiesToConcept(Node node) {
+    public void propertyContainerToConceptNode(PropertyContainer node) {
         // loop over the properties of a N4J node and cast them to a Value
         Object o;
         for (Map.Entry<String, Object> property : node.getAllProperties().entrySet()) {
@@ -119,6 +122,18 @@ public class ConceptNode implements Cloneable {
                 map.put(Value.cast(property.getValue()), 1);
             }
             attributes.put(property.getKey(), map);
+        }
+        HashMap<Value, Integer> map = new HashMap<>();
+        if (node instanceof Relationship) {
+            Relationship rel = (Relationship)node;
+            map.put(new NominalValue(rel.getType().name()), 1);
+            attributes.put("Type", map);
+        } else if (node instanceof Node) {
+            Node mNode = (Node)node;
+            for (Label label :mNode.getLabels()) {
+                map.put(new NominalValue(label.name()), 1);
+                attributes.put("Label", map);
+            }
         }
     }
 
