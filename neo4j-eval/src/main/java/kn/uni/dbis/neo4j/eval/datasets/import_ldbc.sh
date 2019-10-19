@@ -1,4 +1,4 @@
-#!/bin/bash
+git #!/bin/bash
 
 which docker
 if [ $? == 1 ]; then
