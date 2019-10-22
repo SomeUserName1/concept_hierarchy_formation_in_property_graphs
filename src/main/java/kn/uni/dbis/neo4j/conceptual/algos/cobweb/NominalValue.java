@@ -12,6 +12,7 @@ public class NominalValue implements Value, Cloneable {
     NominalValue(char value) {
         this.str = Character.toString(value);
     }
+    NominalValue(long value) {this.str = Long.toHexString(value);}
 
     public Value clone() {
         try {

@@ -12,6 +12,7 @@ import java.util.Map;
 import java.lang.Math;
 
 public class ConceptNode implements Cloneable {
+    private long id;
     private int count;
     private Map<String, Map<Value, Integer>> attributes;
     private ArrayList<ConceptNode> children;
@@ -20,6 +21,14 @@ public class ConceptNode implements Cloneable {
         this.count = 0;
         this.attributes = new HashMap<>();
         this.children = new ArrayList<>();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof ConceptNode) {
+            ConceptNode node = (ConceptNode)o;
+            return node.count == this.count && node.attributes.equals(this.attributes) && node.children.
+        }
     }
 
     public ConceptNode clone() {
@@ -43,7 +52,7 @@ public class ConceptNode implements Cloneable {
         return clone;
     }
 
-    // TODO chens online algo
+
     public void updateCounts(ConceptNode node, boolean merge) {
         this.count++;
         Map<Value, Integer> values;
@@ -78,7 +87,7 @@ public class ConceptNode implements Cloneable {
                         } else {
                             // Even though we have a NumericValue here, its not really mean and std but a single number with
                             // zero std for the non-merge case
-                            // TODO use welfords online algo.
+                            // TODO chens online algo
                             double variance = numeric.getStd() * numeric.getStd();
                             double newMean = mean + ((otherMean - mean) / (count + 1));
                             double newStd = Math.sqrt(variance + (((otherMean - mean) * (otherMean - newMean) - variance) / count + 1));
@@ -106,11 +115,34 @@ public class ConceptNode implements Cloneable {
         }
     }
 
-    public void propertyContainerToConceptNode(PropertyContainer node) {
+
+    // Orders are ignored, so all lists are converted to sets
+    public void propertyContainerToConceptNode(PropertyContainer propertyContainer) {
+
+        HashMap<Value, Integer> map = new HashMap<>();
+
+        if (propertyContainer instanceof Relationship) {
+            Relationship rel = (Relationship)propertyContainer;
+            map.put(new NominalValue(rel.getType().name()), 1);
+            attributes.put("Type", map);
+            map = new HashMap<>();
+            map.put(new NominalValue(rel.getId()),1);
+            attributes.put("RelationshipID", map);
+        } else if (propertyContainer instanceof Node) {
+            Node mNode = (Node)propertyContainer;
+            for (Label label :mNode.getLabels()) {
+                map.put(new NominalValue(label.name()), 1);
+                attributes.put("Label", map);
+                map = new HashMap<>();
+                map.put(new NominalValue(mNode.getId()),1);
+                attributes.put("RelationshipID", map);
+            }
+        }
+
         // loop over the properties of a N4J node and cast them to a Value
         Object o;
-        for (Map.Entry<String, Object> property : node.getAllProperties().entrySet()) {
-            HashMap<Value, Integer> map = new HashMap<>();
+        for (Map.Entry<String, Object> property : propertyContainer.getAllProperties().entrySet()) {
+            map = new HashMap<>();
             o = property.getValue();
             if (o.getClass().isArray()) {
                 Object[] arr = (Object[])o;
@@ -123,18 +155,7 @@ public class ConceptNode implements Cloneable {
             }
             attributes.put(property.getKey(), map);
         }
-        HashMap<Value, Integer> map = new HashMap<>();
-        if (node instanceof Relationship) {
-            Relationship rel = (Relationship)node;
-            map.put(new NominalValue(rel.getType().name()), 1);
-            attributes.put("Type", map);
-        } else if (node instanceof Node) {
-            Node mNode = (Node)node;
-            for (Label label :mNode.getLabels()) {
-                map.put(new NominalValue(label.name()), 1);
-                attributes.put("Label", map);
-            }
-        }
+
     }
 
     public int getCount() {
