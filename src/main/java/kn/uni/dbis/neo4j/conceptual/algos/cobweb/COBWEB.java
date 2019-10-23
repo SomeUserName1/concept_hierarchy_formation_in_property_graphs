@@ -146,7 +146,7 @@ public class COBWEB {
                 if (val.getKey() instanceof NominalValue) {
                     exp += ((double) val.getValue() / total) * ((double) val.getValue() / total);
                 } else {
-                    exp += 1.0/(((NumericValue)val.getKey()).getStd() * cont_cu_const);
+                    exp += 1.0/((NumericValue)val.getKey()).getStd();
                 }
             }
         }

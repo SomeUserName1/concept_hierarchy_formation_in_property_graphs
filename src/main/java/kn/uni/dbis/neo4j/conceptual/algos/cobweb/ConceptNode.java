@@ -7,12 +7,12 @@ import org.neo4j.graphdb.Relationship;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import java.lang.Math;
 
 public class ConceptNode implements Cloneable {
-    private long id;
     private int count;
     private Map<String, Map<Value, Integer>> attributes;
     private ArrayList<ConceptNode> children;
@@ -27,7 +27,11 @@ public class ConceptNode implements Cloneable {
     public boolean equals(Object o) {
         if (o instanceof ConceptNode) {
             ConceptNode node = (ConceptNode)o;
-            return node.count == this.count && node.attributes.equals(this.attributes) && node.children.
+
+            return node.count == this.count && node.attributes.equals(this.attributes)
+                    && (new HashSet<>(node.children).equals(new HashSet<>(this.children)));
+        } else {
+            return false;
         }
     }
 
@@ -81,8 +85,8 @@ public class ConceptNode implements Cloneable {
                         if (merge) {
                             int otherCount = fVal.getValue();
                             int totalCount = (count + otherCount);
-                            numeric.setMean((count * mean + otherCount * otherMean)/totalCount);
-                            numeric.setStd((count * numeric.getStd() + otherCount * other.getStd())/totalCount);
+                            numeric.setMean((count * mean + otherCount * otherMean) / totalCount);
+                            numeric.setStd((count * numeric.getStd() + otherCount * other.getStd()) / totalCount);
 
                         } else {
                             // Even though we have a NumericValue here, its not really mean and std but a single number with
@@ -96,6 +100,9 @@ public class ConceptNode implements Cloneable {
                             numeric.setStd(newStd);
                             num.setValue(count + 1);
                         }
+                    } else if (fVal.getKey() instanceof ConceptValue) {
+                        // TODO What to do here?
+                        // find closest common concept (if disjunct root)
                     } else {
                         if (values.containsKey(fVal.getKey())) {
                             int vCount = values.get(fVal.getKey());

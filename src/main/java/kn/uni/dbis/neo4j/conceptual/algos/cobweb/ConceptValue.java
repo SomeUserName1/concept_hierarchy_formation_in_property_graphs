@@ -9,13 +9,22 @@ public class ConceptValue implements Value {
 
     @Override
     public Value clone() {
+        try {
+            super.clone();
+        } catch (final CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
         return new ConceptValue(this.concept.clone());
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof ConceptNode) {
-            return ((ConceptNode)o).equals(this.concept);
+            // check if contained in set
+        } else if (o instanceof ConceptValue) {
+            return ((ConceptValue)o).concept.equals(this.concept);
+        } else {
+            return false;
         }
     }
 }
