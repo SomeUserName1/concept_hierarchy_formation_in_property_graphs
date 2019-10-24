@@ -3,7 +3,7 @@ package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
 public class ConceptValue implements Value {
     private ConceptNode concept;
 
-    ConceptValue(ConceptNode node) {
+    public ConceptValue(ConceptNode node) {
         this.concept = node;
     }
 
@@ -20,7 +20,7 @@ public class ConceptValue implements Value {
     @Override
     public boolean equals(Object o) {
         if (o instanceof ConceptNode) {
-            // check if contained in set
+            return ((ConceptNode)o).equals(this.concept);
         } else if (o instanceof ConceptValue) {
             return ((ConceptValue)o).concept.equals(this.concept);
         } else {

@@ -1,10 +1,10 @@
 package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
 
-class NumericValue implements Value, Cloneable {
+public class NumericValue implements Value, Cloneable {
     private double mean;
     private double std;
 
-    NumericValue(final Number nr) {
+    public NumericValue(final Number nr) {
         this.mean = nr.doubleValue();
         this.std = 0.0f;
     }

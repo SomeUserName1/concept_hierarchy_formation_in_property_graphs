@@ -3,16 +3,16 @@ package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
 public class NominalValue implements Value, Cloneable {
     private String str;
 
-    NominalValue(String value) {
+    public NominalValue(String value) {
         this.str = value;
     }
-    NominalValue(boolean value) {
+    public NominalValue(boolean value) {
         this.str = value ? "True" : "False";
     }
-    NominalValue(char value) {
+    public NominalValue(char value) {
         this.str = Character.toString(value);
     }
-    NominalValue(long value) {this.str = Long.toHexString(value);}
+    public NominalValue(long value) {this.str = Long.toHexString(value);}
 
     public Value clone() {
         try {

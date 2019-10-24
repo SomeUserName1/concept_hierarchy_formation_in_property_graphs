@@ -102,7 +102,7 @@ public class ConceptNode implements Cloneable {
                         }
                     } else if (fVal.getKey() instanceof ConceptValue) {
                         // TODO What to do here?
-                        // find closest common concept (if disjunct root)
+                        // find closest common concept (if disjunc t root)
                     } else {
                         if (values.containsKey(fVal.getKey())) {
                             int vCount = values.get(fVal.getKey());

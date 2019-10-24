@@ -127,6 +127,7 @@ public class COBWEB {
         return cu/(double)parent.getChildren().size();
     }
 
+    // FIXME double check
     private static double computeCU(ConceptNode parent, double parentEAP) {
         double cu = 0.0;
         double parentCount = parent.getCount();
@@ -141,16 +142,23 @@ public class COBWEB {
     public static double getExpectedAttributePrediction(ConceptNode category) {
         double exp = 0;
         double total = category.getCount();
+
         for (Map.Entry<String, Map<Value, Integer>> attrib : category.getAttributes().entrySet()) {
             for (Map.Entry<Value, Integer> val : attrib.getValue().entrySet()) {
+
                 if (val.getKey() instanceof NominalValue) {
                     exp += ((double) val.getValue() / total) * ((double) val.getValue() / total);
-                } else {
+                } else if (val.getKey() instanceof NumericValue) {
                     exp += 1.0/((NumericValue)val.getKey()).getStd();
+                } else if (val.getKey() instanceof ConceptValue) {
+                    // TODO how to comp P(V_ij and V_ik)
+                    // TODO how to handle checking parent trace
+                    exp += ((double) val.getValue() / total) * ((double) val.getValue() / total) * (val.getValue()/
                 }
+
             }
         }
-        return exp/category.getAttributes().size();
+        return exp;
     }
 
     enum Op {
