@@ -1,4 +1,4 @@
-package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
+package kn.uni.dbis.neo4j.conceptual.algos;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -16,6 +16,7 @@ public class ConceptNode implements Cloneable {
     private int count;
     private Map<String, Map<Value, Integer>> attributes;
     private ArrayList<ConceptNode> children;
+    private ConceptNode parent;
 
     public ConceptNode() {
         this.count = 0;
@@ -57,7 +58,7 @@ public class ConceptNode implements Cloneable {
     }
 
 
-    public void updateCounts(ConceptNode node, boolean merge) {
+    void updateCounts(ConceptNode node, boolean merge) {
         this.count++;
         Map<Value, Integer> values;
 
@@ -100,9 +101,6 @@ public class ConceptNode implements Cloneable {
                             numeric.setStd(newStd);
                             num.setValue(count + 1);
                         }
-                    } else if (fVal.getKey() instanceof ConceptValue) {
-                        // TODO What to do here?
-                        // find closest common concept (if disjunc t root)
                     } else {
                         if (values.containsKey(fVal.getKey())) {
                             int vCount = values.get(fVal.getKey());
@@ -165,6 +163,17 @@ public class ConceptNode implements Cloneable {
 
     }
 
+    boolean isSuperConcept(ConceptNode c) {
+        if (this.parent == null) {
+            return false;
+        }
+        if (this.parent.equals(c)) {
+            return true;
+        } else {
+            return parent.isSuperConcept(c);
+        }
+    }
+
     public int getCount() {
         return this.count;
     }
@@ -177,8 +186,16 @@ public class ConceptNode implements Cloneable {
         return children;
     }
 
-    public void addChild(ConceptNode node) {
+    void addChild(ConceptNode node) {
         this.children.add(node);
+    }
+
+    public ConceptNode getParent() {
+        return parent;
+    }
+
+    public void setParent(ConceptNode parent) {
+        this.parent = parent;
     }
 }
 

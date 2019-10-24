@@ -1,4 +1,4 @@
-package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
+package kn.uni.dbis.neo4j.conceptual.algos;
 
 public class NumericValue implements Value, Cloneable {
     private double mean;

@@ -1,4 +1,4 @@
-package kn.uni.dbis.neo4j.conceptual.algos.cobweb;
+package kn.uni.dbis.neo4j.conceptual.algos;
 
 // Them Neo4j retards force one to do this instance of shit due to their "non explosion of overload" shit
 
