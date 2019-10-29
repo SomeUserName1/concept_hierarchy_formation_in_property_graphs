@@ -1,33 +1,35 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import java.lang.Math;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 
+/**
+ * The basic data type for the conceptual hierarchy (tree) constructed and used by cobweb.
+ * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
+ */
 public class ConceptNode implements Cloneable {
     private int count;
     private Map<String, Map<Value, Integer>> attributes;
     private ArrayList<ConceptNode> children;
     private ConceptNode parent;
 
-    public ConceptNode() {
+    ConceptNode() {
         this.count = 0;
         this.attributes = new HashMap<>();
         this.children = new ArrayList<>();
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (o instanceof ConceptNode) {
-            ConceptNode node = (ConceptNode)o;
+            ConceptNode node = (ConceptNode) o;
 
             return node.count == this.count && node.attributes.equals(this.attributes)
                     && (new HashSet<>(node.children).equals(new HashSet<>(this.children)));
@@ -85,10 +87,9 @@ public class ConceptNode implements Cloneable {
 
                         if (merge) {
                             int otherCount = fVal.getValue();
-                            int totalCount = (count + otherCount);
-                            numeric.setMean((count * mean + otherCount * otherMean) / totalCount);
+                            int totalCount = count + otherCount;
+                            numeric.setMean(count * mean + otherCount * otherMean / totalCount);
                             numeric.setStd((count * numeric.getStd() + otherCount * other.getStd()) / totalCount);
-
                         } else {
                             // Even though we have a NumericValue here, its not really mean and std but a single number with
                             // zero std for the non-merge case
@@ -122,25 +123,25 @@ public class ConceptNode implements Cloneable {
 
 
     // Orders are ignored, so all lists are converted to sets
-    public void propertyContainerToConceptNode(PropertyContainer propertyContainer) {
+    void propertyContainerToConceptNode(PropertyContainer propertyContainer) {
 
         HashMap<Value, Integer> map = new HashMap<>();
 
         if (propertyContainer instanceof Relationship) {
-            Relationship rel = (Relationship)propertyContainer;
+            Relationship rel = (Relationship) propertyContainer;
             map.put(new NominalValue(rel.getType().name()), 1);
-            attributes.put("Type", map);
+            this.attributes.put("Type", map);
             map = new HashMap<>();
-            map.put(new NominalValue(rel.getId()),1);
-            attributes.put("RelationshipID", map);
+            map.put(new NominalValue(rel.getId()), 1);
+            this.attributes.put("RelationshipID", map);
         } else if (propertyContainer instanceof Node) {
-            Node mNode = (Node)propertyContainer;
-            for (Label label :mNode.getLabels()) {
+            Node mNode = (Node) propertyContainer;
+            for (Label label : mNode.getLabels()) {
                 map.put(new NominalValue(label.name()), 1);
-                attributes.put("Label", map);
+                this.attributes.put("Label", map);
                 map = new HashMap<>();
-                map.put(new NominalValue(mNode.getId()),1);
-                attributes.put("RelationshipID", map);
+                map.put(new NominalValue(mNode.getId()), 1);
+                this.attributes.put("RelationshipID", map);
             }
         }
 
@@ -150,17 +151,16 @@ public class ConceptNode implements Cloneable {
             map = new HashMap<>();
             o = property.getValue();
             if (o.getClass().isArray()) {
-                Object[] arr = (Object[])o;
+                Object[] arr = (Object[]) o;
 
-                for(Object ob : arr) {
+                for (Object ob : arr) {
                     map.put(Value.cast(ob), 1);
                 }
             } else {
                 map.put(Value.cast(property.getValue()), 1);
             }
-            attributes.put(property.getKey(), map);
+            this.attributes.put(property.getKey(), map);
         }
-
     }
 
     boolean isSuperConcept(ConceptNode c) {
@@ -170,7 +170,7 @@ public class ConceptNode implements Cloneable {
         if (this.parent.equals(c)) {
             return true;
         } else {
-            return parent.isSuperConcept(c);
+            return this.parent.isSuperConcept(c);
         }
     }
 
@@ -179,11 +179,11 @@ public class ConceptNode implements Cloneable {
     }
 
     public Map<String, Map<Value, Integer>> getAttributes() {
-        return attributes;
+        return this.attributes;
     }
 
     public ArrayList<ConceptNode> getChildren() {
-        return children;
+        return this.children;
     }
 
     void addChild(ConceptNode node) {
@@ -191,7 +191,7 @@ public class ConceptNode implements Cloneable {
     }
 
     public ConceptNode getParent() {
-        return parent;
+        return this.parent;
     }
 
     public void setParent(ConceptNode parent) {

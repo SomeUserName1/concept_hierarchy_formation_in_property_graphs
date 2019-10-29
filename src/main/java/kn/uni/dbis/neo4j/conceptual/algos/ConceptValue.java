@@ -3,7 +3,7 @@ package kn.uni.dbis.neo4j.conceptual.algos;
 public class ConceptValue implements Value {
     private ConceptNode concept;
 
-    public ConceptValue(ConceptNode node) {
+    ConceptValue(ConceptNode node) {
         this.concept = node;
     }
 

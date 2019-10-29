@@ -110,7 +110,7 @@ public class PropertyGraphCobwebImpl {
         conceptNode.getAttributes().put("EgoDegree", temp);
 
         temp = new HashMap<>();
-        temp.put(new NumericValue(totalNeighbourDegree/egoDegree), 1);
+        temp.put(new NumericValue(totalNeighbourDegree / egoDegree), 1);
         conceptNode.getAttributes().put("AverageNeighbourDegree", temp);
 
         for (Map.Entry<RelationshipType, Integer> egodegpt : egoDegPerType.entrySet()) {
@@ -141,7 +141,8 @@ public class PropertyGraphCobwebImpl {
         double baseEAP = getExpectedAttributePrediction(toMatch);
         double[][] costMatrix = new double[toMatchAttrib.size()][rootAttribs.size()];
         ConceptNode altered;
-        int i = 0, j = 0;
+        int i = 0;
+        int j = 0;
         double min;
         int[] minIdx = new int[toMatchAttrib.size()];
         for (String toMatchName : toMatchAttrib) {
@@ -213,6 +214,8 @@ public class PropertyGraphCobwebImpl {
                 case RECURSE:
                     cobweb(newNode, host, true);
                     break;
+                default:
+                    throw new RuntimeException("Invalid best operation");
             }
         }
     }
@@ -256,7 +259,7 @@ public class PropertyGraphCobwebImpl {
         return new OpResult(Op.SPLIT, computeCU(current), currentClone);
     }
 
-    private static OpResult mergeNodes(ConceptNode current, ConceptNode host, ConceptNode newNode) {
+    private static OpResult mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode) {
         ConceptNode clonedParent = current.clone();
         clonedParent.getChildren().remove(host);
         OpResult secondHost = findHost(clonedParent, newNode);
@@ -269,30 +272,30 @@ public class PropertyGraphCobwebImpl {
     }
 
 
-    private static double computeCU(ConceptNode parent) {
+    private static double computeCU(final ConceptNode parent) {
         double cu = 0.0;
         final double parentEAP = getExpectedAttributePrediction(parent);
         double parentCount = parent.getCount();
         for (ConceptNode child : parent.getChildren()) {
-            cu += (double)child.getCount()/parentCount
-                    * ( getExpectedAttributePrediction(child) - parentEAP);
+            cu += (double) child.getCount() / parentCount
+                    * (getExpectedAttributePrediction(child) - parentEAP);
         }
-        return cu/(double)parent.getChildren().size();
+        return cu / (double)parent.getChildren().size();
     }
 
     // FIXME double check
-    private static double computeCU(ConceptNode parent, double parentEAP) {
+    private static double computeCU(final ConceptNode parent, final double parentEAP) {
         double cu = 0.0;
         double parentCount = parent.getCount();
         for (ConceptNode child : parent.getChildren()) {
-            cu += (double)child.getCount()/parentCount
-                    * ( getExpectedAttributePrediction(child) - parentEAP);
+            cu += (double)child.getCount() / parentCount
+                    * (getExpectedAttributePrediction(child) - parentEAP);
         }
-        return cu/(double)parent.getChildren().size();
+        return cu / (double) parent.getChildren().size();
     }
 
 
-    private static double getExpectedAttributePrediction(ConceptNode category) {
+    private static double getExpectedAttributePrediction(final ConceptNode category) {
         double exp = 0;
         double total = category.getCount();
         double interm;
@@ -304,15 +307,14 @@ public class PropertyGraphCobwebImpl {
                     interm = (double) val.getValue() / total;
                     exp +=  interm * interm;
                 } else if (val.getKey() instanceof NumericValue) {
-                    exp += 1.0/((NumericValue)val.getKey()).getStd();
+                    exp += 1.0 / ((NumericValue) val.getKey()).getStd();
                 } else if (val.getKey() instanceof ConceptValue) {
                     ConceptValue con = (ConceptValue) val.getKey();
                     for (Map.Entry<Value, Integer> cVal : attrib.getValue().entrySet()) {
-                        interm += con.getFactor((ConceptValue)cVal.getKey()) * cVal.getValue()/ total;
+                        interm += con.getFactor((ConceptValue)cVal.getKey()) * cVal.getValue() / total;
                     }
                     exp += interm * interm;
                 }
-
             }
         }
         return exp;
@@ -330,7 +332,7 @@ public class PropertyGraphCobwebImpl {
         private double cu;
         private ConceptNode node;
 
-        private OpResult(Op operation, double cu, ConceptNode node) {
+        private OpResult(final Op operation, final double cu, ConceptNode node) {
             this.operation = operation;
             this.cu = cu;
             this.node = node;

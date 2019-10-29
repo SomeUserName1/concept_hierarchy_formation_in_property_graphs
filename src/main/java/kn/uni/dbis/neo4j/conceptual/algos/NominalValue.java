@@ -1,18 +1,22 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
+/**
+ * Holder for nominal values, representing Strings, characters, booleans and IDs as String.
+ * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
+ */
 public class NominalValue implements Value, Cloneable {
-    private String str;
+    private final String str;
 
-    public NominalValue(String value) {
+    NominalValue(String value) {
         this.str = value;
     }
-    public NominalValue(boolean value) {
+    NominalValue(boolean value) {
         this.str = value ? "True" : "False";
     }
-    public NominalValue(char value) {
+    NominalValue(char value) {
         this.str = Character.toString(value);
     }
-    public NominalValue(long value) {this.str = Long.toHexString(value);}
+    NominalValue(long value) {this.str = Long.toHexString(value);}
 
     public Value clone() {
         try {
@@ -21,14 +25,6 @@ public class NominalValue implements Value, Cloneable {
             e.printStackTrace();
         }
         return new NominalValue(this.str);
-    }
-
-    public String getStr() {
-        return this.str;
-    }
-
-    public void setStr(String str) {
-        this.str = str;
     }
 
     @Override
