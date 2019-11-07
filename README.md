@@ -1,25 +1,5 @@
 # Label/Property/Concept Hierarchy/Taxonomy Inference
 
-- [ ] Read & Implement 
-    - [x] Cobweb/3
-    - [ ] Labyrinth preprocessing step
-    - [ ] Trestle
-    - [ ] Subdue (Joyners version)
-- [ ] Extend by feature extraction
-    - [ ] Henderson et al 
-    - [ ] Perlich
-    - [ ] Devaney
-    - [ ] Others
-- [ ] Improve Tree generation and feature selection
-    - [ ] C4.5/C5.0
-    - [ ] Mechanisms from LABYRINTH, SUBDUE, ITERATE, AICC, CLASSIT,...
-
-Literature form the bib:
-- Concept formation: knowledge and experience in unsupervised learning, Douglas H. Fisher Michael J. Pazzani Pat Langley
-- C4.5: Programs for Machine Learning, J. Quinlan
-
-[Bibliography A](https://www.cs.cmu.edu/afs/cs/project/jair/pub/volume4/fisher96a-html/node22.html)
-[Bibliography B](https://web.archive.org/web/20110409095215/http://www.lsi.upc.es/~talavera/conceptual-clustering.html)
 
 Update 01.10
 _______________________________________________________________________
@@ -28,8 +8,8 @@ Questions that Project should answer:
 - [x] Find label hierarchies  
 - [x] Extract only robust sub-hierarchies  
 - [x] Deal with noise  
-- [ ] How distant are two instances  
-- [ ] How can we make such an existing algorithm graph aware:  
+- [x] How distant are two instances  
+- [x] How can we make such an existing algorithm graph aware:  
             By considering the structure of a graph (in the clustering) regain deleted labels/make clustering 
             algorithms more robust  
     - for each node how many edges of each type: Introduce new properties with graphy traits/new column in the feature vector  
@@ -39,15 +19,11 @@ Questions that Project should answer:
 
 ### Now:
 - [x] Data: LDBC SNB generator
-- [ ] Algorithms: Single Linkage, TTSAS, OPTICS, HDBSCAN, Trestle
-- [ ] Features: label sets, neighbourhood & ego net
+- [x] Algorithms: Single Linkage, TTSAS, OPTICS, HDBSCAN, Trestle, Cobweb
+- [x] Features: label sets, neighbourhood  
 - [ ] Experiments: What features shall be used?
+- [x] Data: LDBC SNB Generator, maybe Yelp
 
-### Later
-- [ ] Data: LDBC SNB Generator, Synthetic data generator (cov. edges), maybe Yelp
-- [ ] Algorithms: as above, maybe adapted version Trestle
-- [ ] Features: label sets, neighbour hood, ego net, maybe higher order recursive feature extraction results, maybe all attributes (to make it usable like throw in data, get out hierarchy)
-- [ ] Experiments: varying noise and features
 
 Update 03.09.2019
 _______________________________________________________________________
