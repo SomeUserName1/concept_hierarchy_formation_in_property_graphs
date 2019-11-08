@@ -84,31 +84,31 @@ public class PropertyGraphCobweb {
     neighbourDegreePerType.replaceAll((k, v) -> v / egoDegPerType.get(k));
 
     // store features into node
-    Map<Value, Integer> temp = new HashMap<>();
-    temp.put(new NumericValue(egoDegree), 1);
+    List<Value> temp = new ArrayList<>();
+    temp.add(new NumericValue(egoDegree));
     conceptNode.getAttributes().put("EgoDegree", temp);
 
-    temp = new HashMap<>();
-    temp.put(new NumericValue(totalNeighbourDegree / egoDegree), 1);
+    temp = new ArrayList<>();
+    temp.add(new NumericValue(totalNeighbourDegree / egoDegree));
     conceptNode.getAttributes().put("AverageNeighbourDegree", temp);
 
     for (Map.Entry<RelationshipType, Integer> egodegpt : egoDegPerType.entrySet()) {
-      temp = new HashMap<>();
-      temp.put(new NumericValue(egodegpt.getValue()), 1);
+      temp = new ArrayList<>();
+      temp.add(new NumericValue(egodegpt.getValue()));
       conceptNode.getAttributes().put(egodegpt.getKey().name() + "_Degree", temp);
     }
     for (Map.Entry<RelationshipType, Integer> neighdegpt : neighbourDegreePerType.entrySet()) {
-      temp = new HashMap<>();
-      temp.put(new NumericValue(neighdegpt.getValue()), 1);
+      temp = new ArrayList<>();
+      temp.add(new NumericValue(neighdegpt.getValue()));
       conceptNode.getAttributes().put(neighdegpt.getKey().name() + "_NeighbourDegree", temp);
     }
 
-    temp = new HashMap<>();
-    temp.put(new NumericValue(noOutArcs), 1);
+    temp = new ArrayList<>();
+    temp.add(new NumericValue(noOutArcs));
     conceptNode.getAttributes().put("EgoNetOutgoingEdges", temp);
 
-    temp = new HashMap<>();
-    temp.put(new NumericValue(noInArcs), 1);
+    temp = new ArrayList<>();
+    temp.add(new NumericValue(noInArcs));
     conceptNode.getAttributes().put("EgoNetIncomingEdges", temp);
   }
 
@@ -120,8 +120,9 @@ public class PropertyGraphCobweb {
    * @param updateCurrent weather to update the attributes and counts
    */
   private void cobweb(final ConceptNode newNode, final ConceptNode currentNode, final boolean updateCurrent) {
+    this.print();
     if (updateCurrent) {
-      currentNode.updateCounts(newNode, false);
+      currentNode.updateCounts(newNode);
     }
     if (currentNode.getChildren().isEmpty()) {
       currentNode.addChild(newNode);
@@ -168,8 +169,6 @@ public class PropertyGraphCobweb {
     }
   }
 
-  // FIXME double check; partial fitting
-
   /**
    * finds the child most suitable to host the new node.
    *
@@ -179,16 +178,16 @@ public class PropertyGraphCobweb {
    */
   private OpResult findHost(final ConceptNode parent, final ConceptNode newNode) {
     double curCU;
-    double maxCU = -1;
+    double maxCU = Integer.MIN_VALUE;
     int i = 0;
     ConceptNode clone;
-    ConceptNode best = parent;
+    ConceptNode best = null;
     ConceptNode parentClone;
     final double parentEAP = this.getExpectedAttributePrediction(parent);
 
     for (ConceptNode child : parent.getChildren()) {
       clone = new ConceptNode(child);
-      clone.updateCounts(newNode, false);
+      clone.updateCounts(newNode);
       parentClone = new ConceptNode(parent);
       parentClone.getChildren().set(i, clone);
       curCU = this.computeCU(parentClone, parentEAP);
@@ -241,11 +240,18 @@ public class PropertyGraphCobweb {
   private OpResult mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode) {
     final ConceptNode clonedParent = new ConceptNode(current);
     clonedParent.getChildren().remove(host);
+
     final OpResult secondHost = this.findHost(clonedParent, newNode);
+    if (secondHost.node == null) {
+      return new OpResult(Op.MERGE, -1, null);
+    }
+    clonedParent.getChildren().remove(secondHost.node);
+
     final ConceptNode mNode = new ConceptNode(host);
-    mNode.updateCounts(secondHost.node, true);
+    mNode.updateCounts(secondHost.node);
     mNode.addChild(host);
     mNode.addChild(secondHost.node);
+
     clonedParent.getChildren().add(mNode);
     return new OpResult(Op.MERGE, this.computeCU(clonedParent), mNode);
   }
@@ -260,6 +266,7 @@ public class PropertyGraphCobweb {
     double cu = 0.0;
     final double parentEAP = this.getExpectedAttributePrediction(parent);
     final double parentCount = parent.getCount();
+
     for (ConceptNode child : parent.getChildren()) {
       cu += (double) child.getCount() / parentCount
           * (this.getExpectedAttributePrediction(child) - parentEAP);
@@ -297,19 +304,23 @@ public class PropertyGraphCobweb {
     final double total = category.getCount();
     double interm;
     ConceptValue con;
+    NumericValue num;
 
-    for (Map.Entry<String, Map<Value, Integer>> attrib : category.getAttributes().entrySet()) {
-      for (Map.Entry<Value, Integer> val : attrib.getValue().entrySet()) {
+    for (Map.Entry<String, List<Value>> attrib : category.getAttributes().entrySet()) {
+
+      for (Value val : attrib.getValue()) {
         interm = 0;
-        if (val.getKey() instanceof NominalValue) {
-          interm = (double) val.getValue() / total;
+
+        if (val instanceof NominalValue) {
+          interm = (double) val.getCount() / total;
           exp += interm * interm;
-        } else if (val.getKey() instanceof NumericValue) {
-          exp += 1.0 / ((NumericValue) val.getKey()).getStd();
-        } else if (val.getKey() instanceof ConceptValue) {
-          con = (ConceptValue) val.getKey();
-          for (Map.Entry<Value, Integer> cVal : attrib.getValue().entrySet()) {
-            interm += con.getFactor((ConceptValue) cVal.getKey()) * cVal.getValue() / total;
+        } else if (val instanceof NumericValue) {
+          num = (NumericValue) val;
+          exp += 1.0 / (num.getStd() / num.getMean() + 1);
+        } else if (val instanceof ConceptValue) {
+          con = (ConceptValue) val;
+          for (Value cVal : attrib.getValue()) {
+            interm += con.getFactor((ConceptValue) cVal) * cVal.getCount() / total;
           }
           exp += interm * interm;
         }
@@ -345,13 +356,13 @@ public class PropertyGraphCobweb {
     }
 
     final ConceptNode summarizedNode = new ConceptNode();
-    Map<Value, Integer> co = new HashMap<>();
-    co.put(new ConceptValue(propertyNodes.get(0)), 1);
+    List<Value> co = new ArrayList<>();
+    co.add(new ConceptValue(propertyNodes.get(0)));
     summarizedNode.getAttributes().put("NodePropertiesConcept", co);
 
-    co = new HashMap<>();
+    co = new ArrayList<>();
     for (int i = 1; i < propertyNodes.size(); i++) {
-      co.put(new ConceptValue(propertyNodes.get(i)), 1);
+      co.add(new ConceptValue(propertyNodes.get(i)));
     }
     summarizedNode.getAttributes().put("RelationshipConcepts", co);
 
@@ -360,8 +371,7 @@ public class PropertyGraphCobweb {
     this.cobweb(summarizedNode, this.root, true);
   }
 
-  // FIXME double check
-
+  // FIXME double check; partial fitting
   /**
    * matches a nodes attribute name to the most fitting ones of the root.
    * Uses the category utility to determine how good it fits.
@@ -446,7 +456,7 @@ public class PropertyGraphCobweb {
    * Wrapper class for a Result containing the Operation that was evaluated, the cu that it yields and the node with
    * the applied change.
    */
-  private final class OpResult {
+  private static final class OpResult {
     /**
      * The operation performed.
      */

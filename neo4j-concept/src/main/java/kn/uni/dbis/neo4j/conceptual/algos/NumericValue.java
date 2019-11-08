@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public class NumericValue implements Value, Cloneable {
+public class NumericValue extends Value implements Cloneable {
   /**
    * Mean of the gaussian.
    */
@@ -16,6 +16,10 @@ public class NumericValue implements Value, Cloneable {
    * standard deviation of the gaussian.
    */
   private double std;
+  /**
+   * Used for Welford's and Chan's methods to compute the mean and variance incrementally and based on partitons.
+   */
+  private double m2;
 
   /**
    * Constructor for a single Number instance.
@@ -23,38 +27,46 @@ public class NumericValue implements Value, Cloneable {
    *
    * @param nr value to set mean to.
    */
-  NumericValue(final Number nr) {
+  public NumericValue(final Number nr) {
+    this.setCount(1);
     this.mean = nr.doubleValue();
     this.std = 0.0f;
+    this.m2 = 0.0f;
   }
 
   /**
-   * Semi Copy Constructor: takes mean and std to construct a NumericValue with the given args.
+   * Copy Constructor: takes mean and std to construct a NumericValue with the given args.
    *
+   * @param count count to be set
    * @param mean mean of the gaussian to be initialized.
    * @param std  std of the gaussian to be initialized.
+   * @param m2 used by welford and chans online algos for mean and variance
    */
-  private NumericValue(final double mean, final double std) {
+  private NumericValue(final int count, final double mean, final double std, final double m2) {
+    this.setCount(count);
     this.mean = mean;
     this.std = std;
+    this.m2 = m2;
   }
 
   /**
-   * Getter method for the mean.
-   *
-   * @return mean of the gaussian representing the NumericValue.
+   * returns the count of the updated node.
+   * @param other node to incorporate
    */
-  public double getMean() {
-    return this.mean;
-  }
-
-  /**
-   * Setter for the mean.
-   *
-   * @param mean value to be set.
-   */
-  public void setMean(final double mean) {
-    this.mean = mean;
+  public void update(final Value other) {
+    if (other instanceof NumericValue) {
+      final NumericValue v = (NumericValue) other;
+      final int totalCount = this.getCount() + v.getCount();
+      final double delta = v.mean - this.mean;
+      final double mean = this.mean + delta * Math.abs(v.getCount() / totalCount);
+      final double m2x = this.m2 + v.m2 + delta * delta * (this.getCount() * v.getCount()) / totalCount;
+      this.mean = mean;
+      this.std = Math.sqrt(m2x / totalCount);
+      this.m2 = m2x;
+      this.setCount(totalCount);
+    } else {
+      throw new RuntimeException("updated with wrong type!");
+    }
   }
 
   /**
@@ -62,39 +74,30 @@ public class NumericValue implements Value, Cloneable {
    *
    * @return std of the gaussian representing the NumericValue.
    */
-  public double getStd() {
+  double getStd() {
     return this.std;
   }
 
   /**
-   * Setter for the std.
+   * Getter method for the mean.
    *
-   * @param std value to be set.
+   * @return std of the gaussian representing the NumericValue.
    */
-  public void setStd(final double std) {
-    this.std = std;
+  double getMean() {
+    return this.mean;
   }
 
   @Override
-  public Value clone() {
-    try {
-      super.clone();
-    } catch (final CloneNotSupportedException e) {
-      e.printStackTrace();
-    }
-    return new NumericValue(this.mean, this.std);
+  public Value copy() {
+    return new NumericValue(this.getCount(), this.mean, this.std, this.m2);
   }
 
   @Override
   public boolean equals(final Object o) {
     if (o instanceof NumericValue) {
       final NumericValue nr = (NumericValue) o;
-      final double minDifference = this.mean - nr.getMean() > 0 ? this.mean - 3 * this.std - nr.mean + 3 * nr.std
-          : nr.mean - 3 * nr.std - this.mean + 3 * this.std;
-      return minDifference <= 0;
-    } else if (o instanceof Number) {
-      final double nr = ((Number) o).doubleValue();
-      return nr > this.mean ? nr - this.mean + 3 * this.std <= 0 : this.mean - 3 * this.std - nr <= 0;
+      return this.mean - nr.mean > 0 ? this.mean - 3 * this.std - nr.mean + 3 * nr.std <= 0
+          : nr.mean - 3 * nr.std - this.mean + 3 * this.std <= 0;
     } else {
       return false;
     }
@@ -103,5 +106,10 @@ public class NumericValue implements Value, Cloneable {
   @Override
   public int hashCode() {
     return Objects.hash(this.mean, this.std);
+  }
+
+  @Override
+  public String toString() {
+    return "NumericValue: count=" + this.getCount() + " mean= " + this.mean + " std=" + this.std;
   }
 }

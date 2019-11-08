@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public class NominalValue implements Value, Cloneable {
+public class NominalValue extends Value implements Cloneable {
   /**
    * the nominal value as string.
    */
@@ -19,6 +19,18 @@ public class NominalValue implements Value, Cloneable {
    * @param value the value to store
    */
   public NominalValue(final String value) {
+    this.setCount(1);
+    this.str = value;
+  }
+
+  /**
+   * copy Constructor.
+   *
+   * @param value the value to store
+   * @param count count to be set
+   */
+  private NominalValue(final int count, final String value) {
+    this.setCount(count);
     this.str = value;
   }
 
@@ -28,6 +40,7 @@ public class NominalValue implements Value, Cloneable {
    * @param value the value to store
    */
   NominalValue(final boolean value) {
+    this.setCount(1);
     this.str = value ? "true" : "false";
   }
 
@@ -37,26 +50,13 @@ public class NominalValue implements Value, Cloneable {
    * @param value the value to store
    */
   NominalValue(final char value) {
+    this.setCount(1);
     this.str = Character.toString(value);
   }
 
-  /**
-   * Constructor using a long.
-   *
-   * @param value the value to store
-   */
-  NominalValue(final long value) {
-    this.str = Long.toHexString(value);
-  }
-
   @Override
-  public Value clone() {
-    try {
-      super.clone();
-    } catch (final CloneNotSupportedException e) {
-      e.printStackTrace();
-    }
-    return new NominalValue(this.str);
+  public Value copy() {
+    return new NominalValue(this.getCount(), this.str);
   }
 
   @Override
@@ -64,15 +64,6 @@ public class NominalValue implements Value, Cloneable {
     if (o instanceof NominalValue)  {
       final NominalValue n = (NominalValue) o;
       return n.str.equals(this.str);
-    } else if (o instanceof String) {
-      final String str = (String) o;
-      return str.equals(this.str);
-    } else if (o instanceof Boolean) {
-      final String bool = (Boolean) o ? "true" : "false";
-      return bool.equals(this.str);
-    } else if (o instanceof Character) {
-      final String c = Character.toString((Character) o);
-      return c.equals(this.str);
     } else {
       return false;
     }
@@ -81,5 +72,22 @@ public class NominalValue implements Value, Cloneable {
   @Override
   public int hashCode() {
     return Objects.hash(this.str);
+  }
+
+  @Override
+  public void update(final Value other) {
+    if (other instanceof NominalValue) {
+      final NominalValue n = (NominalValue) other;
+      if (n.str.equals(this.str)) {
+        this.setCount(this.getCount() + n.getCount());
+      }
+    } else {
+      throw new RuntimeException("updated with wrong type!");
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "NominalValue: count=" + this.getCount() + " string=" + this.str;
   }
 }

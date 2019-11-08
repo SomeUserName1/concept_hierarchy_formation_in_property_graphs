@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public class ConceptValue implements Value, Cloneable {
+public class ConceptValue extends Value implements Cloneable {
   /**
    * The concept to encapsulate.
    */
@@ -18,28 +18,44 @@ public class ConceptValue implements Value, Cloneable {
    *
    * @param node the node to encapsulate
    */
-  ConceptValue(final ConceptNode node) {
+  public ConceptValue(final ConceptNode node) {
+    this.setCount(1);
+    this.concept = node;
+  }
+
+  /**
+   * Copy COnstructor.
+   * @param count to be set
+   * @param node to be set as concept
+   */
+  private ConceptValue(final int count, final ConceptNode node) {
+    this.setCount(count);
     this.concept = node;
   }
 
   @Override
-  public Value clone() {
-    try {
-      super.clone();
-    } catch (final CloneNotSupportedException e) {
-      e.printStackTrace();
-    }
-    return new ConceptValue(this.concept);
+  public Value copy() {
+    return new ConceptValue(this.getCount(), this.concept);
   }
 
   @Override
   public boolean equals(final Object o) {
     if (o instanceof ConceptValue) {
       return this.concept.equals(((ConceptValue) o).concept);
-    } else if (o instanceof ConceptNode) {
-      return this.concept.equals(o);
     } else {
       return false;
+    }
+  }
+
+  @Override
+  public void update(final Value other) {
+    if (other instanceof ConceptValue) {
+      final ConceptValue c = (ConceptValue) other;
+      if (this.concept.equals(c.concept)) {
+        this.setCount(this.getCount() + c.getCount());
+      }
+    } else {
+      throw new RuntimeException("updated with wrong type!");
     }
   }
 
@@ -63,5 +79,10 @@ public class ConceptValue implements Value, Cloneable {
       // they're on different paths => disjoint
       return 0;
     }
+  }
+
+  @Override
+  public String toString() {
+    return "ConceptValue: count=" + this.getCount() + " Concept=( " + this.concept.toString() + ")";
   }
 }

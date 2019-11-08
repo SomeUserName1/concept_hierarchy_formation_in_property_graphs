@@ -1,14 +1,15 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
-// Them Neo4j retards force one to do this instance of shit due to their "non explosion of overload" shit
-
 /**
  * Interface for a Value to cluster using Cobweb.
  * I.e. it's held by the attributes map as value in the @link{ConceptNode} class.
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public interface Value {
+public abstract class Value {
+  /** counter for the occurrence of the value. */
+  private int count;
+
   /**
    * given a primitive datatype or a String, decide which Value type to instantiate.
    *
@@ -38,7 +39,7 @@ public interface Value {
    *
    * @return returns a deep copy of the Value it's called on.
    */
-  Value clone();
+  public abstract Value copy();
 
   /**
    * unpacks the held value and checks for equality depending on the ValueType (e.g. NominalValue checks
@@ -47,5 +48,31 @@ public interface Value {
    * @param o object to compare
    * @return a boolean inidcating equivalence
    */
-  boolean equals(Object o);
+  @Override
+  public abstract boolean equals(Object o);
+
+  @Override
+  public abstract int hashCode();
+
+  /**
+   * Given another Value of the same type update the value of the current one.
+   * @param other the Value to incorporate
+   */
+  public abstract void update(Value other);
+
+  /**
+   * get the count of the value.
+   * @return the count of the value
+   */
+  public int getCount() {
+    return this.count;
+  }
+
+  /**
+   * Sets the count of a value.
+   * @param count count to be set
+   */
+  void setCount(final int count) {
+    this.count = count;
+  }
 }
