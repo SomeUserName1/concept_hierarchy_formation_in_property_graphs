@@ -26,14 +26,8 @@ public class PropertyGraphCobweb {
    * standard constructor, creating a root node.
    */
   public PropertyGraphCobweb() {
-    this.root = new ConceptNode("Root");
-  }
-
-  /**
-   * convenience method for the one below.
-   */
-  private void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
-    this.cobweb(newNode, currentNode, true);
+    this.root = new ConceptNode();
+    this.root.setCount(0);
   }
 
   /**
@@ -42,54 +36,54 @@ public class PropertyGraphCobweb {
    * @param newNode       node to incorporate
    * @param currentNode   node currently visiting
    */
-  public void cobweb(final ConceptNode newNode, final ConceptNode currentNode, final boolean update) {
-    if (update) {
-      currentNode.updateCounts(newNode);
+  public void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
+    final double[] results = new double[4];
+
+    Result Result = this.findHost(currentNode, newNode);
+    results[0] = Result.cu;
+    final ConceptNode host = Result.node;
+
+    results[1] = this.createNewNodeCU(currentNode, newNode);
+    results[2] = this.mergeNodesCU(currentNode, host, newNode);
+    results[3] = this.splitNodesCU(host, newNode);
+
+    // By default take create new as standard action if no other is better
+    double best = results[1];
+    int bestIdx = 1;
+    for (int i = 0; i < results.length; i++) {
+      if (results[i] > best) {
+        best = results[i];
+        bestIdx = i;
+      }
     }
-    if (currentNode.getChildren().isEmpty()) {
-      currentNode.addChild(newNode);
-      newNode.setParent(currentNode);
-    } else {
-      final double[] results = new double[4];
 
-      Result Result = this.findHost(currentNode, newNode);
-      results[0] = Result.cu;
-      final ConceptNode host = Result.node;
+    // TODO merge: 1. Counts & update not correct => Incorrect counts => incorrect CU
+    //             2. CU computation: neg  insert and recurse, pos merge, 0 split... => incorrect choice => inf. loop
+    //
+    // Counts incorrectness: node itself is counted too, but actually should be partition with sum child counts = parent count
 
-      results[1] = this.createNewNodeCU(currentNode, newNode);
-      results[2] = this.mergeNodesCU(currentNode, host, newNode);
-      results[3] = this.splitNodesCU(host, newNode);
-
-      double best = Integer.MIN_VALUE;
-      int bestIdx = -1;
-      for (int i = 0; i < results.length; i++) {
-        if (results[i] > best) {
-          best = results[i];
-          bestIdx = i;
+    switch (bestIdx) {
+      case 1:
+        this.createNewNode(currentNode, newNode, true);
+        break;
+      case 2:
+        ConceptNode mergedNode = mergeNodes(currentNode, host, newNode, true);
+        if (mergedNode == null) {
+          throw new RuntimeException("Unreachable");
         }
-      }
-
-      switch (bestIdx) {
-        case 1:
-          this.createNewNode(currentNode, newNode, true);
-          break;
-        case 2:
-          ConceptNode mergedNode = mergeNodes(currentNode, host, newNode, true);
-          if (mergedNode == null) {
-            throw new RuntimeException("Unreachable");
-          }
-          this.cobweb(newNode, mergedNode);
-          break;
-        case 3:
-          splitNodes(host, currentNode, true);
-          this.cobweb(newNode, root, false);
-          break;
-        case 0:
-          this.cobweb(newNode, host);
-          break;
-        default:
-          throw new RuntimeException("Invalid best operation");
-      }
+        currentNode.updateCounts(newNode);
+        this.cobweb(newNode, mergedNode);
+        break;
+      case 3:
+        splitNodes(host, currentNode, true);
+        this.cobweb(newNode, root);
+        break;
+      case 0:
+        currentNode.updateCounts(newNode);
+        this.cobweb(newNode, host);
+        break;
+      default:
+        throw new RuntimeException("Invalid best operation");
     }
   }
 
@@ -106,14 +100,18 @@ public class PropertyGraphCobweb {
     int i = 0;
     ConceptNode clone;
     ConceptNode best = null;
+    ConceptNode parentTemp = new ConceptNode(parent);
+    parentTemp.updateCounts(newNode);
     ConceptNode parentClone;
     final double parentEAP = this.getExpectedAttributePrediction(parent);
 
     for (ConceptNode child : parent.getChildren()) {
       clone = new ConceptNode(child);
       clone.updateCounts(newNode);
-      parentClone = new ConceptNode(parent);
+
+      parentClone = new ConceptNode(parentTemp);
       parentClone.getChildren().set(i, clone);
+
       curCU = this.computeCU(parentClone, parentEAP);
       if (maxCU < curCU) {
         maxCU = curCU;
@@ -133,8 +131,17 @@ public class PropertyGraphCobweb {
    */
   private double createNewNodeCU(final ConceptNode currentNode, final ConceptNode newNode) {
     final ConceptNode clone = new ConceptNode(currentNode);
+    if (currentNode.getId() != null) {
+      final ConceptNode parentClone = new ConceptNode(currentNode.getParent());
+      clone.setParent(parentClone);
+    }
+    clone.updateCounts(newNode);
     createNewNode(clone, newNode, false);
-    return this.computeCU(clone);
+    if (currentNode.getId() != null) {
+      return this.computeCU(clone.getParent());
+    } else {
+      return this.computeCU(clone);
+    }
   }
 
   /**
@@ -144,9 +151,31 @@ public class PropertyGraphCobweb {
    * @param newNode     to to be added
    */
   private void createNewNode(final ConceptNode currentNode, final ConceptNode newNode, final boolean setParent) {
-    currentNode.addChild(newNode);
-    if (setParent) {
-      newNode.setParent(currentNode);
+    if (currentNode.getId() != null) {
+      // we are in a leaf node. leaf nodes are concrete data instances and shall stay leaves
+      // remove the leaf from it's current parent
+      currentNode.getParent().getChildren().remove(currentNode);
+      // make a new node containing the same count and attributes
+      ConceptNode conceptNode = new ConceptNode(currentNode);
+      // add the new node as intermediate between the current leaf and its parent
+      currentNode.getParent().addChild(conceptNode);
+      // set the intermediate nodes id to null as its an inner node
+      conceptNode.setId(null);
+      // update the attribute counts to incorporate the new node
+      conceptNode.updateCounts(newNode);
+      // add the leaf and the new node as children
+      conceptNode.addChild(newNode);
+      conceptNode.addChild(currentNode);
+      currentNode.setParent(conceptNode);
+      if (setParent) {
+        newNode.setParent(conceptNode);
+      }
+    } else {
+      currentNode.updateCounts(newNode);
+      currentNode.addChild(newNode);
+      if (setParent) {
+        newNode.setParent(currentNode);
+      }
     }
   }
   
@@ -158,9 +187,9 @@ public class PropertyGraphCobweb {
    * @return op result including altered node and the cu
    */
   private double splitNodesCU(final ConceptNode host, final ConceptNode current) {
-    final ConceptNode currentClone = new ConceptNode(current);
-    this.splitNodes(host, currentClone, false);
-    return this.computeCU(currentClone);
+    final ConceptNode clone = new ConceptNode(current);
+    this.splitNodes(host, clone, false);
+    return this.computeCU(clone);
   }
 
   /**
@@ -170,6 +199,9 @@ public class PropertyGraphCobweb {
    * @param current node to append children of host
    */
   private void splitNodes(final ConceptNode host, final ConceptNode current, final boolean setParent) {
+    if (host == null) {
+      return;
+    }
     for (ConceptNode child : host.getChildren()) {
       if (setParent) {
         child.setParent(current);
@@ -177,6 +209,9 @@ public class PropertyGraphCobweb {
       current.addChild(child);
     }
     current.getChildren().remove(host);
+    if (setParent) {
+      host.setParent(null);
+    }
   }
 
   /**
@@ -189,7 +224,6 @@ public class PropertyGraphCobweb {
    */
   private double mergeNodesCU(final ConceptNode current, final ConceptNode host, final ConceptNode newNode) {
     final ConceptNode clonedParent = new ConceptNode(current);
-
     return (this.mergeNodes(clonedParent, host, newNode, false) != null) ? this.computeCU(clonedParent)
         : Integer.MIN_VALUE;
   }
@@ -204,20 +238,28 @@ public class PropertyGraphCobweb {
   private ConceptNode mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode,
                                  final boolean setParent) {
     current.getChildren().remove(host);
+
     final Result secondHost = this.findHost(current, newNode);
-    if (secondHost.node == null) {
+    if (secondHost.node == null || host == null) {
       return null;
     }
     current.getChildren().remove(secondHost.node);
+    if (setParent) {
+      secondHost.node.setParent(null);
+      host.setParent(null);
+    }
+
     final ConceptNode mNode = new ConceptNode(host);
+    mNode.setId(null);
     mNode.updateCounts(secondHost.node);
     mNode.addChild(host);
     mNode.addChild(secondHost.node);
     if (setParent) {
       host.setParent(mNode);
       secondHost.node.setParent(mNode);
+      mNode.setParent(current);
     }
-    current.getChildren().add(mNode);
+    current.addChild(mNode);
 
     return mNode;
   }
@@ -229,15 +271,12 @@ public class PropertyGraphCobweb {
    * @return the category utility
    */
   private double computeCU(final ConceptNode parent) {
-    double cu = 0.0;
-    final double parentEAP = this.getExpectedAttributePrediction(parent);
-    final double parentCount = parent.getCount();
-
-    for (ConceptNode child : parent.getChildren()) {
-      cu += (double) child.getCount() / parentCount
-          * (this.getExpectedAttributePrediction(child) - parentEAP);
+    final double parentChildCount = parent.getChildren().size();
+    if (parentChildCount == 0) {
+      return 0;
     }
-    return cu / (double) parent.getChildren().size();
+    final double parentEAP = this.getExpectedAttributePrediction(parent);
+    return computeCU(parent, parentEAP);
   }
 
   /**
@@ -248,16 +287,18 @@ public class PropertyGraphCobweb {
    * @return the category utility
    */
   private double computeCU(final ConceptNode parent, final double parentEAP) {
+    final double parentChildCount = parent.getChildren().size();
+    if (parentChildCount == 0) {
+      return 0;
+    }
     double cu = 0.0;
     final double parentCount = parent.getCount();
     for (ConceptNode child : parent.getChildren()) {
       cu += (double) child.getCount() / parentCount
           * (this.getExpectedAttributePrediction(child) - parentEAP);
     }
-    return cu / (double) parent.getChildren().size();
+    return cu / parentChildCount;
   }
-
-  // FIXME double check
 
   /**
    * Computes the Expected Attribute Prediction Probability for the current concept node.
@@ -267,35 +308,38 @@ public class PropertyGraphCobweb {
    */
   private double getExpectedAttributePrediction(final ConceptNode category) {
     double exp = 0;
+    final double noAttributes = category.getAttributes().size();
     final double total = category.getCount();
-    double interm;
+    double intermediate;
     ConceptValue con;
     NumericValue num;
+
+    if (noAttributes == 0) {
+      return 0;
+    }
 
     for (Map.Entry<String, List<Value>> attrib : category.getAttributes().entrySet()) {
 
       for (Value val : attrib.getValue()) {
-        interm = 0;
+        intermediate = 0;
 
         if (val instanceof NominalValue) {
-          interm = (double) val.getCount() / total;
-          exp += interm * interm;
+          intermediate = (double) val.getCount() / total;
+          exp += intermediate * intermediate;
         } else if (val instanceof NumericValue) {
           num = (NumericValue) val;
           exp += 1.0 / (num.getStd() / num.getMean() + 1);
         } else if (val instanceof ConceptValue) {
           con = (ConceptValue) val;
           for (Value cVal : attrib.getValue()) {
-            interm += con.getFactor((ConceptValue) cVal) * cVal.getCount() / total;
+            intermediate += con.getFactor((ConceptValue) cVal) * cVal.getCount() / total;
           }
-          exp += interm * interm;
+          exp += intermediate * intermediate;
         }
       }
     }
-    return exp;
+    return exp / noAttributes;
   }
-
-  // FIXME double check
 
   /**
    * Integrates a neo4j node into the cobweb trees.
@@ -311,6 +355,7 @@ public class PropertyGraphCobweb {
     final ConceptNode nodeProperties = new ConceptNode(node);
     propertyNodes.add(nodeProperties);
 
+    // FIXME: Only add relationships once not every time a node has one
     ConceptNode relProperties;
     for (Relationship rel : node.getRelationships()) {
       relProperties = new ConceptNode(rel);
@@ -331,10 +376,12 @@ public class PropertyGraphCobweb {
       co.add(new ConceptValue(propertyNodes.get(i)));
     }
     summarizedNode.getAttributes().put("RelationshipConcepts", co);
+    summarizedNode.setId("SummaryOfNode " + propertyNodes.get(0).getId());
 
     this.extractStructuralFeatures(node, summarizedNode);
 
     this.cobweb(summarizedNode, this.root);
+    this.print();
   }
 
   /**

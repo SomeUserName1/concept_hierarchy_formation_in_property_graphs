@@ -31,8 +31,9 @@ public class PropertyGraphCobwebProc {
       name = "kn.uni.dbis.neo4j.conceptual.PropertyGraphCobwebStream",
       mode = Mode.READ
   )
-  public Stream<PropertyGraphCobweb> integrate(@Name("nodes") final Stream<Node> nodes) {
+  public static Stream<PropertyGraphCobweb> integrate(@Name("nodes") final Stream<Node> nodes) {
     final PropertyGraphCobweb tree = new PropertyGraphCobweb();
+    System.out.println("Integrating a new node");
     nodes.forEach(tree::integrate);
     return Stream.of(tree);
   }

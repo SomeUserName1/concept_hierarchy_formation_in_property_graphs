@@ -29,9 +29,10 @@ public class ConceptNode {
    */
   private int count;
   /**
-   * Assigned label of the Concept.
+   * Neo4j ID of the Incorporated node..
    */
-  private String label;
+  private String id;
+
   /**
    * The sub-concepts of this Concept.
    */
@@ -42,22 +43,11 @@ public class ConceptNode {
   private ConceptNode parent;
 
   /**
-   * Named constructor, also initializing it's name.
-   */
-  public ConceptNode(String name) {
-    this.count = 0;
-    this.label = name;
-    this.attributes = new HashMap<>();
-    this.children = new ArrayList<>();
-    this.parent = null;
-  }
-
-  /**
    * Constructor.
    */
   public ConceptNode() {
     this.count = 1;
-    this.label = null;
+    this.id = null;
     this.attributes = new HashMap<>();
     this.children = new ArrayList<>();
     this.parent = null;
@@ -70,7 +60,7 @@ public class ConceptNode {
    */
   public ConceptNode(final ConceptNode node) {
     this.count = node.count;
-    this.label = node.label;
+    this.id = node.id;
     this.attributes = new HashMap<>();
 
     List<Value> values;
@@ -105,10 +95,12 @@ public class ConceptNode {
 
     if (propertyContainer instanceof Relationship) {
       final Relationship rel = (Relationship) propertyContainer;
+      this.id = "RelationID " + rel.getId();
       values.add(new NominalValue(rel.getType().name()));
       this.attributes.put("RelType", values);
     } else if (propertyContainer instanceof Node) {
       final Node mNode = (Node) propertyContainer;
+      this.id = "NodeID " + mNode.getId();
       for (Label label : mNode.getLabels()) {
         values.add(new NominalValue(label.name()));
         this.attributes.put("Label", values);
@@ -159,7 +151,7 @@ public class ConceptNode {
     NumericValue thisNumeric;
     boolean matched;
 
-    this.count++;
+    this.count = this.count + node.count;
     // loop over the attributes of the node to incorporate
     for (Map.Entry<String, List<Value>> otherAttributes : node.getAttributes().entrySet()) {
       thisValues = this.attributes.get(otherAttributes.getKey());
@@ -226,6 +218,15 @@ public class ConceptNode {
    */
   int getCount() {
     return this.count;
+  }
+
+  /**
+   * Setter for the count.
+   *
+   * @param count number of instances and sub-concepts hosted by this concept
+   */
+  void setCount(final int count) {
+    this.count = count;
   }
 
   /**
@@ -301,20 +302,18 @@ public class ConceptNode {
   }
 
   /**
-   * Getter fot the label.
-   *
-   * @return the label
+   * Getter for the ID field
+   * @return the ID of the node or null
    */
-  public String getLabel() {
-    return this.label;
-  }
+  String getId() {
+      return this.id;
+    }
 
   /**
-   * Setter fot the label.
-   *
-   * @param label the label to be set
+   * Setter for the Id field
+   * @param id id to be set
    */
-  void setLabel(final String label) {
-    this.label = label;
+  public void setId(final String id) {
+    this.id = id;
   }
 }

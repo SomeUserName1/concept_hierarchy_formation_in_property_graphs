@@ -2,12 +2,14 @@ package kn.uni.dbis.neo4j.conceptual;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptNode;
@@ -39,10 +41,11 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    */
   @Test
-  @Disabled
   void testCobweb(final GraphDatabaseService db) {
-    try (Transaction tx = db.beginTx()) {
-      final PropertyGraphCobweb tree = new PropertyGraphCobwebProc().integrate(db.getAllNodes().stream()).findFirst().
+    try (final Transaction tx = db.beginTx()) {
+      Stream<Node> nodes = db.getAllNodes().stream();
+      System.out.println(nodes.count());
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream()).findFirst().
           orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
       tree.print();
@@ -149,13 +152,16 @@ class PropertyGraphCobwebProcTest {
     final ConceptNode clone1 = new ConceptNode(conceptNode);
 
     final PropertyGraphCobweb tree = new PropertyGraphCobweb();
-    tree.cobweb(conceptNode, tree.getRoot(), true);
-    tree.cobweb(clone, tree.getRoot(), true);
-    tree.cobweb(clone1, tree.getRoot(), true);
+    tree.cobweb(conceptNode, tree.getRoot());
+    tree.cobweb(clone, tree.getRoot());
+    tree.cobweb(clone1, tree.getRoot());
+
 
     tree.print();
-    Assertions.assertEquals(tree.getRoot().getChildren().get(0).getChildren().size(), 2);
-    Assertions.assertTrue(tree.getRoot().getChildren().get(0).getChildren().get(0).getChildren().isEmpty());
+    Assertions.assertEquals(3, tree.getRoot().getChildren().size());
+    for (int i = 0; i < 3; ++i) {
+      Assertions.assertTrue(tree.getRoot().getChildren().get(i).getChildren().isEmpty());
+    }
   }
 
   /**
@@ -164,36 +170,41 @@ class PropertyGraphCobwebProcTest {
   @Test
   @Disabled
   void testSplit() {
+  }
+
+  /**
+   * Comment.
+   */
+  @Test
+  void testMerge() {
     final ConceptNode conceptNode = new ConceptNode();
     final NominalValue v = new NominalValue("test");
     final List<Value> val = new ArrayList<>();
     val.add(v);
     conceptNode.getAttributes().put("name", val);
+    conceptNode.setId("a");
     final ConceptNode clone = new ConceptNode(conceptNode);
+    final ConceptNode clone1 = new ConceptNode(conceptNode);
+
+    final ConceptNode otherConcept = new ConceptNode();
+    final NominalValue v1 = new NominalValue("other");
+    final List<Value> val1 = new ArrayList<>();
+    val1.add(v1);
+    otherConcept.getAttributes().put("name", val1);
+    otherConcept.setId("b");
+    final ConceptNode other1 = new ConceptNode(otherConcept);
 
     final PropertyGraphCobweb tree = new PropertyGraphCobweb();
-    tree.cobweb(conceptNode, tree.getRoot(), true);
-    tree.cobweb(clone, tree.getRoot(), true);
+    tree.cobweb(conceptNode, tree.getRoot());
+    tree.cobweb(clone, tree.getRoot());
+    tree.cobweb(otherConcept, tree.getRoot());
+    tree.cobweb(clone1, tree.getRoot());
+    tree.cobweb(other1, tree.getRoot());
+
 
     tree.print();
-    Assertions.assertNotNull(tree.getRoot().getChildren().get(0).getChildren().get(0));
-    Assertions.assertTrue(tree.getRoot().getChildren().get(0).getChildren().get(0).getChildren().isEmpty());
+    Assertions.assertEquals(2, tree.getRoot().getChildren().size());
+    Assertions.assertEquals(3, tree.getRoot().getChildren().get(0).getChildren().size());
+    Assertions.assertEquals(2, tree.getRoot().getChildren().get(1).getChildren().size());
   }
-
-  /**
-   * Comment.
-   */
-  @Test
-  @Disabled
-  void testMerge() {
-  }
-
-  /**
-   * Comment.
-   */
-  @Test
-  @Disabled
-  void testRecurse() {
-  }
-
 }
