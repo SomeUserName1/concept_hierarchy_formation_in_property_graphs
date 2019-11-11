@@ -10,6 +10,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
+
 /**
  * Implementation of Cobweb for the property graph model.
  *
@@ -25,91 +26,14 @@ public class PropertyGraphCobweb {
    * standard constructor, creating a root node.
    */
   public PropertyGraphCobweb() {
-    this.root = new ConceptNode();
-    this.root.setLabel("Root");
+    this.root = new ConceptNode("Root");
   }
 
   /**
-   * Extracts structural features from the underlying graph.
-   * Desired features to be extracted:
-   * [x] EgoDegree
-   * [x] EgoDegreePerType
-   * [x] AvgNeighbourDegree
-   * [x] AvgNeighbourDegreePerType
-   * <p>
-   * Resulting ConceptNode structure:
-   * ConceptNode
-   * *Label-based*
-   * NodeConcept (property-based)
-   * RelationshipConcepts (property-based)
-   * <p>
-   * *StructureBased*
-   * EgoDegree
-   * EgoDeg per RelationshipType (Characteristic set with counts)
-   * AvgNeighbourDegree
-   * NeighbourDegree per RelationshipType
-   * |OutArcsEgoNet|
-   * |InArcsEgoNet|
-   *
-   * @param node        from which to extract the features
-   * @param conceptNode the ConceptNode to store the information to
+   * convenience method for the one below.
    */
-  private void extractStructuralFeatures(final Node node, final ConceptNode conceptNode) {
-    final int egoDegree = node.getDegree();
-    final Map<RelationshipType, Integer> egoDegPerType = new HashMap<>();
-    final Map<RelationshipType, Integer> neighbourDegreePerType = new HashMap<>();
-    int totalNeighbourDegree = 0;
-    int neighbourDegree;
-    RelationshipType relType;
-    int noOutArcs = node.getDegree(Direction.OUTGOING);
-    int noInArcs = node.getDegree(Direction.INCOMING);
-
-    for (Relationship rel : node.getRelationships()) {
-      relType = rel.getType();
-      neighbourDegree = rel.getOtherNode(node).getDegree();
-      noOutArcs += rel.getOtherNode(node).getDegree(Direction.OUTGOING);
-      noInArcs += rel.getOtherNode(node).getDegree(Direction.INCOMING);
-      totalNeighbourDegree += neighbourDegree;
-
-      if (!egoDegPerType.containsKey(relType)) {
-        egoDegPerType.put(relType, node.getDegree(relType));
-      }
-      if (neighbourDegreePerType.containsKey(relType)) {
-        neighbourDegreePerType.put(relType, neighbourDegreePerType.get(relType) + neighbourDegree);
-      } else {
-        neighbourDegreePerType.put(relType, neighbourDegree);
-      }
-    }
-
-    neighbourDegreePerType.replaceAll((k, v) -> v / egoDegPerType.get(k));
-
-    // store features into node
-    List<Value> temp = new ArrayList<>();
-    temp.add(new NumericValue(egoDegree));
-    conceptNode.getAttributes().put("EgoDegree", temp);
-
-    temp = new ArrayList<>();
-    temp.add(new NumericValue(totalNeighbourDegree / egoDegree));
-    conceptNode.getAttributes().put("AverageNeighbourDegree", temp);
-
-    for (Map.Entry<RelationshipType, Integer> egodegpt : egoDegPerType.entrySet()) {
-      temp = new ArrayList<>();
-      temp.add(new NumericValue(egodegpt.getValue()));
-      conceptNode.getAttributes().put(egodegpt.getKey().name() + "_Degree", temp);
-    }
-    for (Map.Entry<RelationshipType, Integer> neighdegpt : neighbourDegreePerType.entrySet()) {
-      temp = new ArrayList<>();
-      temp.add(new NumericValue(neighdegpt.getValue()));
-      conceptNode.getAttributes().put(neighdegpt.getKey().name() + "_NeighbourDegree", temp);
-    }
-
-    temp = new ArrayList<>();
-    temp.add(new NumericValue(noOutArcs));
-    conceptNode.getAttributes().put("EgoNetOutgoingEdges", temp);
-
-    temp = new ArrayList<>();
-    temp.add(new NumericValue(noInArcs));
-    conceptNode.getAttributes().put("EgoNetIncomingEdges", temp);
+  private void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
+    this.cobweb(newNode, currentNode, true);
   }
 
   /**
@@ -117,51 +41,51 @@ public class PropertyGraphCobweb {
    *
    * @param newNode       node to incorporate
    * @param currentNode   node currently visiting
-   * @param updateCurrent weather to update the attributes and counts
    */
-  private void cobweb(final ConceptNode newNode, final ConceptNode currentNode, final boolean updateCurrent) {
-    this.print();
-    if (updateCurrent) {
+  public void cobweb(final ConceptNode newNode, final ConceptNode currentNode, final boolean update) {
+    if (update) {
       currentNode.updateCounts(newNode);
     }
     if (currentNode.getChildren().isEmpty()) {
       currentNode.addChild(newNode);
+      newNode.setParent(currentNode);
     } else {
-      final OpResult[] results = new OpResult[4];
+      final double[] results = new double[4];
 
-      results[0] = this.findHost(currentNode, newNode);
-      final ConceptNode host = results[0].node;
+      Result Result = this.findHost(currentNode, newNode);
+      results[0] = Result.cu;
+      final ConceptNode host = Result.node;
 
-      results[1] = this.createNewNode(currentNode, newNode);
-      results[2] = this.mergeNodes(currentNode, host, newNode);
-      results[3] = this.splitNodes(host, newNode);
+      results[1] = this.createNewNodeCU(currentNode, newNode);
+      results[2] = this.mergeNodesCU(currentNode, host, newNode);
+      results[3] = this.splitNodesCU(host, newNode);
 
-      OpResult best = results[0];
-      for (OpResult result : results) {
-        if (result.cu > best.cu) {
-          best = result;
+      double best = Integer.MIN_VALUE;
+      int bestIdx = -1;
+      for (int i = 0; i < results.length; i++) {
+        if (results[i] > best) {
+          best = results[i];
+          bestIdx = i;
         }
       }
 
-      switch (best.operation) {
-        case CREATE:
-          newNode.setParent(currentNode);
-          currentNode.addChild(newNode);
+      switch (bestIdx) {
+        case 1:
+          this.createNewNode(currentNode, newNode, true);
           break;
-        case SPLIT:
-          for (ConceptNode child : host.getChildren()) {
-            currentNode.addChild(child);
+        case 2:
+          ConceptNode mergedNode = mergeNodes(currentNode, host, newNode, true);
+          if (mergedNode == null) {
+            throw new RuntimeException("Unreachable");
           }
-          currentNode.getChildren().remove(host);
-          this.cobweb(newNode, currentNode, false);
+          this.cobweb(newNode, mergedNode);
           break;
-        case MERGE:
-          currentNode.getChildren().remove(host);
-          currentNode.getChildren().add(results[2].node);
-          this.cobweb(newNode, results[2].node, true);
+        case 3:
+          splitNodes(host, currentNode, true);
+          this.cobweb(newNode, root, false);
           break;
-        case RECURSE:
-          this.cobweb(newNode, host, true);
+        case 0:
+          this.cobweb(newNode, host);
           break;
         default:
           throw new RuntimeException("Invalid best operation");
@@ -176,7 +100,7 @@ public class PropertyGraphCobweb {
    * @param newNode node to be hosted
    * @return the best host and the cu for that
    */
-  private OpResult findHost(final ConceptNode parent, final ConceptNode newNode) {
+  private Result findHost(final ConceptNode parent, final ConceptNode newNode) {
     double curCU;
     double maxCU = Integer.MIN_VALUE;
     int i = 0;
@@ -197,7 +121,7 @@ public class PropertyGraphCobweb {
       }
       i++;
     }
-    return new OpResult(Op.RECURSE, maxCU, best);
+    return new Result(maxCU, best);
   }
 
   /**
@@ -207,53 +131,95 @@ public class PropertyGraphCobweb {
    * @param newNode     to to be added
    * @return the op result including the cu and the altered node
    */
-  private OpResult createNewNode(final ConceptNode currentNode, final ConceptNode newNode) {
+  private double createNewNodeCU(final ConceptNode currentNode, final ConceptNode newNode) {
     final ConceptNode clone = new ConceptNode(currentNode);
-    clone.addChild(newNode);
-    return new OpResult(Op.CREATE, this.computeCU(clone), clone);
+    createNewNode(clone, newNode, false);
+    return this.computeCU(clone);
   }
 
   /**
-   * splits the host node and appends its children to the current node & computes the cu.
+   * creates a new child for the node to incorporate.
+   *
+   * @param currentNode not to add the child to
+   * @param newNode     to to be added
+   */
+  private void createNewNode(final ConceptNode currentNode, final ConceptNode newNode, final boolean setParent) {
+    currentNode.addChild(newNode);
+    if (setParent) {
+      newNode.setParent(currentNode);
+    }
+  }
+  
+  /**
+   * clones the current node, splits & computes the cu.
    *
    * @param host    node to be split
    * @param current node to append children of host
    * @return op result including altered node and the cu
    */
-  private OpResult splitNodes(final ConceptNode host, final ConceptNode current) {
+  private double splitNodesCU(final ConceptNode host, final ConceptNode current) {
     final ConceptNode currentClone = new ConceptNode(current);
-    for (ConceptNode child : host.getChildren()) {
-      currentClone.addChild(child);
-    }
-    currentClone.getChildren().remove(host);
-    return new OpResult(Op.SPLIT, this.computeCU(current), currentClone);
+    this.splitNodes(host, currentClone, false);
+    return this.computeCU(currentClone);
   }
 
   /**
-   * merges the host node with the next best host and appends its children to the resulting node & computes the cu.
+   * splits the host node and appends its children to the current node.
+   *
+   * @param host    node to be split
+   * @param current node to append children of host
+   */
+  private void splitNodes(final ConceptNode host, final ConceptNode current, final boolean setParent) {
+    for (ConceptNode child : host.getChildren()) {
+      if (setParent) {
+        child.setParent(current);
+      }
+      current.addChild(child);
+    }
+    current.getChildren().remove(host);
+  }
+
+  /**
+   * clones the actual current node, merges and computes the cu.
    *
    * @param host    node to be merged
    * @param current parent of the host
    * @param newNode node to be incorporated
    * @return op result including altered node and the cu
    */
-  private OpResult mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode) {
+  private double mergeNodesCU(final ConceptNode current, final ConceptNode host, final ConceptNode newNode) {
     final ConceptNode clonedParent = new ConceptNode(current);
-    clonedParent.getChildren().remove(host);
 
-    final OpResult secondHost = this.findHost(clonedParent, newNode);
+    return (this.mergeNodes(clonedParent, host, newNode, false) != null) ? this.computeCU(clonedParent)
+        : Integer.MIN_VALUE;
+  }
+
+  /**
+   * merges the host node with the next best host and appends its children to the resulting node.
+   *
+   * @param host    node to be merged
+   * @param current parent of the host
+   * @param newNode node to be incorporated
+   */
+  private ConceptNode mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode,
+                                 final boolean setParent) {
+    current.getChildren().remove(host);
+    final Result secondHost = this.findHost(current, newNode);
     if (secondHost.node == null) {
-      return new OpResult(Op.MERGE, -1, null);
+      return null;
     }
-    clonedParent.getChildren().remove(secondHost.node);
-
+    current.getChildren().remove(secondHost.node);
     final ConceptNode mNode = new ConceptNode(host);
     mNode.updateCounts(secondHost.node);
     mNode.addChild(host);
     mNode.addChild(secondHost.node);
+    if (setParent) {
+      host.setParent(mNode);
+      secondHost.node.setParent(mNode);
+    }
+    current.getChildren().add(mNode);
 
-    clonedParent.getChildren().add(mNode);
-    return new OpResult(Op.MERGE, this.computeCU(clonedParent), mNode);
+    return mNode;
   }
 
   /**
@@ -352,7 +318,7 @@ public class PropertyGraphCobweb {
     }
 
     for (ConceptNode cNode : propertyNodes) {
-      this.cobweb(cNode, this.root, true);
+      this.cobweb(cNode, this.root);
     }
 
     final ConceptNode summarizedNode = new ConceptNode();
@@ -368,7 +334,90 @@ public class PropertyGraphCobweb {
 
     this.extractStructuralFeatures(node, summarizedNode);
 
-    this.cobweb(summarizedNode, this.root, true);
+    this.cobweb(summarizedNode, this.root);
+  }
+
+  /**
+   * Extracts structural features from the underlying graph.
+   * Desired features to be extracted:
+   * [x] EgoDegree
+   * [x] EgoDegreePerType
+   * [x] AvgNeighbourDegree
+   * [x] AvgNeighbourDegreePerType
+   * <p>
+   * Resulting ConceptNode structure:
+   * ConceptNode
+   * *Label-based*
+   * NodeConcept (property-based)
+   * RelationshipConcepts (property-based)
+   * <p>
+   * *StructureBased*
+   * EgoDegree
+   * EgoDeg per RelationshipType (Characteristic set with counts)
+   * AvgNeighbourDegree
+   * NeighbourDegree per RelationshipType
+   * |OutArcsEgoNet|
+   * |InArcsEgoNet|
+   *
+   * @param node        from which to extract the features
+   * @param conceptNode the ConceptNode to store the information to
+   */
+  private void extractStructuralFeatures(final Node node, final ConceptNode conceptNode) {
+    final int egoDegree = node.getDegree();
+    final Map<RelationshipType, Integer> egoDegPerType = new HashMap<>();
+    final Map<RelationshipType, Integer> neighbourDegreePerType = new HashMap<>();
+    int totalNeighbourDegree = 0;
+    int neighbourDegree;
+    RelationshipType relType;
+    int noOutArcs = node.getDegree(Direction.OUTGOING);
+    int noInArcs = node.getDegree(Direction.INCOMING);
+
+    for (Relationship rel : node.getRelationships()) {
+      relType = rel.getType();
+      neighbourDegree = rel.getOtherNode(node).getDegree();
+      noOutArcs += rel.getOtherNode(node).getDegree(Direction.OUTGOING);
+      noInArcs += rel.getOtherNode(node).getDegree(Direction.INCOMING);
+      totalNeighbourDegree += neighbourDegree;
+
+      if (!egoDegPerType.containsKey(relType)) {
+        egoDegPerType.put(relType, node.getDegree(relType));
+      }
+      if (neighbourDegreePerType.containsKey(relType)) {
+        neighbourDegreePerType.put(relType, neighbourDegreePerType.get(relType) + neighbourDegree);
+      } else {
+        neighbourDegreePerType.put(relType, neighbourDegree);
+      }
+    }
+
+    neighbourDegreePerType.replaceAll((k, v) -> v / egoDegPerType.get(k));
+
+    // store features into node
+    List<Value> temp = new ArrayList<>();
+    temp.add(new NumericValue(egoDegree));
+    conceptNode.getAttributes().put("EgoDegree", temp);
+
+    temp = new ArrayList<>();
+    temp.add(new NumericValue(totalNeighbourDegree / egoDegree));
+    conceptNode.getAttributes().put("AverageNeighbourDegree", temp);
+
+    for (Map.Entry<RelationshipType, Integer> egodegpt : egoDegPerType.entrySet()) {
+      temp = new ArrayList<>();
+      temp.add(new NumericValue(egodegpt.getValue()));
+      conceptNode.getAttributes().put(egodegpt.getKey().name() + "_Degree", temp);
+    }
+    for (Map.Entry<RelationshipType, Integer> neighdegpt : neighbourDegreePerType.entrySet()) {
+      temp = new ArrayList<>();
+      temp.add(new NumericValue(neighdegpt.getValue()));
+      conceptNode.getAttributes().put(neighdegpt.getKey().name() + "_NeighbourDegree", temp);
+    }
+
+    temp = new ArrayList<>();
+    temp.add(new NumericValue(noOutArcs));
+    conceptNode.getAttributes().put("EgoNetOutgoingEdges", temp);
+
+    temp = new ArrayList<>();
+    temp.add(new NumericValue(noInArcs));
+    conceptNode.getAttributes().put("EgoNetIncomingEdges", temp);
   }
 
   // FIXME double check; partial fitting
@@ -431,36 +480,9 @@ public class PropertyGraphCobweb {
   }
 
   /**
-   * Enumerates the possible operators of Cobweb.
+   * Used for passing the pair cu, node of the find hosts methods back to the calling method.
    */
-  enum Op {
-    /**
-     * Create a new child under the current node.
-     */
-    CREATE,
-    /**
-     * split the current node, appending the childs to it's parent.
-     */
-    SPLIT,
-    /**
-     * merge the two best fitting hosts.
-     */
-    MERGE,
-    /**
-     * continue traversing the tree at the next lower level.
-     */
-    RECURSE
-  }
-
-  /**
-   * Wrapper class for a Result containing the Operation that was evaluated, the cu that it yields and the node with
-   * the applied change.
-   */
-  private static final class OpResult {
-    /**
-     * The operation performed.
-     */
-    private final Op operation;
+  private static final class Result {
     /**
      * the cu that the operation yields.
      */
@@ -473,12 +495,10 @@ public class PropertyGraphCobweb {
     /**
      * Constructor.
      *
-     * @param operation The operation performed.
      * @param cu        the cu that the operation yields.
      * @param node      the node with the operation applied.
      */
-    private OpResult(final Op operation, final double cu, final ConceptNode node) {
-      this.operation = operation;
+    private Result(final double cu, final ConceptNode node) {
       this.cu = cu;
       this.node = node;
     }

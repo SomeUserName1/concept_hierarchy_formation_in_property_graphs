@@ -88,6 +88,6 @@ public class NominalValue extends Value implements Cloneable {
 
   @Override
   public String toString() {
-    return "NominalValue: count=" + this.getCount() + " string=" + this.str;
+    return "NominalValue " + System.identityHashCode(this) + " count=" + this.getCount() + " string=" + this.str;
   }
 }

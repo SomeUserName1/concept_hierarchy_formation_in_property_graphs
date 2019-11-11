@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -38,6 +39,7 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    */
   @Test
+  @Disabled
   void testCobweb(final GraphDatabaseService db) {
     try (Transaction tx = db.beginTx()) {
       final PropertyGraphCobweb tree = new PropertyGraphCobwebProc().integrate(db.getAllNodes().stream()).findFirst().
@@ -135,4 +137,63 @@ class PropertyGraphCobwebProcTest {
     Assertions.assertNotEquals(c1, c3);
     System.out.println("============================= Equal Methods OK ====================================");
   }
+
+  @Test
+  void testCreate() {
+    final ConceptNode conceptNode = new ConceptNode();
+    final NominalValue v = new NominalValue("test");
+    final List<Value> val = new ArrayList<>();
+    val.add(v);
+    conceptNode.getAttributes().put("name", val);
+    final ConceptNode clone = new ConceptNode(conceptNode);
+    final ConceptNode clone1 = new ConceptNode(conceptNode);
+
+    final PropertyGraphCobweb tree = new PropertyGraphCobweb();
+    tree.cobweb(conceptNode, tree.getRoot(), true);
+    tree.cobweb(clone, tree.getRoot(), true);
+    tree.cobweb(clone1, tree.getRoot(), true);
+
+    tree.print();
+    Assertions.assertEquals(tree.getRoot().getChildren().get(0).getChildren().size(), 2);
+    Assertions.assertTrue(tree.getRoot().getChildren().get(0).getChildren().get(0).getChildren().isEmpty());
+  }
+
+  /**
+   * Comment.
+   */
+  @Test
+  @Disabled
+  void testSplit() {
+    final ConceptNode conceptNode = new ConceptNode();
+    final NominalValue v = new NominalValue("test");
+    final List<Value> val = new ArrayList<>();
+    val.add(v);
+    conceptNode.getAttributes().put("name", val);
+    final ConceptNode clone = new ConceptNode(conceptNode);
+
+    final PropertyGraphCobweb tree = new PropertyGraphCobweb();
+    tree.cobweb(conceptNode, tree.getRoot(), true);
+    tree.cobweb(clone, tree.getRoot(), true);
+
+    tree.print();
+    Assertions.assertNotNull(tree.getRoot().getChildren().get(0).getChildren().get(0));
+    Assertions.assertTrue(tree.getRoot().getChildren().get(0).getChildren().get(0).getChildren().isEmpty());
+  }
+
+  /**
+   * Comment.
+   */
+  @Test
+  @Disabled
+  void testMerge() {
+  }
+
+  /**
+   * Comment.
+   */
+  @Test
+  @Disabled
+  void testRecurse() {
+  }
+
 }

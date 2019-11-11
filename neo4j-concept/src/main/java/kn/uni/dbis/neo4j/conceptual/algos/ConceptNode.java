@@ -44,6 +44,17 @@ public class ConceptNode {
   /**
    * Named constructor, also initializing it's name.
    */
+  public ConceptNode(String name) {
+    this.count = 0;
+    this.label = name;
+    this.attributes = new HashMap<>();
+    this.children = new ArrayList<>();
+    this.parent = null;
+  }
+
+  /**
+   * Constructor.
+   */
   public ConceptNode() {
     this.count = 1;
     this.label = null;
@@ -57,7 +68,7 @@ public class ConceptNode {
    *
    * @param node ConceptNode to copy.
    */
-  ConceptNode(final ConceptNode node) {
+  public ConceptNode(final ConceptNode node) {
     this.count = node.count;
     this.label = node.label;
     this.attributes = new HashMap<>();
@@ -170,12 +181,12 @@ public class ConceptNode {
             }
             // When there is no NumericValue in this node for the attribute, add the one of the other node
             if (!matched) {
-              thisValues.add(otherValue);
+              thisValues.add(otherValue.copy());
             }
           } else {
             final int idx = thisValues.indexOf(otherValue);
             if (idx == -1) {
-              thisValues.add(otherValue);
+              thisValues.add(otherValue.copy());
             } else {
               thisValues.get(idx).update(otherValue);
             }
@@ -183,7 +194,11 @@ public class ConceptNode {
         }
       } else {
         // Else add the attribute and it's properties of the new node as they are
-        this.attributes.put(otherAttributes.getKey(), otherAttributes.getValue());
+        final List<Value> copies = new ArrayList<>();
+        for (Value value : otherAttributes.getValue()) {
+          copies.add(value.copy());
+        }
+        this.attributes.put(otherAttributes.getKey(), copies);
       }
     }
   }
@@ -227,7 +242,7 @@ public class ConceptNode {
    *
    * @return the sub-concepts of this node
    */
-  List<ConceptNode> getChildren() {
+  public List<ConceptNode> getChildren() {
     return this.children;
   }
 
@@ -281,7 +296,8 @@ public class ConceptNode {
 
   @Override
   public String toString() {
-    return "Count: " + this.count + " Attributes: " + this.attributes.toString();
+    return "ConceptNode " + System.identityHashCode(this) + "Count: " + this.count + " Attributes: "
+        + this.attributes.toString();
   }
 
   /**

@@ -58,7 +58,7 @@ public class NumericValue extends Value implements Cloneable {
       final NumericValue v = (NumericValue) other;
       final int totalCount = this.getCount() + v.getCount();
       final double delta = v.mean - this.mean;
-      final double mean = this.mean + delta * Math.abs(v.getCount() / totalCount);
+      final double mean = this.mean + delta * (double) v.getCount() / (double) totalCount;
       final double m2x = this.m2 + v.m2 + delta * delta * (this.getCount() * v.getCount()) / totalCount;
       this.mean = mean;
       this.std = Math.sqrt(m2x / totalCount);
@@ -110,6 +110,7 @@ public class NumericValue extends Value implements Cloneable {
 
   @Override
   public String toString() {
-    return "NumericValue: count=" + this.getCount() + " mean= " + this.mean + " std=" + this.std;
+    return "NumericValue: " + System.identityHashCode(this) + " count=" + this.getCount() + " mean= " + this.mean
+            + " std=" + this.std;
   }
 }

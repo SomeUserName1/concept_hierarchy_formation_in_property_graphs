@@ -83,6 +83,7 @@ public class ConceptValue extends Value implements Cloneable {
 
   @Override
   public String toString() {
-    return "ConceptValue: count=" + this.getCount() + " Concept=( " + this.concept.toString() + ")";
+    return "ConceptValue: " + System.identityHashCode(this) + " count=" + this.getCount() + " Concept=("
+            + this.concept.toString() + ")";
   }
 }
