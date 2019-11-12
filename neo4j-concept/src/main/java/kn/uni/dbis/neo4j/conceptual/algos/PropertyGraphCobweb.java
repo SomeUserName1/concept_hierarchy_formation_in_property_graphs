@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Assertions;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -28,6 +29,7 @@ public class PropertyGraphCobweb {
   public PropertyGraphCobweb() {
     this.root = new ConceptNode();
     this.root.setCount(0);
+    this.root.setParent(this.root);
   }
 
   /**
@@ -39,9 +41,9 @@ public class PropertyGraphCobweb {
   public void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
     final double[] results = new double[4];
 
-    Result Result = this.findHost(currentNode, newNode);
-    results[0] = Result.cu;
-    final ConceptNode host = Result.node;
+    final Result result = this.findHost(currentNode, newNode);
+    results[0] = result.cu;
+    final ConceptNode host = result.node;
 
     results[1] = this.createNewNodeCU(currentNode, newNode);
     results[2] = this.mergeNodesCU(currentNode, host, newNode);
@@ -57,17 +59,12 @@ public class PropertyGraphCobweb {
       }
     }
 
-    // TODO merge: 1. Counts & update not correct => Incorrect counts => incorrect CU
-    //             2. CU computation: neg  insert and recurse, pos merge, 0 split... => incorrect choice => inf. loop
-    //
-    // Counts incorrectness: node itself is counted too, but actually should be partition with sum child counts = parent count
-
     switch (bestIdx) {
       case 1:
         this.createNewNode(currentNode, newNode, true);
         break;
       case 2:
-        ConceptNode mergedNode = mergeNodes(currentNode, host, newNode, true);
+        final ConceptNode mergedNode = this.mergeNodes(currentNode, host, newNode, true);
         if (mergedNode == null) {
           throw new RuntimeException("Unreachable");
         }
@@ -75,8 +72,8 @@ public class PropertyGraphCobweb {
         this.cobweb(newNode, mergedNode);
         break;
       case 3:
-        splitNodes(host, currentNode, true);
-        this.cobweb(newNode, root);
+        this.splitNodes(host, currentNode, true);
+        this.cobweb(newNode, currentNode);
         break;
       case 0:
         currentNode.updateCounts(newNode);
@@ -100,7 +97,7 @@ public class PropertyGraphCobweb {
     int i = 0;
     ConceptNode clone;
     ConceptNode best = null;
-    ConceptNode parentTemp = new ConceptNode(parent);
+    final ConceptNode parentTemp = new ConceptNode(parent);
     parentTemp.updateCounts(newNode);
     ConceptNode parentClone;
     final double parentEAP = this.getExpectedAttributePrediction(parent);
@@ -136,7 +133,7 @@ public class PropertyGraphCobweb {
       clone.setParent(parentClone);
     }
     clone.updateCounts(newNode);
-    createNewNode(clone, newNode, false);
+    this.createNewNode(clone, newNode, false);
     if (currentNode.getId() != null) {
       return this.computeCU(clone.getParent());
     } else {
@@ -149,6 +146,8 @@ public class PropertyGraphCobweb {
    *
    * @param currentNode not to add the child to
    * @param newNode     to to be added
+   * @param setParent flag indicating weather to set the parent pointers (false when computing the cu in order not to
+   *                  alter the tree when probing an action)
    */
   private void createNewNode(final ConceptNode currentNode, final ConceptNode newNode, final boolean setParent) {
     if (currentNode.getId() != null) {
@@ -156,7 +155,7 @@ public class PropertyGraphCobweb {
       // remove the leaf from it's current parent
       currentNode.getParent().getChildren().remove(currentNode);
       // make a new node containing the same count and attributes
-      ConceptNode conceptNode = new ConceptNode(currentNode);
+      final ConceptNode conceptNode = new ConceptNode(currentNode);
       // add the new node as intermediate between the current leaf and its parent
       currentNode.getParent().addChild(conceptNode);
       // set the intermediate nodes id to null as its an inner node
@@ -197,6 +196,8 @@ public class PropertyGraphCobweb {
    *
    * @param host    node to be split
    * @param current node to append children of host
+   * @param setParent flag indicating weather to set the parent pointers (false when computing the cu in order not to
+   *                 alter the tree when probing an action)
    */
   private void splitNodes(final ConceptNode host, final ConceptNode current, final boolean setParent) {
     if (host == null) {
@@ -234,6 +235,9 @@ public class PropertyGraphCobweb {
    * @param host    node to be merged
    * @param current parent of the host
    * @param newNode node to be incorporated
+   * @param setParent flag indicating weather to set the parent pointers (false when computing the cu in order not to
+   *                  alter the tree when probing an action)
+   * @return the node that results by the merge.
    */
   private ConceptNode mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode,
                                  final boolean setParent) {
@@ -250,6 +254,7 @@ public class PropertyGraphCobweb {
     }
 
     final ConceptNode mNode = new ConceptNode(host);
+    mNode.getChildren().clear();
     mNode.setId(null);
     mNode.updateCounts(secondHost.node);
     mNode.addChild(host);
@@ -276,7 +281,7 @@ public class PropertyGraphCobweb {
       return 0;
     }
     final double parentEAP = this.getExpectedAttributePrediction(parent);
-    return computeCU(parent, parentEAP);
+    return this.computeCU(parent, parentEAP);
   }
 
   /**
@@ -341,6 +346,21 @@ public class PropertyGraphCobweb {
     return exp / noAttributes;
   }
 
+  private ConceptNode findRelationById(final long id, final ConceptNode node) {
+    if (node.getId() != null) {
+      return (node.getId().equals("RelationID " + id)) ? node : null;
+    } else {
+      ConceptNode temp;
+      for (ConceptNode child : node.getChildren()) {
+        temp = findRelationById(id, child);
+        if (temp != null) {
+          return temp;
+        }
+      }
+      return null;
+    }
+  }
+
   /**
    * Integrates a neo4j node into the cobweb trees.
    * 1. incorporates the node properties and labels and it's relationships types and properties into the tree
@@ -353,17 +373,17 @@ public class PropertyGraphCobweb {
     // Static categorization according to properties, labels and relationship type
     final List<ConceptNode> propertyNodes = new ArrayList<>();
     final ConceptNode nodeProperties = new ConceptNode(node);
+    this.cobweb(nodeProperties, this.root);
     propertyNodes.add(nodeProperties);
 
-    // FIXME: Only add relationships once not every time a node has one
     ConceptNode relProperties;
     for (Relationship rel : node.getRelationships()) {
-      relProperties = new ConceptNode(rel);
+      relProperties = findRelationById(rel.getId(), this.root);
+      if (relProperties == null) {
+        relProperties = new ConceptNode(rel);
+        this.cobweb(relProperties, this.root);
+      }
       propertyNodes.add(relProperties);
-    }
-
-    for (ConceptNode cNode : propertyNodes) {
-      this.cobweb(cNode, this.root);
     }
 
     final ConceptNode summarizedNode = new ConceptNode();
@@ -381,7 +401,6 @@ public class PropertyGraphCobweb {
     this.extractStructuralFeatures(node, summarizedNode);
 
     this.cobweb(summarizedNode, this.root);
-    this.print();
   }
 
   /**

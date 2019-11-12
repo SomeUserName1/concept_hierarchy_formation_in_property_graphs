@@ -202,7 +202,7 @@ public class ConceptNode {
    * @return true if c is the parent of the node or one of it's parent.
    */
   boolean isSuperConcept(final ConceptNode c) {
-    if (this.parent == null) {
+    if (this.parent == this) {
       return false;
     } else if (this.parent.equals(c)) {
       return true;
@@ -216,7 +216,7 @@ public class ConceptNode {
    *
    * @return number of instances and sub-concepts hosted by this concept
    */
-  int getCount() {
+  public int getCount() {
     return this.count;
   }
 
@@ -282,10 +282,15 @@ public class ConceptNode {
    * @return a String holding the representation of the tree
    */
   String printRec(final StringBuilder sb, final int depth) {
-    sb.append("-|_");
-    for (int i = 0; i < depth; i++) {
-      sb.append("¸__");
+    if (depth == 0) {
+      sb.append("|__");
+    } else {
+      for (int i = 0; i < depth; i++) {
+        sb.append("\t");
+      }
+      sb.append("|____");
     }
+
     sb.append(this.toString()).append("\n");
 
     for (ConceptNode child : this.children) {
@@ -302,15 +307,15 @@ public class ConceptNode {
   }
 
   /**
-   * Getter for the ID field
+   * Getter for the ID field.
    * @return the ID of the node or null
    */
-  String getId() {
+  public String getId() {
       return this.id;
     }
 
   /**
-   * Setter for the Id field
+   * Setter for the Id field.
    * @param id id to be set
    */
   public void setId(final String id) {

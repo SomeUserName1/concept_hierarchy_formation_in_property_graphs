@@ -1,5 +1,7 @@
 package kn.uni.dbis.neo4j.conceptual.proc;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -33,8 +35,18 @@ public class PropertyGraphCobwebProc {
   )
   public static Stream<PropertyGraphCobweb> integrate(@Name("nodes") final Stream<Node> nodes) {
     final PropertyGraphCobweb tree = new PropertyGraphCobweb();
-    System.out.println("Integrating a new node");
-    nodes.forEach(tree::integrate);
+    List<Node> nodesList = nodes.collect(Collectors.toList());
+    System.out.println("Number of nodes " + nodesList.size());
+    int counter = -1;
+    StringBuilder sb = new StringBuilder();
+    for (Node node : nodesList) {
+      if (counter % 10 == 0) {
+       sb.append("#");
+       System.out.println(sb.toString());
+      }
+      tree.integrate(node);
+      counter++;
+    }
     return Stream.of(tree);
   }
 }
