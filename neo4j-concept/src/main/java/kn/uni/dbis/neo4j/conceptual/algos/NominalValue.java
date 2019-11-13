@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public class NominalValue extends Value implements Cloneable {
+public class NominalValue extends Value {
   /**
    * the nominal value as string.
    */
@@ -88,6 +88,6 @@ public class NominalValue extends Value implements Cloneable {
 
   @Override
   public String toString() {
-    return "NominalValue " + System.identityHashCode(this) + " count=" + this.getCount() + " string=" + this.str;
+    return "NominalValue count=" + this.getCount() + " string=" + this.str;
   }
 }

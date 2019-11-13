@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
@@ -33,20 +34,14 @@ public class PropertyGraphCobwebProc {
       name = "kn.uni.dbis.neo4j.conceptual.PropertyGraphCobwebStream",
       mode = Mode.READ
   )
-  public static Stream<PropertyGraphCobweb> integrate(@Name("nodes") final Stream<Node> nodes) {
+  public static Stream<PropertyGraphCobweb> integrate(@Name("nodes") final Stream<Node> nodes,
+                                                      @Name("edges") final Stream<Relationship> relationships) {
     final PropertyGraphCobweb tree = new PropertyGraphCobweb();
     List<Node> nodesList = nodes.collect(Collectors.toList());
+    List<Relationship> relationshipsList = relationships.collect(Collectors.toList());
     System.out.println("Number of nodes " + nodesList.size());
-    int counter = -1;
-    StringBuilder sb = new StringBuilder();
-    for (Node node : nodesList) {
-      if (counter % 10 == 0) {
-       sb.append("#");
-       System.out.println(sb.toString());
-      }
-      tree.integrate(node);
-      counter++;
-    }
+    System.out.println("Number of Relationships " + relationshipsList.size());
+    tree.integrate(nodesList, relationshipsList);
     return Stream.of(tree);
   }
 }

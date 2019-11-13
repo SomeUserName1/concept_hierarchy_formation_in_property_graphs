@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public class NumericValue extends Value implements Cloneable {
+public class NumericValue extends Value {
   /**
    * Mean of the gaussian.
    */
@@ -110,7 +110,7 @@ public class NumericValue extends Value implements Cloneable {
 
   @Override
   public String toString() {
-    return "NumericValue: " + System.identityHashCode(this) + " count=" + this.getCount() + " mean= " + this.mean
+    return "NumericValue:  count=" + this.getCount() + " mean= " + this.mean
             + " std=" + this.std;
   }
 }

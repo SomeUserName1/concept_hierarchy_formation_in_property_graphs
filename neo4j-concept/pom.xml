@@ -244,43 +244,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/bench/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add-resource</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>add-resource</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>src/bench/resources</directory>
-                                    <!--<targetPath>resources</targetPath>-->
-                                    <excludes>
-                                        <!--<exclude>**/junk/**</exclude>-->
-                                    </excludes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.1.0</version>
@@ -310,13 +273,30 @@
                 <configuration>
                     <effort>max</effort>
                     <threshold>Low</threshold>
-                    <xmlOutput>true</xmlOutput>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>process-sources</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>findbugs</goal>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>3.1.12.2</version>
+                <configuration>
+                    <effort>max</effort>
+                    <threshold>Low</threshold>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>spotbugs</goal>
                             <goal>check</goal>
                         </goals>
                     </execution>
@@ -333,7 +313,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>process-sources</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>pmd</goal>
                             <goal>check</goal>

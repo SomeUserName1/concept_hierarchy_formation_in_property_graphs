@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import kn.uni.dbis.neo4j.eval.datasets.Dataset;
+import kn.uni.dbis.neo4j.conceptual.algos.ConceptValue;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -13,8 +13,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
+import kn.uni.dbis.neo4j.conceptual.algos.Cobweb;
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptNode;
-import kn.uni.dbis.neo4j.conceptual.algos.ConceptValue;
 import kn.uni.dbis.neo4j.conceptual.algos.NominalValue;
 import kn.uni.dbis.neo4j.conceptual.algos.NumericValue;
 import kn.uni.dbis.neo4j.conceptual.algos.PropertyGraphCobweb;
@@ -24,6 +24,7 @@ import kn.uni.dbis.neo4j.eval.annotations.GraphDBConfig;
 import kn.uni.dbis.neo4j.eval.annotations.GraphDBSetup;
 import kn.uni.dbis.neo4j.eval.annotations.GraphSource;
 import kn.uni.dbis.neo4j.eval.annotations.Procedures;
+import kn.uni.dbis.neo4j.eval.datasets.Dataset;
 
 /**
  * Tests for the PropertyGraphCobweb algorithm.
@@ -40,23 +41,28 @@ class PropertyGraphCobwebProcTest {
    * Tests if the procedure throws runtime errors and if the resulting tree is returned.
    *
    * @param db database to execute the procedure call against
+   * @param dataset the dataset specified in the class scope, used to access it's node and relationship count
    */
   @Test
-  void testCobwebSmall(final GraphDatabaseService db, Dataset dataset) {
+  void testCobwebSmall(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction tx = db.beginTx()) {
       final Stream<Node> nodes = db.getAllNodes().stream();
       System.out.println(nodes.count());
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream()).findFirst().
-          orElseThrow(() -> new RuntimeException("Unreachable"));
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream(),
+          db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
-
-      // 1x |nodes| property sets + |nodes| summarized nodes + |edges| property sets
-      Assertions.assertEquals(leafCount(tree.getRoot()), 2 * dataset.getNodes() + dataset.getArcs());
-      checkPartitionCounts(tree.getRoot());
-      checkParent(tree.getRoot());
-      checkLeafType(tree.getRoot());
-
       tree.print();
+
+      final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
+          tree.getNodeSummaryTree()};
+      for (ConceptNode root : subtrees) {
+        this.checkPartitionCounts(root);
+        this.checkParent(root);
+        this.checkLeafType(root);
+      }
+      Assertions.assertEquals(this.leafCount(subtrees[0]), dataset.getNodes());
+      Assertions.assertEquals(this.leafCount(subtrees[1]), dataset.getArcs());
+      Assertions.assertEquals(this.leafCount(subtrees[2]), dataset.getNodes());
     }
   }
 
@@ -64,53 +70,64 @@ class PropertyGraphCobwebProcTest {
    * Tests if the procedure throws runtime errors and if the resulting tree is returned.
    *
    * @param db database to execute the procedure call against
+   * @param dataset the dataset specified in the class scope, used to access it's node and relationship count
    */
   @Test
   @GraphSource(getDataset = Dataset.Rome99)
-  void testCobwebMedium(final GraphDatabaseService db, Dataset dataset) {
+  void testCobwebMedium(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction tx = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(75)).findFirst().
-          orElseThrow(() -> new RuntimeException("Unreachable"));
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream(),
+          db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
-      // 1x |nodes| property sets + |nodes| summarized nodes + |edges| property sets
-      //Assertions.assertEquals(leafCount(tree.getRoot()), 2 * dataset.getNodes() + dataset.getArcs());
-      // FIXME assetion fails on count :/ Sth's wrong as tree nests too deep => check CU
-      // TODO Try 3 trees to fight deep nesting and shitty hierarchies
-      // TODO Check CU and try to minimize calculations
-      // TODO rescale numeric vs. nominal
+      // FIXME assetion fails on count :/
       // TODO fix count
-      // TODO try more heterogenous data
-      // TODO consider adding data by index only (no concrete instances; go deeper by merging, not recursing on concrete instance with implicit merge)
-      tree.print();
-      checkPartitionCounts(tree.getRoot());
-      checkParent(tree.getRoot());
-      checkLeafType(tree.getRoot());
-
-      tree.print();
+      final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
+        tree.getNodeSummaryTree()};
+      for (ConceptNode root : subtrees) {
+        // subtree.print();
+        this.checkPartitionCounts(root);
+        this.checkParent(root);
+        this.checkLeafType(root);
+      }
+      Assertions.assertEquals(this.leafCount(subtrees[0]), dataset.getNodes());
+      Assertions.assertEquals(this.leafCount(subtrees[1]), dataset.getArcs());
+      Assertions.assertEquals(this.leafCount(subtrees[2]), dataset.getNodes());
     }
   }
 
+  /**
+   * Checks that no inner node has an ID and all leafs have one.
+   * @param node currently visited node
+   */
   void checkLeafType(final ConceptNode node) {
     if (node.getChildren().isEmpty() && !(node.getParent() == node)) {
       Assertions.assertNotNull(node.getId());
     } else {
       Assertions.assertNull(node.getId());
       for (ConceptNode child : node.getChildren()) {
-        checkLeafType(child);
+        this.checkLeafType(child);
       }
     }
   }
 
+  /**
+   * Checks that all nodes have a parent.
+   * @param node currently visited node
+   */
   void checkParent(final ConceptNode node) {
     if (!(node.getParent() == node)) {
       Assertions.assertNotNull(node.getParent());
     }
     for (ConceptNode child : node.getChildren()) {
-      checkParent(child);
+      this.checkParent(child);
     }
   }
 
+  /**
+   * Checks that the count of the parent equals the sum of the children counts.
+   * @param node node currently visited.
+   */
   void checkPartitionCounts(final ConceptNode node) {
     int childCounts = 0;
     for (ConceptNode child : node.getChildren()) {
@@ -118,19 +135,24 @@ class PropertyGraphCobwebProcTest {
     }
     Assertions.assertEquals(node.getCount(), childCounts);
     for (ConceptNode child : node.getChildren()) {
-      if ( child.getId() == null) {
-        checkPartitionCounts(child);
+      if (child.getId() == null) {
+        this.checkPartitionCounts(child);
       }
     }
   }
 
+  /**
+   * Counts the number of leafs in a tree.
+   * @param node currently visited node
+   * @return the number of leafs in a tree
+   */
   int leafCount(final ConceptNode node) {
     if (node.getId() != null) {
       return 1;
     } else {
       int count = 0;
       for (ConceptNode child : node.getChildren()) {
-        count += leafCount(child);
+        count += this.leafCount(child);
       }
       return count;
     }
@@ -227,6 +249,7 @@ class PropertyGraphCobwebProcTest {
    */
   @Test
   void testCreate() {
+    final ConceptNode root = new ConceptNode().root();
     final ConceptNode conceptNode = new ConceptNode();
     final NominalValue v = new NominalValue("test");
     final List<Value> val = new ArrayList<>();
@@ -235,14 +258,13 @@ class PropertyGraphCobwebProcTest {
     final ConceptNode clone = new ConceptNode(conceptNode);
     final ConceptNode clone1 = new ConceptNode(conceptNode);
 
-    final PropertyGraphCobweb tree = new PropertyGraphCobweb();
-    tree.cobweb(conceptNode, tree.getRoot());
-    tree.cobweb(clone, tree.getRoot());
-    tree.cobweb(clone1, tree.getRoot());
+    Cobweb.cobweb(conceptNode, root);
+    Cobweb.cobweb(clone, root);
+    Cobweb.cobweb(clone1, root);
 
-    Assertions.assertEquals(3, tree.getRoot().getChildren().size());
+    Assertions.assertEquals(3, root.getChildren().size());
     for (int i = 0; i < 3; ++i) {
-      Assertions.assertTrue(tree.getRoot().getChildren().get(i).getChildren().isEmpty());
+      Assertions.assertTrue(root.getChildren().get(i).getChildren().isEmpty());
     }
   }
 
@@ -259,6 +281,7 @@ class PropertyGraphCobwebProcTest {
    */
   @Test
   void testMerge() {
+    final ConceptNode root = new ConceptNode().root();
     final ConceptNode conceptNode = new ConceptNode();
     final NominalValue v = new NominalValue("test");
     final List<Value> val = new ArrayList<>();
@@ -276,15 +299,14 @@ class PropertyGraphCobwebProcTest {
     otherConcept.setId("b");
     final ConceptNode other1 = new ConceptNode(otherConcept);
 
-    final PropertyGraphCobweb tree = new PropertyGraphCobweb();
-    tree.cobweb(conceptNode, tree.getRoot());
-    tree.cobweb(clone, tree.getRoot());
-    tree.cobweb(otherConcept, tree.getRoot());
-    tree.cobweb(clone1, tree.getRoot());
-    tree.cobweb(other1, tree.getRoot());
+    Cobweb.cobweb(conceptNode, root);
+    Cobweb.cobweb(clone, root);
+    Cobweb.cobweb(otherConcept, root);
+    Cobweb.cobweb(clone1, root);
+    Cobweb.cobweb(other1, root);
 
-    Assertions.assertEquals(2, tree.getRoot().getChildren().size());
-    Assertions.assertEquals(3, tree.getRoot().getChildren().get(0).getChildren().size());
-    Assertions.assertEquals(2, tree.getRoot().getChildren().get(1).getChildren().size());
+    Assertions.assertEquals(2, root.getChildren().size());
+    Assertions.assertEquals(3, root.getChildren().get(0).getChildren().size());
+    Assertions.assertEquals(2, root.getChildren().get(1).getChildren().size());
   }
 }

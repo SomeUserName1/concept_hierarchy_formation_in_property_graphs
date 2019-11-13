@@ -79,10 +79,12 @@ final class CSVImporter {
       pb.environment().put("JAVA_OPTS", "-Xms1152m -Xmx1152m");
       pb.directory(DefaultPaths.PLAIN_HOME_PATH.toRealPath().toFile());
       final Process importTool = pb.start();
-      final BufferedReader ebr = new BufferedReader(new InputStreamReader(importTool.getErrorStream(),
-          StandardCharsets.UTF_8));
-      final BufferedReader ibr = new BufferedReader(new InputStreamReader(importTool.getInputStream(),
-          StandardCharsets.UTF_8));
+      final InputStreamReader inputStreamReaderErr = new InputStreamReader(importTool.getErrorStream(),
+          StandardCharsets.UTF_8);
+      final InputStreamReader inputStreamReaderIn = new InputStreamReader(importTool.getInputStream(),
+          StandardCharsets.UTF_8);
+      final BufferedReader ebr = new BufferedReader(inputStreamReaderErr);
+      final BufferedReader ibr = new BufferedReader(inputStreamReaderIn);
 
       this.printBuffer(ebr);
       this.printBuffer(ibr);
@@ -92,13 +94,16 @@ final class CSVImporter {
       this.printBuffer(ebr);
       this.printBuffer(ibr);
 
+      if (!confFile.delete()) {
+        System.out.println("Couldn't delete Import tool conf file!");
+      }
+      inputStreamReaderErr.close();
+      inputStreamReaderIn.close();
+
       ebr.close();
       ibr.close();
 
       System.gc();
-      if (!confFile.delete()) {
-        System.out.println("Couldn't delete Import tool conf file!");
-      }
     } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
     }
@@ -111,14 +116,18 @@ final class CSVImporter {
    * @param br bufferedreader to print
    * @throws IOException if br throws
    */
-  private void printBuffer(final BufferedReader br) throws IOException {
+  private void printBuffer(final BufferedReader br) {
     String readLine;
 
-    readLine = br.readLine();
-    while (readLine != null) {
-      System.out.println(readLine);
-
+    try {
       readLine = br.readLine();
+      while (readLine != null) {
+        System.out.println(readLine);
+
+        readLine = br.readLine();
+      }
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 }

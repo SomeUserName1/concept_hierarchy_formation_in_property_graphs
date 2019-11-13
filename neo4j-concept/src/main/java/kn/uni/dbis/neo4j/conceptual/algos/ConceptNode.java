@@ -11,8 +11,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 
-// TODO names/labels
-
 /**
  * The basic data type for the conceptual hierarchy (tree) constructed and used by cobweb.
  *
@@ -95,12 +93,12 @@ public class ConceptNode {
 
     if (propertyContainer instanceof Relationship) {
       final Relationship rel = (Relationship) propertyContainer;
-      this.id = "RelationID " + rel.getId();
+      this.id = Long.toString(rel.getId());
       values.add(new NominalValue(rel.getType().name()));
       this.attributes.put("RelType", values);
     } else if (propertyContainer instanceof Node) {
       final Node mNode = (Node) propertyContainer;
-      this.id = "NodeID " + mNode.getId();
+      this.id = Long.toString(mNode.getId());
       for (Label label : mNode.getLabels()) {
         values.add(new NominalValue(label.name()));
         this.attributes.put("Label", values);
@@ -124,6 +122,13 @@ public class ConceptNode {
       }
       this.attributes.put(property.getKey(), values);
     }
+  }
+
+  public ConceptNode root() {
+    this.count = 0;
+    this.parent = this;
+
+    return this;
   }
 
   @Override
@@ -302,7 +307,7 @@ public class ConceptNode {
 
   @Override
   public String toString() {
-    return "ConceptNode " + System.identityHashCode(this) + "Count: " + this.count + " Attributes: "
+    return "ConceptNode Count: " + this.count + " Attributes: "
         + this.attributes.toString();
   }
 
@@ -320,5 +325,15 @@ public class ConceptNode {
    */
   public void setId(final String id) {
     this.id = id;
+  }
+
+  public ConceptNode getCutoffConcept(int cutoffLevel) {
+    List<ConceptNode> trace = new ArrayList<>();
+    ConceptNode current = this;
+    do {
+      trace.add(current);
+      current = current.getParent();
+    } while (current.getParent() != current);
+    return trace.get(cutoffLevel);
   }
 }

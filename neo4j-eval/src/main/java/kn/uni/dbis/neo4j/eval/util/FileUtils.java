@@ -30,10 +30,6 @@ public final class FileUtils {
    * Feature flag for linux file clones on BTRFS.
    */
   private static final boolean LINUX_CLONE = false;
-  /**
-   * stores the users OS name in upper case letters for comparison.
-   */
-  private static final String OS_NAME = System.getProperty("os.name").toUpperCase();
 
   /**
    * Clones the given file or folder into the destination folder.
@@ -85,7 +81,7 @@ public final class FileUtils {
           src.toAbsolutePath().toString(),
           destPath.toAbsolutePath().getParent().toString());
     } else {
-      throw new IllegalStateException("Unsupported platform: " + OS_NAME);
+      throw new IllegalStateException("Unsupported platform: " + System.getProperty("os.name"));
     }
     proc.directory(src.getParent().toAbsolutePath().toFile());
     proc.inheritIO();
@@ -150,7 +146,8 @@ public final class FileUtils {
    * @return true if the users os is the os specified in the parameter
    */
   private boolean is(final OS os) {
-    return OS_NAME.startsWith(os.name());
+    final String osName = System.getProperty("os.name");
+    return osName != null && osName.toUpperCase().startsWith(os.name());
   }
 
   /**
