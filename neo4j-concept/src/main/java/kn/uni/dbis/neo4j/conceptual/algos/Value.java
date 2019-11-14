@@ -42,19 +42,6 @@ public abstract class Value {
   public abstract Value copy();
 
   /**
-   * unpacks the held value and checks for equality depending on the ValueType (e.g. NominalValue checks
-   * for String equivalence, NumericValue for overlap in the 3sigma space arround the means.
-   *
-   * @param o object to compare
-   * @return a boolean inidcating equivalence
-   */
-  @Override
-  public abstract boolean equals(Object o);
-
-  @Override
-  public abstract int hashCode();
-
-  /**
    * Given another Value of the same type update the value of the current one.
    * @param other the Value to incorporate
    */

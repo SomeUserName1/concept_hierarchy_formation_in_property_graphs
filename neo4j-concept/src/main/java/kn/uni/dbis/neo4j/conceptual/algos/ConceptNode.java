@@ -131,21 +131,6 @@ public class ConceptNode {
     return this;
   }
 
-  @Override
-  public boolean equals(final Object o) {
-    if (o instanceof ConceptNode) {
-      final ConceptNode node = (ConceptNode) o;
-      return node.count == this.count && node.attributes.equals(this.attributes);
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.count, this.attributes);
-  }
-
   /**
    * Aggregates the count and attributes of the nodes, hosted by this concept.
    *
@@ -307,7 +292,8 @@ public class ConceptNode {
 
   @Override
   public String toString() {
-    return "ConceptNode Count: " + this.count + " Attributes: "
+    String id = this.id != null ? "ID: " + this.id : "";
+    return "ConceptNode " + id + " Count: " + this.count + " Attributes: "
         + this.attributes.toString();
   }
 
@@ -334,6 +320,6 @@ public class ConceptNode {
       trace.add(current);
       current = current.getParent();
     } while (current.getParent() != current);
-    return trace.get(cutoffLevel);
+    return trace.get(cutoffLevel - 1);
   }
 }

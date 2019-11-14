@@ -14,6 +14,8 @@ public class Cobweb {
     // NOOP
   }
 
+
+
   /**
    * run the actual cobweb algorithm.
    *
@@ -223,10 +225,13 @@ public class Cobweb {
    */
   private static ConceptNode mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode,
                                  final boolean setParent) {
+    if (host == null) {
+      return null;
+    }
     current.getChildren().remove(host);
 
     final Result secondHost = findHost(current, newNode);
-    if (secondHost.node == null || host == null) {
+    if (secondHost.node == null) {
       return null;
     }
     current.getChildren().remove(secondHost.node);

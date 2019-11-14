@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Assertions;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -33,8 +34,6 @@ public class PropertyGraphCobweb {
     System.out.println(this.nodeSummaryTree.printRec(new StringBuilder(), 0));
   }
 
-
-
   /**
    * Integrates a neo4j node into the cobweb trees.
    * 1. incorporates the node properties and labels and it's relationships types and properties into the tree
@@ -59,10 +58,18 @@ public class PropertyGraphCobweb {
     ConceptNode summarizedNode;
      List<Value> co;
 
-    int cutoffLevelNodes = (int) Math.log(deepestLevel(this.nodePropertiesTree) + 1);
-    int cutoffLevelRelationships = (int) Math.log(deepestLevel(this.relationshipPropertiesTree) + 1);
+     int deepestNodes = deepestLevel(this.nodePropertiesTree);
+     int deepestRels = deepestLevel(this.relationshipPropertiesTree);
+    System.out.println(deepestNodes);
+    System.out.println(deepestRels);
 
-    for (Node node : nodes) {
+    int cutoffLevelNodes = (int) Math.log(deepestNodes + 1);
+    int cutoffLevelRelationships = (int) Math.log(deepestRels + 1);
+    System.out.println("Node cutoff " + cutoffLevelNodes);
+    System.out.println("Relations cutoff " + cutoffLevelRelationships);
+    // FIXME those are wrong
+
+      for (Node node : nodes) {
       summarizedNode = new ConceptNode();
       co = new ArrayList<>();
 
@@ -78,7 +85,6 @@ public class PropertyGraphCobweb {
       for (Relationship rel : node.getRelationships()) {
         properties = findById(Long.toString(rel.getId()), this.relationshipPropertiesTree);
         assert properties != null;
-        // FIXME continue here
         properties = properties.getCutoffConcept(cutoffLevelRelationships);
         check = new ConceptValue(properties);
         if (co.contains(check)) {

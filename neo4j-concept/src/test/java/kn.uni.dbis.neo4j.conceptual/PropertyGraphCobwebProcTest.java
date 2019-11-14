@@ -1,10 +1,13 @@
 package kn.uni.dbis.neo4j.conceptual;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptValue;
+import kn.uni.dbis.neo4j.eval.annotations.Preprocessing;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -54,8 +57,10 @@ class PropertyGraphCobwebProcTest {
       tree.print();
 
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
-          tree.getNodeSummaryTree()};
+          tree.getNodeSummaryTree()};      final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
+        ids.clear();
+        this.checkIds(root, ids);
         this.checkPartitionCounts(root);
         this.checkParent(root);
         this.checkLeafType(root);
@@ -73,6 +78,7 @@ class PropertyGraphCobwebProcTest {
    * @param dataset the dataset specified in the class scope, used to access it's node and relationship count
    */
   @Test
+  @Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.Rome99)
   void testCobwebMedium(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction tx = db.beginTx()) {
@@ -80,12 +86,14 @@ class PropertyGraphCobwebProcTest {
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
-      // FIXME assetion fails on count :/
-      // TODO fix count
+      tree.print();
+
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
         tree.getNodeSummaryTree()};
+      final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
-        // subtree.print();
+        ids.clear();
+        this.checkIds(root, ids);
         this.checkPartitionCounts(root);
         this.checkParent(root);
         this.checkLeafType(root);
@@ -93,6 +101,17 @@ class PropertyGraphCobwebProcTest {
       Assertions.assertEquals(this.leafCount(subtrees[0]), dataset.getNodes());
       Assertions.assertEquals(this.leafCount(subtrees[1]), dataset.getArcs());
       Assertions.assertEquals(this.leafCount(subtrees[2]), dataset.getNodes());
+    }
+  }
+
+  void checkIds(final ConceptNode node, List<String> ids) {
+    if (node.getId() != null) {
+      Assertions.assertFalse(ids.contains(node.getId()));
+      ids.add(node.getId());
+    } else {
+      for (ConceptNode child : node.getChildren()) {
+        checkIds(child, ids);
+      }
     }
   }
 

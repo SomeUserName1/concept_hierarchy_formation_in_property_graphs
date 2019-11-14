@@ -93,22 +93,6 @@ public class NumericValue extends Value {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (o instanceof NumericValue) {
-      final NumericValue nr = (NumericValue) o;
-      return this.mean - nr.mean > 0 ? this.mean - 3 * this.std - nr.mean + 3 * nr.std <= 0
-          : nr.mean - 3 * nr.std - this.mean + 3 * this.std <= 0;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.mean, this.std);
-  }
-
-  @Override
   public String toString() {
     return "NumericValue:  count=" + this.getCount() + " mean= " + this.mean
             + " std=" + this.std;
