@@ -54,8 +54,7 @@ class PropertyGraphCobwebProcTest {
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
-      tree.printAllCutoffTrees();
-      tree.prettyPrint();
+      tree.printAllFullTrees();
 
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
           tree.getNodeSummaryTree()};      final List<String> ids = new ArrayList<>();

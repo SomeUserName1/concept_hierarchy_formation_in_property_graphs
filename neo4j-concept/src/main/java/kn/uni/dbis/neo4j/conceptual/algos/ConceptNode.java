@@ -151,7 +151,7 @@ public class ConceptNode {
    *
    * @param node  the node to incorporate into the concept.
    */
-  public void updateCounts(final ConceptNode node) {
+  public synchronized void updateCounts(final ConceptNode node) {
     List<Value> thisValues;
     NumericValue thisNumeric;
     boolean matched;
