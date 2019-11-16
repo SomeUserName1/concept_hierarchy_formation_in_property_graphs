@@ -158,7 +158,7 @@
 
 
     <build>
-        <defaultGoal>test</defaultGoal>
+        <defaultGoal>compile</defaultGoal>
         <plugins>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
@@ -245,84 +245,6 @@
                                 </filter>
                             </filters>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <excludes>**/PropertyGraphCobwebProc.java</excludes>
-                    <sourceDirectory>${project.build.sourceDirectories}</sourceDirectory>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <includeResources>false</includeResources>
-                    <configLocation>../checkstyle.xml</configLocation>
-                    <failOnViolation>true</failOnViolation>
-                    <violationSeverity>warning</violationSeverity>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>checkstyle</goal>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.4</version>
-                <configuration>
-                    <effort>max</effort>
-                    <threshold>Low</threshold>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>findbugs</goal>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.12.2</version>
-                <configuration>
-                    <effort>max</effort>
-                    <threshold>Low</threshold>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>spotbugs</goal>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.12.0</version>
-                <configuration>
-                    <targetJdk>1.8</targetJdk>
-                    <failOnViolation>true</failOnViolation> <!-- this is actually true by default, but can be disabled -->
-                    <printFailingErrors>true</printFailingErrors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>pmd</goal>
-                            <goal>check</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

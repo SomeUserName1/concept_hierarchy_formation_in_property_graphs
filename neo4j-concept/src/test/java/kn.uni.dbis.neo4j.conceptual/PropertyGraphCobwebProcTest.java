@@ -1,31 +1,28 @@
 package kn.uni.dbis.neo4j.conceptual;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import kn.uni.dbis.neo4j.conceptual.algos.ConceptValue;
-import kn.uni.dbis.neo4j.eval.annotations.Preprocessing;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
 import kn.uni.dbis.neo4j.conceptual.algos.Cobweb;
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptNode;
+import kn.uni.dbis.neo4j.conceptual.algos.ConceptValue;
 import kn.uni.dbis.neo4j.conceptual.algos.NominalValue;
 import kn.uni.dbis.neo4j.conceptual.algos.NumericValue;
+import kn.uni.dbis.neo4j.conceptual.algos.PrintUtils;
 import kn.uni.dbis.neo4j.conceptual.algos.PropertyGraphCobweb;
 import kn.uni.dbis.neo4j.conceptual.algos.Value;
 import kn.uni.dbis.neo4j.conceptual.proc.PropertyGraphCobwebProc;
 import kn.uni.dbis.neo4j.eval.annotations.GraphDBConfig;
 import kn.uni.dbis.neo4j.eval.annotations.GraphDBSetup;
 import kn.uni.dbis.neo4j.eval.annotations.GraphSource;
+import kn.uni.dbis.neo4j.eval.annotations.Preprocessing;
 import kn.uni.dbis.neo4j.eval.annotations.Procedures;
 import kn.uni.dbis.neo4j.eval.datasets.Dataset;
 
@@ -50,14 +47,17 @@ class PropertyGraphCobwebProcTest {
   @Test
   void testCobwebSmall(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction tx = db.beginTx()) {
-      PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
+      final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
-      tree.printAllFullTrees();
-
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
-          tree.getNodeSummaryTree()};      final List<String> ids = new ArrayList<>();
+          tree.getNodeSummaryTree()};
+
+      PrintUtils.printCutoffTrees(subtrees);
+      PrintUtils.prettyPrint(subtrees[2]);
+
+      final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
         ids.clear();
         this.checkIds(root, ids);
@@ -82,16 +82,16 @@ class PropertyGraphCobwebProcTest {
   @GraphSource(getDataset = Dataset.Rome99)
   void testCobwebMedium(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction tx = db.beginTx()) {
-      PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
+      final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
-      tree.printAllCutoffTrees();
-      tree.prettyPrint();
-
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
-        tree.getNodeSummaryTree()};
+          tree.getNodeSummaryTree()};
+
+      PrintUtils.printCutoffTrees(subtrees);
+      PrintUtils.prettyPrint(subtrees[2]);
       final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
         ids.clear();
@@ -106,21 +106,28 @@ class PropertyGraphCobwebProcTest {
     }
   }
 
+  /**
+   * stupid.
+   * @param db stupid
+   * @param dataset stupid
+   */
+  @Disabled
   //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.RoadNetNY)
   @Test
   void testCobwebMediumLarge(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction tx = db.beginTx()) {
-      PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
+      final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
-      tree.printAllCutoffTrees();
-      tree.prettyPrint();
-
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
           tree.getNodeSummaryTree()};
+
+      PrintUtils.printCutoffTrees(subtrees);
+      PrintUtils.prettyPrint(subtrees[2]);
+
       final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
         ids.clear();
@@ -135,22 +142,28 @@ class PropertyGraphCobwebProcTest {
     }
   }
 
+  /**
+   * stupid.
+   * @param db stupid
+   * @param dataset stupid
+   */
+  @Disabled
   //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.InternetTopology)
   @Test
   void testCobwebLarge(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction t = db.beginTx()) {
 
-      PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
+      final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
-      tree.printAllCutoffTrees();
-      tree.prettyPrint();
-
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
           tree.getNodeSummaryTree()};
+
+      PrintUtils.printCutoffTrees(subtrees);
+      PrintUtils.prettyPrint(subtrees[2]);
       final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
         ids.clear();
@@ -165,22 +178,27 @@ class PropertyGraphCobwebProcTest {
     }
   }
 
-
+  /**
+   * stupid.
+   * @param db stupid
+   * @param dataset stupid
+   */
+  @Disabled
   //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.RoadNetUSA)
   @Test
   void testCobwebVeryLarge(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction tx = db.beginTx()) {
-      PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
+      final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
-      tree.printAllCutoffTrees();
-      tree.prettyPrint();
-
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
           tree.getNodeSummaryTree()};
+
+      PrintUtils.printCutoffTrees(subtrees);
+      PrintUtils.prettyPrint(subtrees[2]);
       final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
         ids.clear();
@@ -195,21 +213,27 @@ class PropertyGraphCobwebProcTest {
     }
   }
 
+  /**
+   * stupid.
+   * @param db stupid
+   * @param dataset stupid
+   */
+  @Disabled
   //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.Orkut)
   @Test
   void testCobwebHuge(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction tx = db.beginTx()) {
-      PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
+      final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
-      tree.printAllCutoffTrees();
-      tree.prettyPrint();
-
       final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
           tree.getNodeSummaryTree()};
+
+      PrintUtils.printCutoffTrees(subtrees);
+      PrintUtils.prettyPrint(subtrees[2]);
       final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
         ids.clear();
@@ -224,13 +248,18 @@ class PropertyGraphCobwebProcTest {
     }
   }
 
-  void checkIds(final ConceptNode node, List<String> ids) {
+  /**
+   * Stupid test comment.
+   * @param node stupid
+   * @param ids params
+   */
+  void checkIds(final ConceptNode node, final List<String> ids) {
     if (node.getId() != null) {
       Assertions.assertFalse(ids.contains(node.getId()));
       ids.add(node.getId());
     } else {
       for (ConceptNode child : node.getChildren()) {
-        checkIds(child, ids);
+        this.checkIds(child, ids);
       }
     }
   }

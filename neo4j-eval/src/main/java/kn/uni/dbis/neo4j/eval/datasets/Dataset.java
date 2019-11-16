@@ -280,7 +280,6 @@ public enum Dataset {
       default:
         throw new IllegalStateException("Unreachable");
     }
-    System.gc();
   }
 
   /**

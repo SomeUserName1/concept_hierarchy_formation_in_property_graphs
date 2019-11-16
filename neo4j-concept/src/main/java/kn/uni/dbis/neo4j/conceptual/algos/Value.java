@@ -2,12 +2,15 @@ package kn.uni.dbis.neo4j.conceptual.algos;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Interface for a Value to cluster using Cobweb.
  * I.e. it's held by the attributes map as value in the @link{ConceptNode} class.
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
+@ThreadSafe
 public abstract class Value {
   /** counter for the occurrence of the value. */
   private AtomicInteger count = new AtomicInteger();

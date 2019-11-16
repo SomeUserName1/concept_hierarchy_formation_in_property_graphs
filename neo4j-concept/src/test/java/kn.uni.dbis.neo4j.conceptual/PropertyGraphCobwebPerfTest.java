@@ -7,16 +7,14 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import org.neo4j.server.CommunityBootstrapper;
 
+import kn.uni.dbis.neo4j.conceptual.algos.PrintUtils;
 import kn.uni.dbis.neo4j.conceptual.algos.PropertyGraphCobweb;
 import kn.uni.dbis.neo4j.conceptual.proc.PropertyGraphCobwebProc;
 import kn.uni.dbis.neo4j.eval.DefaultPaths;
@@ -77,12 +75,10 @@ public final class PropertyGraphCobwebPerfTest {
     }
 
     try (Transaction tx = db.beginTx()) {
-      final Stream<Node> nodes = db.getAllNodes().stream().limit(100);
-      System.out.println(nodes.count());
-      PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
+      final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
-      tree.prettyPrint();
+      PrintUtils.prettyPrint(tree.getNodeSummaryTree());
     }
   }
 }

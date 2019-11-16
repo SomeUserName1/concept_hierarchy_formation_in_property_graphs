@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public class ConceptValue extends Value implements Cloneable {
+public class ConceptValue extends Value {
   /**
    * The concept to encapsulate.
    */
@@ -88,8 +88,12 @@ public class ConceptValue extends Value implements Cloneable {
             + this.concept.get().toString() + ")";
   }
 
+  /**
+   * Returns a string that is formatted to be used in a latex tabular environment.
+   * @return a sting representation of the node for letx tables
+   */
+  @Override
   String toTexString() {
     return "Concept & " + this.concept.get().getLabel() + "&";
   }
-
 }

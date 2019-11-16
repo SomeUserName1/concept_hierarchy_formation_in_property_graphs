@@ -71,7 +71,6 @@ final class CSVImporter {
             + "--id-type=STRING " + " --max-memory=2G " + "--nodes " + String.format("%s ", nodesData)
             + "--relationships:" + relationshipName + String.format(" %s", arcsData)).split(" ");
     try {
-      System.gc();
       System.out.println("Starting import");
       System.out.println(Arrays.toString(command));
       final ProcessBuilder pb = new ProcessBuilder(command);
@@ -102,8 +101,6 @@ final class CSVImporter {
 
       ebr.close();
       ibr.close();
-
-      System.gc();
     } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
     }

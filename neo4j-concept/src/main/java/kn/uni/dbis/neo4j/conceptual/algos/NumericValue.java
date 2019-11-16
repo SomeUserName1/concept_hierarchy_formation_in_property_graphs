@@ -53,6 +53,7 @@ public class NumericValue extends Value {
    * returns the count of the updated node.
    * @param other node to incorporate
    */
+  @Override
   public void update(final Value other) {
     if (other instanceof NumericValue) {
       final NumericValue v = (NumericValue) other;
@@ -99,6 +100,11 @@ public class NumericValue extends Value {
             + " std=" + this.std.get();
   }
 
+  /**
+   * Returns a string that is formatted to be used in a latex tabular environment.
+   * @return a sting representation of the node for letx tables
+   */
+  @Override
   public String toTexString() {
     return "Numeric &  mean= " + this.mean.get() + ", std=" + this.std.get() + " &";
   }
