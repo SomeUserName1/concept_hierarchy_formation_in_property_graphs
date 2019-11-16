@@ -1,15 +1,23 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
+import apoc.atomic.Atomic;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
+import scala.xml.Atom;
 
 /**
  * The basic data type for the conceptual hierarchy (tree) constructed and used by cobweb.
@@ -20,35 +28,41 @@ public class ConceptNode {
   /**
    * Attribute aggregation over all (sub-)instances of this Concept.
    */
-  private final Map<String, List<Value>> attributes;
+  private final ConcurrentMap<String, List<Value>> attributes;
 
   /**
    * Number of Nodes under this ConceptNode.
    */
-  private int count;
+  private AtomicInteger count;
   /**
    * Neo4j ID of the Incorporated node..
    */
-  private String id;
+  private AtomicReference<String> id;
+
+  /**
+   * Label of the node.
+   */
+  private AtomicReference<String> label;
 
   /**
    * The sub-concepts of this Concept.
    */
-  private ArrayList<ConceptNode> children;
+  private List<ConceptNode> children;
   /**
    * The super-concept of this concept.
    */
-  private ConceptNode parent;
+  private AtomicReference<ConceptNode> parent;
 
   /**
    * Constructor.
    */
   public ConceptNode() {
-    this.count = 1;
-    this.id = null;
-    this.attributes = new HashMap<>();
-    this.children = new ArrayList<>();
-    this.parent = null;
+    this.count = new AtomicInteger(1);
+    this.id = new AtomicReference<>(null);
+    this.attributes = new ConcurrentHashMap<>();
+    this.children = Collections.synchronizedList(new ArrayList<>());
+    this.parent = new AtomicReference<>(null);
+    this.label = new AtomicReference<>(null);
   }
 
   /**
@@ -57,24 +71,24 @@ public class ConceptNode {
    * @param node ConceptNode to copy.
    */
   public ConceptNode(final ConceptNode node) {
-    this.count = node.count;
-    this.id = node.id;
-    this.attributes = new HashMap<>();
+    this.count = new AtomicInteger(node.count.get());
+    this.id = new AtomicReference<>(node.id.get());
+    this.attributes = new ConcurrentHashMap<>();
+    this.label = new AtomicReference<>(null);
 
     List<Value> values;
     String attributeName;
     for (Map.Entry<String, List<Value>> attribute : node.attributes.entrySet()) {
       attributeName = attribute.getKey();
-      values = new ArrayList<>();
+      values = Collections.synchronizedList(new ArrayList<>());
       this.attributes.put(attributeName, values);
       for (Value value : attribute.getValue()) {
         values.add(value.copy());
       }
     }
 
-    this.children = new ArrayList<>();
-    this.children = new ArrayList<>(node.children);
-    this.parent = node.parent;
+    this.children = Collections.synchronizedList(new ArrayList<>(node.children));
+    this.parent = new AtomicReference<>(node.parent.get());
   }
 
   /**
@@ -84,21 +98,22 @@ public class ConceptNode {
    * @param propertyContainer The property container to parse.
    */
   ConceptNode(final PropertyContainer propertyContainer) {
-    this.count = 1;
-    this.attributes = new HashMap<>();
-    this.children = new ArrayList<>();
-    this.parent = null;
+    this.count = new AtomicInteger(1);
+    this.attributes = new ConcurrentHashMap<>();
+    this.children = Collections.synchronizedList(new ArrayList<>());
+    this.parent = new AtomicReference<>(null);
+    this.label = new AtomicReference<>(null);
 
-    List<Value> values = new ArrayList<>();
+    List<Value> values = Collections.synchronizedList(new ArrayList<>());
 
     if (propertyContainer instanceof Relationship) {
       final Relationship rel = (Relationship) propertyContainer;
-      this.id = Long.toString(rel.getId());
+      this.id = new AtomicReference<>(Long.toString(rel.getId()));
       values.add(new NominalValue(rel.getType().name()));
       this.attributes.put("RelType", values);
     } else if (propertyContainer instanceof Node) {
       final Node mNode = (Node) propertyContainer;
-      this.id = Long.toString(mNode.getId());
+      this.id = new AtomicReference<>(Long.toString(mNode.getId()));
       for (Label label : mNode.getLabels()) {
         values.add(new NominalValue(label.name()));
         this.attributes.put("Label", values);
@@ -109,7 +124,7 @@ public class ConceptNode {
     Object o;
     Object[] arr;
     for (Map.Entry<String, Object> property : propertyContainer.getAllProperties().entrySet()) {
-      values = new ArrayList<>();
+      values = Collections.synchronizedList(new ArrayList<>());
       o = property.getValue();
       if (o.getClass().isArray()) {
         arr = (Object[]) o;
@@ -124,9 +139,9 @@ public class ConceptNode {
     }
   }
 
-  public ConceptNode root() {
-    this.count = 0;
-    this.parent = this;
+  public synchronized ConceptNode root() {
+    this.count.set(0);
+    this.parent.set(this);
 
     return this;
   }
@@ -141,7 +156,7 @@ public class ConceptNode {
     NumericValue thisNumeric;
     boolean matched;
 
-    this.count = this.count + node.count;
+    this.count.set(this.count.get() + node.count.get());
     // loop over the attributes of the node to incorporate
     for (Map.Entry<String, List<Value>> otherAttributes : node.getAttributes().entrySet()) {
       thisValues = this.attributes.get(otherAttributes.getKey());
@@ -176,7 +191,7 @@ public class ConceptNode {
         }
       } else {
         // Else add the attribute and it's properties of the new node as they are
-        final List<Value> copies = new ArrayList<>();
+        final List<Value> copies = Collections.synchronizedList(new ArrayList<>());
         for (Value value : otherAttributes.getValue()) {
           copies.add(value.copy());
         }
@@ -192,12 +207,12 @@ public class ConceptNode {
    * @return true if c is the parent of the node or one of it's parent.
    */
   boolean isSuperConcept(final ConceptNode c) {
-    if (this.parent == this) {
+    if (this.parent.get() == this) {
       return false;
-    } else if (this.parent.equals(c)) {
+    } else if (this.parent.get().equals(c)) {
       return true;
     } else {
-      return this.parent.isSuperConcept(c);
+      return this.parent.get().isSuperConcept(c);
     }
   }
 
@@ -207,7 +222,7 @@ public class ConceptNode {
    * @return number of instances and sub-concepts hosted by this concept
    */
   public int getCount() {
-    return this.count;
+    return this.count.get();
   }
 
   /**
@@ -216,7 +231,7 @@ public class ConceptNode {
    * @param count number of instances and sub-concepts hosted by this concept
    */
   void setCount(final int count) {
-    this.count = count;
+    this.count.set(count);
   }
 
   /**
@@ -252,7 +267,7 @@ public class ConceptNode {
    * @return the super concept of this node
    */
   public ConceptNode getParent() {
-    return this.parent;
+    return this.parent.get();
   }
 
   /**
@@ -261,7 +276,7 @@ public class ConceptNode {
    * @param parent the super-concept to be set
    */
   void setParent(final ConceptNode parent) {
-    this.parent = parent;
+    this.parent.set(parent);
   }
 
   /**
@@ -271,7 +286,7 @@ public class ConceptNode {
    * @param depth the depth when called in order to arrange the output appropriately
    * @return a String holding the representation of the tree
    */
-  String printRec(final StringBuilder sb, final int depth) {
+  String printRec(final StringBuilder sb, final int depth, int max_depth) {
     if (depth == 0) {
       sb.append("|__");
     } else {
@@ -282,19 +297,55 @@ public class ConceptNode {
     }
 
     sb.append(this.toString()).append("\n");
-
-    for (ConceptNode child : this.children) {
-      child.printRec(sb, depth + 1);
+    if (depth <= max_depth) {
+      for (ConceptNode child : this.children) {
+        child.printRec(sb, depth + 1, max_depth);
+      }
     }
 
     return sb.toString();
   }
 
+
+  @Override
+  public boolean equals(final Object o) {
+    if (o instanceof ConceptNode) {
+      final ConceptNode node = (ConceptNode) o;
+      return node.count.get() == this.count.get() && node.attributes.equals(this.attributes);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.count.get(), this.attributes);
+  }
+
   @Override
   public String toString() {
-    String id = this.id != null ? "ID: " + this.id : "";
-    return "ConceptNode " + id + " Count: " + this.count + " Attributes: "
+    String id = this.id.get() != null ? "ID: " + this.id.get() : "";
+    return "ConceptNode " + id + " Count: " + this.count.get() + " Attributes: "
         + this.attributes.toString();
+  }
+
+
+  public String toTexTable() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("ConceptNode \\hspace{1cm} P(this) = ")
+        .append(Double.toString((double) this.count.get() / (double) parent.get().count.get()), 0, 5)
+        .append("\\\\")
+        .append("Attributes: \\\\")
+        .append("\\begin{tabular}{|c|c|c|} \\hline");
+    for (Map.Entry<String, List<Value>> attribute : this.attributes.entrySet()) {
+      sb.append("\\multirow{4}{*}{").append(attribute.getKey()).append("} ");
+      for (Value value : attribute.getValue()) {
+        sb.append(value.toTexString()).append((double)value.getCount()/(double)this.count.get())
+            .append("\\\\ \\hline");
+      }
+    }
+    sb.append("\\end{tabular}");
+    return sb.toString();
   }
 
   /**
@@ -302,7 +353,7 @@ public class ConceptNode {
    * @return the ID of the node or null
    */
   public String getId() {
-      return this.id;
+      return this.id.get();
     }
 
   /**
@@ -310,7 +361,7 @@ public class ConceptNode {
    * @param id id to be set
    */
   public void setId(final String id) {
-    this.id = id;
+    this.id.set(id);
   }
 
   public ConceptNode getCutoffConcept(int cutoffLevel) {
@@ -320,6 +371,21 @@ public class ConceptNode {
       trace.add(current);
       current = current.getParent();
     } while (current.getParent() != current);
-    return trace.get(cutoffLevel - 1);
+    // also add the root so that we aren't off by one when returning the cutoff level
+    trace.add(current);
+    return trace.get(cutoffLevel);
+  }
+
+  public String getCutoffLabel(int cutoffLevel) {
+        return this.getLabel().substring(0, cutoffLevel);
+  }
+
+
+  public String getLabel() {
+    return this.label.get();
+  }
+
+  public void setLabel(final String label) {
+    this.label.set(label);
   }
 }

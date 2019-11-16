@@ -86,19 +86,22 @@ public class Cobweb {
     ConceptNode parentClone;
     final double parentEAP = getExpectedAttributePrediction(parent);
 
-    for (ConceptNode child : parent.getChildren()) {
-      clone = new ConceptNode(child);
-      clone.updateCounts(newNode);
+    synchronized (parent.getChildren()) {
+      for (ConceptNode child : parent.getChildren()) {
+        clone = new ConceptNode(child);
+        clone.updateCounts(newNode);
 
-      parentClone = new ConceptNode(parentTemp);
-      parentClone.getChildren().set(i, clone);
+        parentClone = new ConceptNode(parentTemp);
 
-      curCU = computeCU(parentClone, parentEAP);
-      if (maxCU < curCU) {
-        maxCU = curCU;
-        best = child;
+        parentClone.getChildren().set(i, clone);
+
+        curCU = computeCU(parentClone, parentEAP);
+        if (maxCU < curCU) {
+          maxCU = curCU;
+          best = child;
+        }
+        i++;
       }
-      i++;
     }
     return new Result(maxCU, best);
   }

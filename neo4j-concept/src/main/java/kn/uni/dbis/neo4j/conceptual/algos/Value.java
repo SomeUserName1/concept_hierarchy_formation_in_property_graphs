@@ -1,5 +1,7 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Interface for a Value to cluster using Cobweb.
  * I.e. it's held by the attributes map as value in the @link{ConceptNode} class.
@@ -8,7 +10,7 @@ package kn.uni.dbis.neo4j.conceptual.algos;
  */
 public abstract class Value {
   /** counter for the occurrence of the value. */
-  private int count;
+  private AtomicInteger count = new AtomicInteger();
 
   /**
    * given a primitive datatype or a String, decide which Value type to instantiate.
@@ -26,9 +28,7 @@ public abstract class Value {
       return new NominalValue((Character) o);
     } else if (o instanceof Number) {
       return new NumericValue((Number) o);
-    } else if (o instanceof ConceptNode) {
-      return new ConceptValue((ConceptNode) o);
-    } else {
+    }  else {
       System.out.println("Encountered Property with unsupported type!");
       return new NominalValue("Unsupported Type!");
     }
@@ -52,7 +52,7 @@ public abstract class Value {
    * @return the count of the value
    */
   public int getCount() {
-    return this.count;
+    return this.count.get();
   }
 
   /**
@@ -60,6 +60,12 @@ public abstract class Value {
    * @param count count to be set
    */
   void setCount(final int count) {
-    this.count = count;
+    this.count.set(count);
   }
+
+  /**
+   * returns a string representing in .tex.
+   * @return a String containing a table entry of a tex table
+   */
+  abstract String toTexString();
 }

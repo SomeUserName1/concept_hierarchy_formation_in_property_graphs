@@ -1,6 +1,7 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Holder for Concept values.
@@ -11,7 +12,7 @@ public class ConceptValue extends Value implements Cloneable {
   /**
    * The concept to encapsulate.
    */
-  private final ConceptNode concept;
+  private final AtomicReference<ConceptNode> concept;
 
   /**
    * Constructor.
@@ -20,28 +21,28 @@ public class ConceptValue extends Value implements Cloneable {
    */
   public ConceptValue(final ConceptNode node) {
     this.setCount(1);
-    this.concept = node;
+    this.concept = new AtomicReference<>(node);
   }
 
   /**
-   * Copy COnstructor.
+   * Copy Constructor.
    * @param count to be set
    * @param node to be set as concept
    */
   private ConceptValue(final int count, final ConceptNode node) {
     this.setCount(count);
-    this.concept = node;
+    this.concept = new AtomicReference<>(node);
   }
 
   @Override
   public Value copy() {
-    return new ConceptValue(this.getCount(), this.concept);
+    return new ConceptValue(this.getCount(), this.concept.get());
   }
 
   @Override
   public boolean equals(final Object o) {
     if (o instanceof ConceptValue) {
-      return this.concept.equals(((ConceptValue) o).concept);
+      return this.concept.get().equals(((ConceptValue) o).concept.get());
     } else {
       return false;
     }
@@ -51,7 +52,7 @@ public class ConceptValue extends Value implements Cloneable {
   public void update(final Value other) {
     if (other instanceof ConceptValue) {
       final ConceptValue c = (ConceptValue) other;
-      if (this.concept.equals(c.concept)) {
+      if (this.concept.get().equals(c.concept.get())) {
         this.setCount(this.getCount() + c.getCount());
       }
     } else {
@@ -61,7 +62,7 @@ public class ConceptValue extends Value implements Cloneable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.concept);
+    return Objects.hash(this.concept.get());
   }
 
   /**
@@ -71,10 +72,10 @@ public class ConceptValue extends Value implements Cloneable {
    * @return The probability of this concept given the concept val
    */
   double getFactor(final ConceptValue val) {
-    if (val.concept.equals(this.concept) || this.concept.isSuperConcept(val.concept)) {
+    if (val.concept.get().equals(this.concept.get()) || this.concept.get().isSuperConcept(val.concept.get())) {
       return 1.0;
-    } else if (val.concept.isSuperConcept(this.concept)) {
-      return (double) this.concept.getCount() / (double) val.concept.getCount();
+    } else if (val.concept.get().isSuperConcept(this.concept.get())) {
+      return (double) this.concept.get().getCount() / (double) val.concept.get().getCount();
     } else {
       // they're on different paths => disjoint
       return 0;
@@ -83,7 +84,12 @@ public class ConceptValue extends Value implements Cloneable {
 
   @Override
   public String toString() {
-    return "ConceptValue: " + System.identityHashCode(this) + " count=" + this.getCount() + " Concept=("
-            + this.concept.toString() + ")";
+    return "ConceptValue:  count=" + this.getCount() + " Concept=("
+            + this.concept.get().toString() + ")";
   }
+
+  String toTexString() {
+    return "Concept & " + this.concept.get().getLabel() + "&";
+  }
+
 }

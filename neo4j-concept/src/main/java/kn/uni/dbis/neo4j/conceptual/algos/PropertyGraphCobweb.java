@@ -4,12 +4,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.jupiter.api.Assertions;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Transaction;
 
 
 /**
@@ -19,19 +26,44 @@ import org.neo4j.graphdb.RelationshipType;
  */
 public class PropertyGraphCobweb {
   /** tree root for the node properties. */
-  private final ConceptNode nodePropertiesTree = new ConceptNode().root();
+  private final AtomicReference<ConceptNode> nodePropertiesTree = new AtomicReference<>(new ConceptNode().root());
   /** Cobweb tree for the relationship properties. */
-  private final ConceptNode relationshipPropertiesTree = new ConceptNode().root();
+  private final AtomicReference<ConceptNode> relationshipPropertiesTree = new AtomicReference<>(new ConceptNode().root());
   /** Cobweb tree for the node summary. */
-  private final ConceptNode nodeSummaryTree = new ConceptNode().root();
+  private final AtomicReference<ConceptNode> nodeSummaryTree = new AtomicReference<>(new ConceptNode().root());
 
   /**
    * convenience method for printing.
    */
-  public void print() {
-    System.out.println(this.nodePropertiesTree.printRec(new StringBuilder(), 0));
-    System.out.println(this.relationshipPropertiesTree.printRec(new StringBuilder(), 0));
-    System.out.println(this.nodeSummaryTree.printRec(new StringBuilder(), 0));
+  public void printAllFullTrees() {
+    System.out.println(this.getNodePropertiesTree().printRec(new StringBuilder(), 0,
+        deepestLevel(this.getNodePropertiesTree())));
+    System.out.println(this.getRelationshipPropertiesTree().printRec(new StringBuilder(), 0,
+        deepestLevel(this.getRelationshipPropertiesTree())));
+    System.out.println(this.getNodeSummaryTree().printRec(new StringBuilder(), 0,
+        deepestLevel(this.getNodeSummaryTree())));
+  }
+
+  /**
+   * convenience method for printing.
+   */
+  public void printAllCutoffTrees() {
+    System.out.println(this.getNodePropertiesTree().printRec(new StringBuilder(), 0,
+        log2(deepestLevel(this.getNodePropertiesTree()))));
+    System.out.println(this.getRelationshipPropertiesTree().printRec(new StringBuilder(), 0,
+        log2(deepestLevel(this.getRelationshipPropertiesTree()))));
+    System.out.println(this.getNodeSummaryTree().printRec(new StringBuilder(), 0,
+        log2(deepestLevel(this.getNodeSummaryTree()))));
+  }
+
+  public static void labelTree(final ConceptNode node, final String parentLabel, final String num) {
+    node.setLabel(parentLabel + num);
+
+    int i = 0;
+    for (ConceptNode child : node.getChildren()) {
+      labelTree(child, parentLabel + num, Integer.toString(i));
+      i++;
+    }
   }
 
   /**
@@ -42,63 +74,115 @@ public class PropertyGraphCobweb {
    *
    * @param nodes the list of nodes to be incorporated
    */
-  public void integrate(final List<Node> nodes, final List<Relationship> relationships) {
+  public void integrate(final GraphDatabaseService db, final List<Node> nodes, final List<Relationship> relationships) {
     // Static categorization according to properties, labels and relationship type
-
-    ConceptNode properties;
-    for (Node node : nodes) {
-      properties = new ConceptNode(node);
-      Cobweb.cobweb(properties, this.nodePropertiesTree);
-    }
-
-    for (Relationship rel : relationships) {
-      properties = new ConceptNode(rel);
-      Cobweb.cobweb(properties, this.relationshipPropertiesTree);
-    }
-    ConceptNode summarizedNode;
-     List<Value> co;
-
-     int deepestNodes = deepestLevel(this.nodePropertiesTree);
-     int deepestRels = deepestLevel(this.relationshipPropertiesTree);
-    System.out.println(deepestNodes);
-    System.out.println(deepestRels);
-
-    int cutoffLevelNodes = (int) Math.log(deepestNodes + 1);
-    int cutoffLevelRelationships = (int) Math.log(deepestRels + 1);
-    System.out.println("Node cutoff " + cutoffLevelNodes);
-    System.out.println("Relations cutoff " + cutoffLevelRelationships);
-    // FIXME those are wrong
-
+      ExecutorService threadPool = Executors.newWorkStealingPool();
+      Runnable cobwebRunnable;
       for (Node node : nodes) {
-      summarizedNode = new ConceptNode();
-      co = new ArrayList<>();
-
-      summarizedNode.setId(Long.toString(node.getId()));
-      properties = findById(Long.toString(node.getId()), this.nodePropertiesTree);
-      assert properties != null;
-      properties = properties.getCutoffConcept(cutoffLevelNodes);
-      co.add(new ConceptValue(properties));
-      summarizedNode.getAttributes().put("NodePropertiesConcept", co);
-
-      co.clear();
-      ConceptValue check;
-      for (Relationship rel : node.getRelationships()) {
-        properties = findById(Long.toString(rel.getId()), this.relationshipPropertiesTree);
-        assert properties != null;
-        properties = properties.getCutoffConcept(cutoffLevelRelationships);
-        check = new ConceptValue(properties);
-        if (co.contains(check)) {
-          co.get(co.indexOf(check)).update(check);
-        } else {
-          co.add(check);
-        }
+        cobwebRunnable = () -> {
+          try (Transaction t = db.beginTx()) {
+            ConceptNode properties = new ConceptNode(node);
+            Cobweb.cobweb(properties, this.getNodePropertiesTree());
+          }
+        };
+        threadPool.execute(cobwebRunnable);
       }
-      summarizedNode.getAttributes().put("RelationshipConcepts", co);
 
-      extractStructuralFeatures(node, summarizedNode);
-      Cobweb.cobweb(summarizedNode, this.nodeSummaryTree);
-    }
 
+      for (Relationship rel : relationships) {
+        cobwebRunnable = () -> {
+          try (Transaction t = db.beginTx()) {
+            ConceptNode properties = new ConceptNode(rel);
+            Cobweb.cobweb(properties, this.getRelationshipPropertiesTree());
+          }
+        };
+        threadPool.execute(cobwebRunnable);
+      }
+
+      threadPool.shutdown();
+      try {
+        threadPool.awaitTermination(1, TimeUnit.HOURS);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        e.printStackTrace();
+      }
+
+      threadPool = Executors.newWorkStealingPool();
+
+      Future<Integer> nodeCutoff = threadPool.submit(() -> log2(deepestLevel(this.getNodePropertiesTree())));
+      Future<Integer> relCutoff = threadPool.submit(() -> log2(deepestLevel(this.getRelationshipPropertiesTree())));
+      threadPool.execute(() -> labelTree(this.getNodePropertiesTree(), "", "n"));
+      threadPool.execute(() -> labelTree(this.getNodePropertiesTree(), "", "r"));
+
+      threadPool.shutdown();
+
+      int cutoffLevelNodes = 0;
+      int cutoffLevelRelationships = 0;
+      try {
+        threadPool.awaitTermination(1, TimeUnit.HOURS);
+        cutoffLevelRelationships = relCutoff.get();
+        cutoffLevelNodes = nodeCutoff.get();
+      } catch (final InterruptedException | ExecutionException e) {
+        Thread.currentThread().interrupt();
+        e.printStackTrace();
+      }
+
+
+      threadPool = Executors.newWorkStealingPool();
+      for (Node node : nodes) {
+        int finalCutoffLevelNodes = cutoffLevelNodes;
+        int finalCutoffLevelRelationships = cutoffLevelRelationships;
+        cobwebRunnable = () -> {
+          try (Transaction t = db.beginTx()) {
+            ConceptNode summarizedNode = new ConceptNode();
+            List<Value> co = new ArrayList<>();
+
+            summarizedNode.setId(Long.toString(node.getId()));
+            ConceptNode properties = findById(Long.toString(node.getId()), this.getNodePropertiesTree());
+            assert properties != null;
+            String label = properties.getCutoffLabel(finalCutoffLevelNodes);
+            co.add(new NominalValue(label));
+            summarizedNode.getAttributes().put("NodePropertiesConcept", co);
+
+            co.clear();
+            for (Relationship rel : node.getRelationships()) {
+              properties = findById(Long.toString(rel.getId()), this.getNodeSummaryTree());
+              assert properties != null;
+              label = properties.getCutoffLabel(finalCutoffLevelRelationships);
+              NominalValue check = new NominalValue(label);
+              if (co.contains(check)) {
+                co.get(co.indexOf(check)).update(check);
+              } else {
+                co.add(check);
+              }
+            }
+            summarizedNode.getAttributes().put("RelationshipConcepts", co);
+
+            extractStructuralFeatures(node, summarizedNode);
+            Cobweb.cobweb(summarizedNode, this.getNodeSummaryTree());
+          }
+        };
+        threadPool.execute(cobwebRunnable);
+      }
+
+      threadPool.shutdown();
+      try {
+        threadPool.awaitTermination(1, TimeUnit.HOURS);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        e.printStackTrace();
+      }
+      labelTree(this.getNodeSummaryTree(), "", "l");
+
+  }
+
+  /**
+   * convenience method for printing.
+   */
+  public void prettyPrint() {
+    int cut = log2(deepestLevel(this.getNodeSummaryTree()));
+    System.out.println(this.getNodeSummaryTree().printRec(new StringBuilder(), 0,cut));
+    System.out.println(getTexTree(this.getNodeSummaryTree(), cut));
   }
 
   private static int deepestLevel(ConceptNode node) {
@@ -221,12 +305,51 @@ public class PropertyGraphCobweb {
     conceptNode.getAttributes().put("EgoNetIncomingEdges", temp);
   }
 
+  private static int log2(int bits) {
+    if( bits == 0 )
+      return 0;
+    return 31 - Integer.numberOfLeadingZeros( bits );
+  }
+
+  private static void printRecTexTree(final ConceptNode node, final StringBuilder sb, final int depth,
+                                      final int max_depth) {
+    if (depth == 0) {
+      sb.append("\\node {Root}\n");
+    }
+
+    if (depth <= max_depth) {
+      for (ConceptNode child : node.getChildren()) {
+        for (int i = 0; i <= depth; i++) {
+          sb.append("\t");
+        }
+        sb.append("child { node {").append(child.getLabel()).append("} ");
+        if (child.getChildren().size() > 0) {
+          sb.append("\n");
+          printRecTexTree(child, sb, depth + 1, max_depth);
+        }
+        sb.append("}");
+      }
+    }
+  }
+
+  public static String getTexTree(final ConceptNode root, final int max_depth) {
+    labelTree(root,"", "l");
+    StringBuilder sb = new StringBuilder();
+    sb.append("\\begin{tikzpicture}[sibling distance=10em, "
+        + "every node/.style = {shape=rectangle, rounded corners, "
+        + "draw, align=center,"
+        + "top color=white, bottom color=blue!20}]]");
+    printRecTexTree(root, sb, 0, max_depth);
+    sb.append(";\n").append("\\end{tikzpicture}");
+    return sb.toString();
+  }
+
   /**
    * Getter for the node properties Cobweb tree.
    * @return the cobweb instance for node properties
    */
   public ConceptNode getNodePropertiesTree() {
-    return this.nodePropertiesTree;
+    return this.nodePropertiesTree.get();
   }
 
   /**
@@ -234,7 +357,7 @@ public class PropertyGraphCobweb {
    * @return the cobweb instance for relationship properties
    */
   public ConceptNode getRelationshipPropertiesTree() {
-    return this.relationshipPropertiesTree;
+    return this.relationshipPropertiesTree.get();
   }
 
   /**
@@ -242,6 +365,6 @@ public class PropertyGraphCobweb {
    * @return the cobweb instance for node summaries.
    */
   public ConceptNode getNodeSummaryTree() {
-    return this.nodeSummaryTree;
+    return this.nodeSummaryTree.get();
   }
 }

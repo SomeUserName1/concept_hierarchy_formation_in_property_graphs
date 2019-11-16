@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -78,9 +79,10 @@ public final class PropertyGraphCobwebPerfTest {
     try (Transaction tx = db.beginTx()) {
       final Stream<Node> nodes = db.getAllNodes().stream().limit(100);
       System.out.println(nodes.count());
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream(),
+      PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
+      final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
-      tree.print();
+      tree.prettyPrint();
     }
   }
 }

@@ -1,6 +1,8 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
+
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Holder for nominal values, representing Strings, characters, booleans and IDs as String.
@@ -11,7 +13,7 @@ public class NominalValue extends Value {
   /**
    * the nominal value as string.
    */
-  private final String str;
+  private final AtomicReference<String> str;
 
   /**
    * Constructor using a string.
@@ -20,7 +22,7 @@ public class NominalValue extends Value {
    */
   public NominalValue(final String value) {
     this.setCount(1);
-    this.str = value;
+    this.str = new AtomicReference<>(value);
   }
 
   /**
@@ -31,7 +33,7 @@ public class NominalValue extends Value {
    */
   private NominalValue(final int count, final String value) {
     this.setCount(count);
-    this.str = value;
+    this.str = new AtomicReference<>(value);
   }
 
   /**
@@ -41,7 +43,7 @@ public class NominalValue extends Value {
    */
   NominalValue(final boolean value) {
     this.setCount(1);
-    this.str = value ? "true" : "false";
+    this.str = value ? new AtomicReference<>("true") : new AtomicReference<>("false");
   }
 
   /**
@@ -51,19 +53,19 @@ public class NominalValue extends Value {
    */
   NominalValue(final char value) {
     this.setCount(1);
-    this.str = Character.toString(value);
+    this.str = new AtomicReference<>(Character.toString(value));
   }
 
   @Override
   public Value copy() {
-    return new NominalValue(this.getCount(), this.str);
+    return new NominalValue(this.getCount(), this.str.get());
   }
 
   @Override
   public boolean equals(final Object o) {
     if (o instanceof NominalValue)  {
       final NominalValue n = (NominalValue) o;
-      return n.str.equals(this.str);
+      return n.str.get().equals(this.str.get());
     } else {
       return false;
     }
@@ -71,14 +73,14 @@ public class NominalValue extends Value {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.str);
+    return Objects.hash(this.str.get());
   }
 
   @Override
   public void update(final Value other) {
     if (other instanceof NominalValue) {
       final NominalValue n = (NominalValue) other;
-      if (n.str.equals(this.str)) {
+      if (n.str.get().equals(this.str.get())) {
         this.setCount(this.getCount() + n.getCount());
       }
     } else {
@@ -88,6 +90,10 @@ public class NominalValue extends Value {
 
   @Override
   public String toString() {
-    return "NominalValue count=" + this.getCount() + " string=" + this.str;
+    return "NominalValue count=" + this.getCount() + " string=" + this.str.get();
+  }
+
+  String toTexString() {
+    return "Nominal & " + this.str.get() + "& ";
   }
 }

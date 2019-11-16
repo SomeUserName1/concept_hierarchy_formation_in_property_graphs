@@ -20,6 +20,10 @@ import kn.uni.dbis.neo4j.conceptual.algos.PropertyGraphCobweb;
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
 public class PropertyGraphCobwebProc {
+
+  public PropertyGraphCobwebProc(GraphDatabaseService db) {
+    this.db = db;
+  }
   /**
    * The database service to execute the procedure against.
    */
@@ -32,16 +36,16 @@ public class PropertyGraphCobwebProc {
    */
   @Procedure(
       name = "kn.uni.dbis.neo4j.conceptual.PropertyGraphCobwebStream",
-      mode = Mode.READ
+      mode = Mode.WRITE
   )
-  public static Stream<PropertyGraphCobweb> integrate(@Name("nodes") final Stream<Node> nodes,
+  public Stream<PropertyGraphCobweb> integrate(@Name("nodes") final Stream<Node> nodes,
                                                       @Name("edges") final Stream<Relationship> relationships) {
     final PropertyGraphCobweb tree = new PropertyGraphCobweb();
     List<Node> nodesList = nodes.collect(Collectors.toList());
     List<Relationship> relationshipsList = relationships.collect(Collectors.toList());
     System.out.println("Number of nodes " + nodesList.size());
     System.out.println("Number of Relationships " + relationshipsList.size());
-    tree.integrate(nodesList, relationshipsList);
+    tree.integrate(db, nodesList, relationshipsList);
     return Stream.of(tree);
   }
 }
