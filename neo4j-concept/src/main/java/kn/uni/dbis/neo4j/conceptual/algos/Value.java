@@ -1,22 +1,14 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * Interface for a Value to cluster using Cobweb.
  * I.e. it's held by the attributes map as value in the @link{ConceptNode} class.
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-@ThreadSafe
 public abstract class Value {
   /** counter for the occurrence of the value. */
-  private AtomicInteger count = new AtomicInteger();
-  /** Lock. */
-  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+  private int count;
 
   /**
    * given a primitive datatype or a String, decide which Value type to instantiate.
@@ -34,7 +26,9 @@ public abstract class Value {
       return new NominalValue((Character) o);
     } else if (o instanceof Number) {
       return new NumericValue((Number) o);
-    }  else {
+    } else if (o instanceof ConceptNode) {
+      return new ConceptValue((ConceptNode) o);
+    } else {
       System.out.println("Encountered Property with unsupported type!");
       return new NominalValue("Unsupported Type!");
     }
@@ -58,7 +52,7 @@ public abstract class Value {
    * @return the count of the value
    */
   public int getCount() {
-      return this.count.get();
+    return this.count;
   }
 
   /**
@@ -66,20 +60,6 @@ public abstract class Value {
    * @param count count to be set
    */
   void setCount(final int count) {
-    this.count.set(count);
-  }
-
-  /**
-   * returns a string representing in .tex.
-   * @return a String containing a table entry of a tex table
-   */
-  public abstract String toTexString();
-
-  /**
-   * getter for the lock.
-   * @return the lock
-   */
-  ReentrantReadWriteLock getLock() {
-    return this.lock;
+    this.count = count;
   }
 }

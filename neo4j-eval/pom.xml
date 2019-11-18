@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
 
@@ -19,19 +21,26 @@
   </description>
 
   <properties>
-    
+    <!-- Global Project Properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    
+    <!-- Target Java LTS (Java 11) -->
     <java.version>8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <uberjar.name>benchmarks</uberjar.name>
     <maven.build.timestamp.format>yyyy.MM.dd.HH.mm.ss</maven.build.timestamp.format>
-    
+    <!-- Dependency Versions -->
     <neo4j.version>3.5.0</neo4j.version>
     <junit.jupiter.version>5.3.1</junit.jupiter.version>
-    
-    
+    <!-- Less warnings for Java9 modules, see in benchmark profile
+       NOTE: keep in sync with benchmark profile! -->
+    <!-- <argLine>
+        -illegal-access=deny
+        -add-opens java.base/java.lang=ALL-UNNAMED
+        -add-opens java.base/java.util=ALL-UNNAMED
+        -add-opens java.base/java.io=ALL-UNNAMED
+        -add-exports java.base/sun.nio.ch=ALL-UNNAMED
+    </argLine> -->
     <jvm.options>-Xms2048m -Xmx2048m</jvm.options>
   </properties>
 
@@ -67,7 +76,7 @@
 
 
   <dependencies>
-    
+    <!-- neo4j dependencies -->
     <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>neo4j</artifactId>
@@ -80,7 +89,7 @@
       <version>${neo4j.version}</version>
     </dependency>
 
-    
+    <!-- Graph Algorithms and APoC -->
     <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>graph-algorithms-algo</artifactId>
@@ -103,7 +112,7 @@
       <version>1.2</version>
     </dependency>
 
-    
+    <!-- Testing -->
     <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>neo4j-io</artifactId>
@@ -142,7 +151,7 @@
       <scope>test</scope>
     </dependency>
 
-    
+    <!-- Arg parse, Logging, CheckStyle and Benchmarking -->
     <dependency>
       <groupId>com.github.oshi</groupId>
       <artifactId>oshi-core</artifactId>
@@ -174,7 +183,7 @@
 
   <build>
     <plugins>
-      
+      <!-- JUnit 5 requires Surefire version 2.22.0 or higher -->
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.2</version>
@@ -255,7 +264,7 @@
         <version>3.12.0</version>
         <configuration>
           <targetJdk>1.8</targetJdk>
-          <failOnViolation>true</failOnViolation> 
+          <failOnViolation>true</failOnViolation> <!-- this is actually true by default, but can be disabled -->
           <printFailingErrors>true</printFailingErrors>
         </configuration>
         <executions>
@@ -279,22 +288,4 @@
       </plugin>
     </plugins>
   </reporting>
-<profiles><profile>
-      <id>infer-capture</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.8.0</version>
-            <configuration>
-              <compilerId>javac</compilerId>
-              <forceJavacCompilerUse>true</forceJavacCompilerUse>
-              <fork>true</fork>
-              <executable>/opt/infer-linux64-v0.17.0/lib/infer/infer/bin/infer</executable>
-              
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile></profiles></project>
+</project>

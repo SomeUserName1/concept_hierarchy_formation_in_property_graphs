@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>kn.uni.dbis</groupId>
@@ -20,14 +22,14 @@
     </modules>
 
     <properties>
-        
+        <!-- Global Project Properties -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <uberjar.name>benchmarks</uberjar.name>
         <maven.build.timestamp.format>yyyy.MM.dd.HH.mm.ss</maven.build.timestamp.format>
-        
+        <!-- Dependency Versions -->
         <neo4j.version>3.5.0</neo4j.version>
         <junit.jupiter.version>5.3.1</junit.jupiter.version>
     </properties>
@@ -63,79 +65,9 @@
     </pluginRepositories>
 
     <build>
-        <defaultGoal>compile</defaultGoal>
+        <defaultGoal>test</defaultGoal>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <excludes>**/PropertyGraphCobwebProc.java</excludes>
-                    <sourceDirectory>${project.build.sourceDirectories}</sourceDirectory>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <includeResources>false</includeResources>
-                    <configLocation>checkstyle.xml</configLocation>
-                    <failOnViolation>true</failOnViolation>
-                    <violationSeverity>warning</violationSeverity>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>checkstyle</goal>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.12.2</version>
-                <dependencies>
-                    
-                    <dependency>
-                        <groupId>com.github.spotbugs</groupId>
-                        <artifactId>spotbugs</artifactId>
-                        <version>4.0.0-beta3</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <effort>max</effort>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>spotbugs</goal>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-<!--            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.12.0</version>
-                <configuration>
-                    <targetJdk>1.8</targetJdk>
-                    <failOnViolation>false</failOnViolation> 
-                    <printFailingErrors>true</printFailingErrors>
-                    <rulesets>
-                        <ruleset>/home/someusername/Nextcloud/workspace/uni/bachelor/klopfer-bachelor/pmd_rules.xml</ruleset>
-                    </rulesets>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>pmd</goal>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>-->
-            
+            <!-- JUnit 5 requires Surefire version 2.22.0 or higher -->
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.0</version>
@@ -180,13 +112,14 @@
                         <configuration>
                             <finalName>${uberjar.name}</finalName>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.openjdk.jmh.Main</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
                                 <filter>
-                                    
+                                    <!-- Shading signed JARs will fail without this. http://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar -->
                                     <artifact>*:*</artifact>
                                     <excludes>
                                         <exclude>META-INF/*.SF</exclude>
@@ -216,22 +149,4 @@
         </plugins>
     </reporting>
 
-<profiles><profile>
-      <id>infer-capture</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.8.0</version>
-            <configuration>
-              <compilerId>javac</compilerId>
-              <forceJavacCompilerUse>true</forceJavacCompilerUse>
-              <fork>true</fork>
-              <executable>/opt/infer-linux64-v0.17.0/lib/infer/infer/bin/infer</executable>
-              
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile></profiles></project>
+</project>

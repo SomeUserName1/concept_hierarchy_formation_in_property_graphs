@@ -1,21 +1,17 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Holder for nominal values, representing Strings, characters, booleans and IDs as String.
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-@ThreadSafe
 public class NominalValue extends Value {
   /**
    * the nominal value as string.
    */
-  private final AtomicReference<String> str;
+  private final String str;
 
   /**
    * Constructor using a string.
@@ -24,7 +20,7 @@ public class NominalValue extends Value {
    */
   public NominalValue(final String value) {
     this.setCount(1);
-    this.str = new AtomicReference<>(value);
+    this.str = value;
   }
 
   /**
@@ -35,7 +31,7 @@ public class NominalValue extends Value {
    */
   private NominalValue(final int count, final String value) {
     this.setCount(count);
-    this.str = new AtomicReference<>(value);
+    this.str = value;
   }
 
   /**
@@ -45,7 +41,7 @@ public class NominalValue extends Value {
    */
   NominalValue(final boolean value) {
     this.setCount(1);
-    this.str = value ? new AtomicReference<>("true") : new AtomicReference<>("false");
+    this.str = value ? "true" : "false";
   }
 
   /**
@@ -55,19 +51,19 @@ public class NominalValue extends Value {
    */
   NominalValue(final char value) {
     this.setCount(1);
-    this.str = new AtomicReference<>(Character.toString(value));
+    this.str = Character.toString(value);
   }
 
   @Override
   public Value copy() {
-    return new NominalValue(this.getCount(), this.str.get());
+    return new NominalValue(this.getCount(), this.str);
   }
 
   @Override
   public boolean equals(final Object o) {
     if (o instanceof NominalValue)  {
       final NominalValue n = (NominalValue) o;
-      return n.str.get().equals(this.str.get());
+      return n.str.equals(this.str);
     } else {
       return false;
     }
@@ -75,14 +71,14 @@ public class NominalValue extends Value {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.str.get());
+    return Objects.hash(this.str);
   }
 
   @Override
   public void update(final Value other) {
     if (other instanceof NominalValue) {
       final NominalValue n = (NominalValue) other;
-      if (n.str.get().equals(this.str.get())) {
+      if (n.str.equals(this.str)) {
         this.setCount(this.getCount() + n.getCount());
       }
     } else {
@@ -92,15 +88,6 @@ public class NominalValue extends Value {
 
   @Override
   public String toString() {
-    return "NominalValue count=" + this.getCount() + " string=" + this.str.get();
-  }
-
-  /**
-   * Returns a string that is formatted to be used in a latex tabular environment.
-   * @return a sting representation of the node for letx tables
-   */
-  @Override
-  public String toTexString() {
-    return "Nominal & " + this.str.get() + "& ";
+    return "NominalValue count=" + this.getCount() + " string=" + this.str;
   }
 }

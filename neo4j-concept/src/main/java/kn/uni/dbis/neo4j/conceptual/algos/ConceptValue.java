@@ -1,21 +1,17 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Holder for Concept values.
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-@ThreadSafe
-public class ConceptValue extends Value {
+public class ConceptValue extends Value implements Cloneable {
   /**
    * The concept to encapsulate.
    */
-  private final AtomicReference<ConceptNode> concept;
+  private final ConceptNode concept;
 
   /**
    * Constructor.
@@ -24,28 +20,28 @@ public class ConceptValue extends Value {
    */
   public ConceptValue(final ConceptNode node) {
     this.setCount(1);
-    this.concept = new AtomicReference<>(node);
+    this.concept = node;
   }
 
   /**
-   * Copy Constructor.
+   * Copy COnstructor.
    * @param count to be set
    * @param node to be set as concept
    */
   private ConceptValue(final int count, final ConceptNode node) {
     this.setCount(count);
-    this.concept = new AtomicReference<>(node);
+    this.concept = node;
   }
 
   @Override
   public Value copy() {
-    return new ConceptValue(this.getCount(), this.concept.get());
+    return new ConceptValue(this.getCount(), this.concept);
   }
 
   @Override
   public boolean equals(final Object o) {
     if (o instanceof ConceptValue) {
-      return this.concept.get().equals(((ConceptValue) o).concept.get());
+      return this.concept.equals(((ConceptValue) o).concept);
     } else {
       return false;
     }
@@ -55,7 +51,7 @@ public class ConceptValue extends Value {
   public void update(final Value other) {
     if (other instanceof ConceptValue) {
       final ConceptValue c = (ConceptValue) other;
-      if (this.concept.get().equals(c.concept.get())) {
+      if (this.concept.equals(c.concept)) {
         this.setCount(this.getCount() + c.getCount());
       }
     } else {
@@ -65,7 +61,7 @@ public class ConceptValue extends Value {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.concept.get());
+    return Objects.hash(this.concept);
   }
 
   /**
@@ -75,10 +71,10 @@ public class ConceptValue extends Value {
    * @return The probability of this concept given the concept val
    */
   double getFactor(final ConceptValue val) {
-    if (val.concept.get().equals(this.concept.get()) || this.concept.get().isSuperConcept(val.concept.get())) {
+    if (val.concept.equals(this.concept) || this.concept.isSuperConcept(val.concept)) {
       return 1.0;
-    } else if (val.concept.get().isSuperConcept(this.concept.get())) {
-      return (double) this.concept.get().getCount() / (double) val.concept.get().getCount();
+    } else if (val.concept.isSuperConcept(this.concept)) {
+      return (double) this.concept.getCount() / (double) val.concept.getCount();
     } else {
       // they're on different paths => disjoint
       return 0;
@@ -87,16 +83,7 @@ public class ConceptValue extends Value {
 
   @Override
   public String toString() {
-    return "ConceptValue:  count=" + this.getCount() + " Concept=("
-            + this.concept.get().toString() + ")";
-  }
-
-  /**
-   * Returns a string that is formatted to be used in a latex tabular environment.
-   * @return a sting representation of the node for letx tables
-   */
-  @Override
-  public String toTexString() {
-    return "Concept & " + this.concept.get().getLabel() + "&";
+    return "ConceptValue: " + System.identityHashCode(this) + " count=" + this.getCount() + " Concept=("
+            + this.concept.toString() + ")";
   }
 }
