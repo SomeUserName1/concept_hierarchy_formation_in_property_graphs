@@ -1,17 +1,27 @@
-package kn.uni.dbis.neo4j.conceptual.algos;
+package kn.uni.dbis.neo4j.conceptual.util;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
+import kn.uni.dbis.neo4j.conceptual.algos.ConceptNode;
+import kn.uni.dbis.neo4j.conceptual.algos.Value;
+
 /**
  * PrintUtils.
  *  @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public class PrintUtils {
+public final class PrintUtils {
   /** Logger. */
-  static final Logger LOG = Logger.getLogger("PropertyGraphCobweb");
+  private static final Logger LOG = Logger.getLogger("PropertyGraphCobweb");
+
+  /**
+   * Hidden default constructor.
+   */
+  private PrintUtils() {
+    // NOOP
+  }
 
   /**
    * Prints nodes recursively from node node downwards the tree.
@@ -103,7 +113,7 @@ public class PrintUtils {
    * @return a String containing a tkizpicture
    */
   private static String getTexTree(final ConceptNode root, final int maxDepth) {
-    PropertyGraphCobweb.labelTree(root, "", "l");
+    TreeUtils.labelTree(root, "", "l");
     final StringBuilder sb = new StringBuilder();
     sb.append("\\begin{tikzpicture}[sibling distance=10em, "
         + "every node/.style = {shape=rectangle, rounded corners, "
@@ -121,7 +131,7 @@ public class PrintUtils {
   public void printFullTrees(final ConceptNode... roots) {
     for (final ConceptNode root : roots) {
       LOG.info(PrintUtils.printRec(root, new StringBuilder(), 0,
-          PropertyGraphCobweb.deepestLevel(root)));
+          TreeUtils.deepestLevel(root)));
     }
   }
 
@@ -132,7 +142,7 @@ public class PrintUtils {
   public static void printCutoffTrees(final ConceptNode... roots) {
     for (final ConceptNode root : roots) {
       LOG.info(PrintUtils.printRec(root, new StringBuilder(), 0,
-          PropertyGraphCobweb.log2(PropertyGraphCobweb.deepestLevel(root))));
+          MathUtils.log2(TreeUtils.deepestLevel(root))));
     }
   }
 
@@ -141,7 +151,7 @@ public class PrintUtils {
    * @param root stupid
    */
   public static void prettyPrint(final ConceptNode root) {
-    final int cut = PropertyGraphCobweb.log2(PropertyGraphCobweb.deepestLevel(root));
+    final int cut = MathUtils.log2(TreeUtils.deepestLevel(root));
     LOG.info(PrintUtils.printRec(root, new StringBuilder(), 0, cut));
     LOG.info(getTexTree(root, cut));
   }

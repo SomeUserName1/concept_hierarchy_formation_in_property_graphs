@@ -1,14 +1,16 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
-
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Holder for nominal values, representing Strings, characters, booleans and IDs as String.
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
+@ThreadSafe
 public class NominalValue extends Value {
   /**
    * the nominal value as string.
@@ -98,7 +100,7 @@ public class NominalValue extends Value {
    * @return a sting representation of the node for letx tables
    */
   @Override
-  String toTexString() {
+  public String toTexString() {
     return "Nominal & " + this.str.get() + "& ";
   }
 }

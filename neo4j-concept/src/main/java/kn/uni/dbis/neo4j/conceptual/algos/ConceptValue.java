@@ -3,11 +3,14 @@ package kn.uni.dbis.neo4j.conceptual.algos;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Holder for Concept values.
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
+@ThreadSafe
 public class ConceptValue extends Value {
   /**
    * The concept to encapsulate.
@@ -93,7 +96,7 @@ public class ConceptValue extends Value {
    * @return a sting representation of the node for letx tables
    */
   @Override
-  String toTexString() {
+  public String toTexString() {
     return "Concept & " + this.concept.get().getLabel() + "&";
   }
 }

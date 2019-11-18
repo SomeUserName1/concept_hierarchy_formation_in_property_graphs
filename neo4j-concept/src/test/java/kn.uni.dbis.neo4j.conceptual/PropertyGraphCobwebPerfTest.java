@@ -14,9 +14,10 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import org.neo4j.server.CommunityBootstrapper;
 
-import kn.uni.dbis.neo4j.conceptual.algos.PrintUtils;
+
 import kn.uni.dbis.neo4j.conceptual.algos.PropertyGraphCobweb;
 import kn.uni.dbis.neo4j.conceptual.proc.PropertyGraphCobwebProc;
+import kn.uni.dbis.neo4j.conceptual.util.PrintUtils;
 import kn.uni.dbis.neo4j.eval.DefaultPaths;
 import kn.uni.dbis.neo4j.eval.TestDatabaseFactory;
 import kn.uni.dbis.neo4j.eval.util.FileUtils;

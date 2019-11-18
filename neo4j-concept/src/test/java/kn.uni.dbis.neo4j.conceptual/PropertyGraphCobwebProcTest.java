@@ -2,6 +2,8 @@ package kn.uni.dbis.neo4j.conceptual;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -15,10 +17,10 @@ import kn.uni.dbis.neo4j.conceptual.algos.ConceptNode;
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptValue;
 import kn.uni.dbis.neo4j.conceptual.algos.NominalValue;
 import kn.uni.dbis.neo4j.conceptual.algos.NumericValue;
-import kn.uni.dbis.neo4j.conceptual.algos.PrintUtils;
 import kn.uni.dbis.neo4j.conceptual.algos.PropertyGraphCobweb;
 import kn.uni.dbis.neo4j.conceptual.algos.Value;
 import kn.uni.dbis.neo4j.conceptual.proc.PropertyGraphCobwebProc;
+import kn.uni.dbis.neo4j.conceptual.util.PrintUtils;
 import kn.uni.dbis.neo4j.eval.annotations.GraphDBConfig;
 import kn.uni.dbis.neo4j.eval.annotations.GraphDBSetup;
 import kn.uni.dbis.neo4j.eval.annotations.GraphSource;
@@ -46,7 +48,7 @@ class PropertyGraphCobwebProcTest {
    */
   @Test
   void testCobwebSmall(final GraphDatabaseService db, final Dataset dataset) {
-    try (Transaction tx = db.beginTx()) {
+    try (Transaction ignored = db.beginTx()) {
       final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
@@ -81,7 +83,7 @@ class PropertyGraphCobwebProcTest {
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.Rome99)
   void testCobwebMedium(final GraphDatabaseService db, final Dataset dataset) {
-    try (Transaction tx = db.beginTx()) {
+    try (Transaction ignored = db.beginTx()) {
       final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
@@ -116,7 +118,7 @@ class PropertyGraphCobwebProcTest {
   @GraphSource(getDataset = Dataset.RoadNetNY)
   @Test
   void testCobwebMediumLarge(final GraphDatabaseService db, final Dataset dataset) {
-    try (Transaction tx = db.beginTx()) {
+    try (Transaction ignored = db.beginTx()) {
       final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
@@ -152,7 +154,7 @@ class PropertyGraphCobwebProcTest {
   @GraphSource(getDataset = Dataset.InternetTopology)
   @Test
   void testCobwebLarge(final GraphDatabaseService db, final Dataset dataset) {
-    try (Transaction t = db.beginTx()) {
+    try (Transaction ignored = db.beginTx()) {
 
       final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
@@ -188,7 +190,7 @@ class PropertyGraphCobwebProcTest {
   @GraphSource(getDataset = Dataset.RoadNetUSA)
   @Test
   void testCobwebVeryLarge(final GraphDatabaseService db, final Dataset dataset) {
-    try (Transaction tx = db.beginTx()) {
+    try (Transaction ignored = db.beginTx()) {
       final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
@@ -223,7 +225,7 @@ class PropertyGraphCobwebProcTest {
   @GraphSource(getDataset = Dataset.Orkut)
   @Test
   void testCobwebHuge(final GraphDatabaseService db, final Dataset dataset) {
-    try (Transaction tx = db.beginTx()) {
+    try (Transaction ignored = db.beginTx()) {
       final PropertyGraphCobwebProc proc = new PropertyGraphCobwebProc(db);
       final PropertyGraphCobweb tree = proc.integrate(db.getAllNodes().stream(),
           db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
@@ -418,10 +420,11 @@ class PropertyGraphCobwebProcTest {
     conceptNode.getAttributes().put("name", val);
     final ConceptNode clone = new ConceptNode(conceptNode);
     final ConceptNode clone1 = new ConceptNode(conceptNode);
+    final ExecutorService threadPool = Executors.newWorkStealingPool();
 
-    Cobweb.cobweb(conceptNode, root);
-    Cobweb.cobweb(clone, root);
-    Cobweb.cobweb(clone1, root);
+    //Cobweb.cobweb(conceptNode, root, threadPool);
+    //Cobweb.cobweb(clone, root, threadPool);
+    //Cobweb.cobweb(clone1, root, threadPool);
 
     Assertions.assertEquals(3, root.getChildren().size());
     for (int i = 0; i < 3; ++i) {
@@ -460,11 +463,13 @@ class PropertyGraphCobwebProcTest {
     otherConcept.setId("b");
     final ConceptNode other1 = new ConceptNode(otherConcept);
 
-    Cobweb.cobweb(conceptNode, root);
-    Cobweb.cobweb(clone, root);
-    Cobweb.cobweb(otherConcept, root);
-    Cobweb.cobweb(clone1, root);
-    Cobweb.cobweb(other1, root);
+    final ExecutorService threadPool = Executors.newWorkStealingPool();
+/*
+    Cobweb.cobweb(conceptNode, root, threadPool);
+    Cobweb.cobweb(clone, root, threadPool);
+    Cobweb.cobweb(otherConcept, root, threadPool);
+    Cobweb.cobweb(clone1, root, threadPool);
+    Cobweb.cobweb(other1, root, threadPool);*/
 
     Assertions.assertEquals(2, root.getChildren().size());
     Assertions.assertEquals(3, root.getChildren().get(0).getChildren().size());

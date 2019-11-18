@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -20,6 +21,9 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
+import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
+import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
+
 
 /**
  * Application of Cobweb to the property graph model.
@@ -28,6 +32,9 @@ import org.neo4j.graphdb.Transaction;
  */
 @ThreadSafe
 public class PropertyGraphCobweb {
+  /** Logger. */
+  static final Logger LOG = Logger.getLogger("PropertyGraphCobweb");
+
   /** tree root for the node properties. */
   private final AtomicReference<ConceptNode> nodePropertiesTree = new AtomicReference<>(new ConceptNode().root());
   /** Cobweb tree for the relationship properties. */
@@ -48,11 +55,11 @@ public class PropertyGraphCobweb {
    */
   public void integrate(final GraphDatabaseService db, final List<Node> nodes, final List<Relationship> relationships) {
     // Static categorization according to properties, labels and relationship type
-      ExecutorService threadPool = Executors.newWorkStealingPool();
+      ExecutorService threadPool = Executors.newFixedThreadPool(8);
       Runnable cobwebRunnable;
       for (Node node : nodes) {
         cobwebRunnable = () -> {
-          try (Transaction t = db.beginTx()) {
+          try (Transaction ignored = db.beginTx()) {
             final ConceptNode properties = new ConceptNode(node);
             Cobweb.cobweb(properties, this.getNodePropertiesTree());
           }
@@ -63,7 +70,7 @@ public class PropertyGraphCobweb {
 
       for (Relationship rel : relationships) {
         cobwebRunnable = () -> {
-          try (Transaction t = db.beginTx()) {
+          try (Transaction ignored = db.beginTx()) {
             final ConceptNode properties = new ConceptNode(rel);
             Cobweb.cobweb(properties, this.getRelationshipPropertiesTree());
           }
@@ -81,12 +88,13 @@ public class PropertyGraphCobweb {
 
       threadPool = Executors.newWorkStealingPool();
 
-      final Future<Integer> nodeCutoff = threadPool.submit(() -> log2(deepestLevel(this.getNodePropertiesTree())));
+      final Future<Integer> nodeCutoff = threadPool.submit(() -> MathUtils.log2(TreeUtils.deepestLevel(
+          this.getNodePropertiesTree())));
       final Future<Integer> relCutoff =
-          threadPool.submit(() -> log2(deepestLevel(this.getRelationshipPropertiesTree())));
+          threadPool.submit(() -> MathUtils.log2(TreeUtils.deepestLevel(this.getRelationshipPropertiesTree())));
 
-      threadPool.execute(() -> labelTree(this.getNodePropertiesTree(), "", "n"));
-      threadPool.execute(() -> labelTree(this.getNodePropertiesTree(), "", "r"));
+      threadPool.execute(() -> TreeUtils.labelTree(this.getNodePropertiesTree(), "", "n"));
+      threadPool.execute(() -> TreeUtils.labelTree(this.getNodePropertiesTree(), "", "r"));
 
       threadPool.shutdown();
 
@@ -107,12 +115,12 @@ public class PropertyGraphCobweb {
         final int finalCutoffLevelNodes = cutoffLevelNodes;
         final int finalCutoffLevelRelationships = cutoffLevelRelationships;
         cobwebRunnable = () -> {
-          try (Transaction t = db.beginTx()) {
+          try (Transaction ignored = db.beginTx()) {
             final ConceptNode summarizedNode = new ConceptNode();
             final List<Value> co = new ArrayList<>();
 
             summarizedNode.setId(Long.toString(node.getId()));
-            ConceptNode properties = findById(Long.toString(node.getId()), this.getNodePropertiesTree());
+            ConceptNode properties = TreeUtils.findById(Long.toString(node.getId()), this.getNodePropertiesTree());
             assert properties != null;
             String label = properties.getCutoffLabel(finalCutoffLevelNodes);
             co.add(new NominalValue(label));
@@ -120,7 +128,7 @@ public class PropertyGraphCobweb {
 
             co.clear();
             for (Relationship rel : node.getRelationships()) {
-              properties = findById(Long.toString(rel.getId()), this.getNodeSummaryTree());
+              properties = TreeUtils.findById(Long.toString(rel.getId()), this.getNodeSummaryTree());
               assert properties != null;
               label = properties.getCutoffLabel(finalCutoffLevelRelationships);
               final NominalValue check = new NominalValue(label);
@@ -146,49 +154,8 @@ public class PropertyGraphCobweb {
         Thread.currentThread().interrupt();
         e.printStackTrace();
       }
-      labelTree(this.getNodeSummaryTree(), "", "l");
-  }
 
-  /**
-   * computes the maximal depth of the tree.
-   * @param node the currently visited node
-   * @return an integer representing the depth of the tree
-   */
-  static int deepestLevel(final ConceptNode node) {
-    if (node.getChildren().isEmpty()) {
-      return 0;
-    } else {
-      int deepest = 0;
-      int temp;
-      for (ConceptNode child : node.getChildren()) {
-        temp = deepestLevel(child);
-        if (temp > deepest) {
-          deepest = temp;
-        }
-      }
-      return deepest + 1;
-    }
-  }
-
-  /**
-   * find and return the conceptnode for already incorporated conceptnodes, else returns null.
-   * @param id the id of the relationship.
-   * @param node the node we are currently inspecting in the relationshipPropertiesCobweb tree
-   * @return the corresponding conceptnode or null
-   */
-  private static ConceptNode findById(final String id, final ConceptNode node) {
-    if (node.getId() != null) {
-      return node.getId().equals(id) ? node : null;
-    } else {
-      ConceptNode temp;
-      for (ConceptNode child : node.getChildren()) {
-        temp = findById(id, child);
-        if (temp != null) {
-          return temp;
-        }
-      }
-      return null;
-    }
+      TreeUtils.labelTree(this.getNodeSummaryTree(), "", "l");
   }
 
   /**
@@ -272,34 +239,6 @@ public class PropertyGraphCobweb {
     temp = new ArrayList<>();
     temp.add(new NumericValue(noInArcs));
     conceptNode.getAttributes().put("EgoNetIncomingEdges", temp);
-  }
-
-  /**
-   * Assigns a label to each node in the tree.
-   * @param node currently visited node
-   * @param parentLabel prefix of the current label
-   * @param num postfix of the current label
-   */
-  static void labelTree(final ConceptNode node, final String parentLabel, final String num) {
-    node.setLabel(parentLabel + num);
-
-    int i = 0;
-    for (ConceptNode child : node.getChildren()) {
-      labelTree(child, parentLabel + num, Integer.toString(i));
-      i++;
-    }
-  }
-
-  /**
-   * computes the logarithm to the basis 2 without numeric instability (as when dividing Math.log(x) / Match.log(2)).
-   * @param bits the number to take the binary logarithm of
-   * @return log_2(x) as integer rounded down
-   */
-  static int log2(final int bits) {
-    if (bits == 0) {
-      return 0;
-    }
-    return 31 - Integer.numberOfLeadingZeros(bits);
   }
 
   /**

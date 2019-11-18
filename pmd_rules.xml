@@ -16,9 +16,14 @@
         <exclude name="ConfusingTernary"/>
         <exclude name="DefaultPackage"/>
         <exclude name="OnlyOneReturn"/>
+        <exclude name="CallSuperInConstructor"/>
+        <exclude name="LongVariable"/>
     </rule>
 
-    <rule ref="category/java/bestpractices.xml"/>
+    <rule ref="category/java/bestpractices.xml">
+        <exclude name="GuardLogStatement"/>
+        <exclude name="AvoidPrintStackTrace"/>
+    </rule>
 
     <rule ref="category/java/design.xml">
         <exclude name="LoosePackageCoupling"/>
@@ -27,18 +32,23 @@
         <exclude name="TooManyMethods"/>
         <exclude name="CyclomaticComplexity"/>
         <exclude name="LawOfDemeter"/>
+        <exclude name="DataClass"/>
+        <exclude name="NPathComplexity"/>
     </rule>
 
 
     <rule ref="category/java/errorprone.xml">
         <exclude name="DataflowAnomalyAnalysis"/>
+        <exclude name="ConstructorCallsOverridableMethod"/>
     </rule>
 
     <rule ref="category/java/multithreading.xml">
         <exclude name="DoNotUseThreads"/>
     </rule>
 
-    <rule ref="category/java/performance.xml"/>
+    <rule ref="category/java/performance.xml">
+        <exclude name="AvoidInstantiatingObjectsInLoops"/>
+    </rule>
 
     <rule ref="rulesets/java/quickstart.xml"/>
 

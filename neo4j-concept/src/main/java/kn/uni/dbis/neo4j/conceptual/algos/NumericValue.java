@@ -1,5 +1,7 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.util.concurrent.AtomicDouble;
 
 /**
@@ -7,6 +9,7 @@ import com.google.common.util.concurrent.AtomicDouble;
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
+@ThreadSafe
 public class NumericValue extends Value {
   /**
    * Mean of the gaussian.

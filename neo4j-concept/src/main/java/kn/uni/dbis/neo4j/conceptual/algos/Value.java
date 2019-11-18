@@ -1,6 +1,7 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -14,6 +15,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class Value {
   /** counter for the occurrence of the value. */
   private AtomicInteger count = new AtomicInteger();
+  /** Lock. */
+  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
   /**
    * given a primitive datatype or a String, decide which Value type to instantiate.
@@ -55,7 +58,7 @@ public abstract class Value {
    * @return the count of the value
    */
   public int getCount() {
-    return this.count.get();
+      return this.count.get();
   }
 
   /**
@@ -70,5 +73,13 @@ public abstract class Value {
    * returns a string representing in .tex.
    * @return a String containing a table entry of a tex table
    */
-  abstract String toTexString();
+  public abstract String toTexString();
+
+  /**
+   * getter for the lock.
+   * @return the lock
+   */
+  ReentrantReadWriteLock getLock() {
+    return this.lock;
+  }
 }
