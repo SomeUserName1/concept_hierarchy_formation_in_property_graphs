@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
+import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -24,15 +25,6 @@ public class PropertyGraphCobweb {
   private final ConceptNode relationshipPropertiesTree = new ConceptNode().root();
   /** Cobweb tree for the node summary. */
   private final ConceptNode nodeSummaryTree = new ConceptNode().root();
-
-  /**
-   * convenience method for printing.
-   */
-  public void print() {
-    System.out.println(this.nodePropertiesTree.printRec(new StringBuilder(), 0));
-    System.out.println(this.relationshipPropertiesTree.printRec(new StringBuilder(), 0));
-    System.out.println(this.nodeSummaryTree.printRec(new StringBuilder(), 0));
-  }
 
   /**
    * Integrates a neo4j node into the cobweb trees.
@@ -56,37 +48,33 @@ public class PropertyGraphCobweb {
       Cobweb.cobweb(properties, this.relationshipPropertiesTree);
     }
     ConceptNode summarizedNode;
-     List<Value> co;
+    List<Value> co;
 
-     int deepestNodes = deepestLevel(this.nodePropertiesTree);
-     int deepestRels = deepestLevel(this.relationshipPropertiesTree);
-    System.out.println(deepestNodes);
-    System.out.println(deepestRels);
+    int cutoffLevelNodes = MathUtils.log2(TreeUtils.deepestLevel(this.nodePropertiesTree));
+    int cutoffLevelRelationships = MathUtils.log2(TreeUtils.deepestLevel(this.relationshipPropertiesTree));
 
-    int cutoffLevelNodes = (int) Math.log(deepestNodes + 1);
-    int cutoffLevelRelationships = (int) Math.log(deepestRels + 1);
-    System.out.println("Node cutoff " + cutoffLevelNodes);
-    System.out.println("Relations cutoff " + cutoffLevelRelationships);
-    // FIXME those are wrong
+    TreeUtils.labelTree(this.nodePropertiesTree, "", "n");
+    TreeUtils.labelTree(this.relationshipPropertiesTree, "", "r");
 
-      for (Node node : nodes) {
+    String label;
+    for (Node node : nodes) {
       summarizedNode = new ConceptNode();
       co = new ArrayList<>();
 
       summarizedNode.setId(Long.toString(node.getId()));
-      properties = findById(Long.toString(node.getId()), this.nodePropertiesTree);
+      properties = TreeUtils.findById(Long.toString(node.getId()), this.nodePropertiesTree);
       assert properties != null;
-      properties = properties.getCutoffConcept(cutoffLevelNodes);
-      co.add(new ConceptValue(properties));
+      label = properties.getCutoffLabel(cutoffLevelNodes);
+      co.add(new NominalValue(label));
       summarizedNode.getAttributes().put("NodePropertiesConcept", co);
 
       co.clear();
-      ConceptValue check;
+      NominalValue check;
       for (Relationship rel : node.getRelationships()) {
-        properties = findById(Long.toString(rel.getId()), this.relationshipPropertiesTree);
+        properties = TreeUtils.findById(Long.toString(rel.getId()), this.relationshipPropertiesTree);
         assert properties != null;
-        properties = properties.getCutoffConcept(cutoffLevelRelationships);
-        check = new ConceptValue(properties);
+        label = properties.getCutoffLabel(cutoffLevelRelationships);
+        check = new NominalValue(label);
         if (co.contains(check)) {
           co.get(co.indexOf(check)).update(check);
         } else {
@@ -97,44 +85,6 @@ public class PropertyGraphCobweb {
 
       extractStructuralFeatures(node, summarizedNode);
       Cobweb.cobweb(summarizedNode, this.nodeSummaryTree);
-    }
-
-  }
-
-  private static int deepestLevel(ConceptNode node) {
-    if (node.getChildren().isEmpty()) {
-      return 0;
-    } else {
-      int deepest = 0;
-      int temp;
-      for (ConceptNode child : node.getChildren()) {
-        temp = deepestLevel(child);
-        if (temp > deepest) {
-          deepest = temp;
-        }
-      }
-      return deepest + 1;
-    }
-  }
-
-  /**
-   * find and return the conceptnode for already incorporated conceptnodes, else returns null.
-   * @param id the id of the relationship.
-   * @param node the node we are currently inspecting in the relationshipPropertiesCobweb tree
-   * @return the corresponding conceptnode or null
-   */
-  private static ConceptNode findById(final String id, final ConceptNode node) {
-    if (node.getId() != null) {
-      return node.getId().equals(id) ? node : null;
-    } else {
-      ConceptNode temp;
-      for (ConceptNode child : node.getChildren()) {
-        temp = findById(id, child);
-        if (temp != null) {
-          return temp;
-        }
-      }
-      return null;
     }
   }
 

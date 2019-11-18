@@ -26,8 +26,8 @@ public class Cobweb {
     final double[] results = new double[4];
 
     final Result result = findHost(currentNode, newNode);
-    results[0] = result.cu;
-    final ConceptNode host = result.node;
+    results[0] = result.getCu();
+    final ConceptNode host = result.getNode();
 
     results[1] = createNewNodeCU(currentNode, newNode);
     results[2] = mergeNodesCU(currentNode, host, newNode);
@@ -71,29 +71,29 @@ public class Cobweb {
   /**
    * finds the child most suitable to host the new node.
    *
-   * @param parent  node currently visiting
+   * @param currentNode  node currently visiting
    * @param newNode node to be hosted
    * @return the best host and the cu for that
    */
-  private static Result findHost(final ConceptNode parent, final ConceptNode newNode) {
+  private static Result findHost(final ConceptNode currentNode, final ConceptNode newNode) {
     double curCU;
     double maxCU = Integer.MIN_VALUE;
     int i = 0;
     ConceptNode clone;
     ConceptNode best = null;
-    final ConceptNode parentTemp = new ConceptNode(parent);
-    parentTemp.updateCounts(newNode);
-    ConceptNode parentClone;
-    final double parentEAP = getExpectedAttributePrediction(parent);
+    final ConceptNode currentNodeTemp = new ConceptNode(currentNode);
+    currentNodeTemp.updateCounts(newNode);
+    ConceptNode currentNodeClone;
+    final double currentNodeEAP = getExpectedAttributePrediction(currentNode);
 
-    for (ConceptNode child : parent.getChildren()) {
+    for (ConceptNode child : currentNode.getChildren()) {
       clone = new ConceptNode(child);
       clone.updateCounts(newNode);
 
-      parentClone = new ConceptNode(parentTemp);
-      parentClone.getChildren().set(i, clone);
+      currentNodeClone = new ConceptNode(currentNodeTemp);
+      currentNodeClone.setChild(i, clone);
 
-      curCU = computeCU(parentClone, parentEAP);
+      curCU = computeCU(currentNodeClone, currentNodeEAP);
       if (maxCU < curCU) {
         maxCU = curCU;
         best = child;
@@ -118,11 +118,7 @@ public class Cobweb {
     }
     clone.updateCounts(newNode);
     createNewNode(clone, newNode, false);
-    if (currentNode.getId() != null) {
-      return computeCU(clone.getParent());
-    } else {
-      return computeCU(clone);
-    }
+    return (currentNode.getId() != null) ? computeCU(clone.getParent()) : computeCU(clone);
   }
 
   /**
@@ -135,13 +131,14 @@ public class Cobweb {
    */
   private static void createNewNode(final ConceptNode currentNode, final ConceptNode newNode, final boolean setParent) {
     if (currentNode.getId() != null) {
+      final ConceptNode parent = currentNode.getParent();
       // we are in a leaf node. leaf nodes are concrete data instances and shall stay leaves
       // remove the leaf from it's current parent
-      currentNode.getParent().getChildren().remove(currentNode);
+      parent.removeChild(currentNode);
       // make a new node containing the same count and attributes
       final ConceptNode conceptNode = new ConceptNode(currentNode);
       // add the new node as intermediate between the current leaf and its parent
-      currentNode.getParent().addChild(conceptNode);
+      parent.addChild(conceptNode);
       // set the intermediate nodes id to null as its an inner node
       conceptNode.setId(null);
       // update the attribute counts to incorporate the new node
@@ -170,6 +167,9 @@ public class Cobweb {
    * @return op result including altered node and the cu
    */
   private static double splitNodesCU(final ConceptNode host, final ConceptNode current) {
+    if (host == null || host.getChildren().size() == 0) {
+      return Integer.MIN_VALUE;
+    }
     final ConceptNode clone = new ConceptNode(current);
     splitNodes(host, clone, false);
     return computeCU(clone);
@@ -193,7 +193,7 @@ public class Cobweb {
       }
       current.addChild(child);
     }
-    current.getChildren().remove(host);
+    current.removeChild(host);
     if (setParent) {
       host.setParent(null);
     }
@@ -234,14 +234,14 @@ public class Cobweb {
     if (secondHost.node == null) {
       return null;
     }
-    current.getChildren().remove(secondHost.node);
+    current.removeChild(secondHost.node);
     if (setParent) {
       secondHost.node.setParent(null);
       host.setParent(null);
     }
 
     final ConceptNode mNode = new ConceptNode(host);
-    mNode.getChildren().clear();
+    mNode.clearChildren();
     mNode.setId(null);
     mNode.updateCounts(secondHost.node);
     mNode.addChild(host);
@@ -264,7 +264,8 @@ public class Cobweb {
    */
   private static double computeCU(final ConceptNode parent) {
     if (parent.getChildren().size() == 0) {
-      return 0;
+      // FIXME this ?
+      return Integer.MIN_VALUE;
     }
     final double parentEAP = getExpectedAttributePrediction(parent);
     return computeCU(parent, parentEAP);
@@ -280,7 +281,8 @@ public class Cobweb {
   private static double computeCU(final ConceptNode parent, final double parentEAP) {
     final double parentChildCount = parent.getChildren().size();
     if (parentChildCount == 0) {
-      return 0;
+      // FIXME this ?
+      return Integer.MIN_VALUE;
     }
     double cu = 0.0;
     final double parentCount = parent.getCount();
@@ -298,15 +300,14 @@ public class Cobweb {
    * @return the EAP
    */
   private static double getExpectedAttributePrediction(final ConceptNode category) {
-    double exp = 0;
     final double noAttributes = category.getAttributes().size();
-    final double total = category.getCount();
-    double intermediate;
-    NumericValue num;
-
     if (noAttributes == 0) {
       return 0;
     }
+    double exp = 0;
+    final double total = category.getCount();
+    double intermediate;
+    NumericValue num;
 
     for (Map.Entry<String, List<Value>> attrib : category.getAttributes().entrySet()) {
       for (Value val : attrib.getValue()) {
@@ -344,6 +345,24 @@ public class Cobweb {
     private Result(final double cu, final ConceptNode node) {
       this.cu = cu;
       this.node = node;
+    }
+
+    /**
+     * getter.
+     *
+     * @return the cu
+     */
+    double getCu() {
+      return this.cu;
+    }
+
+    /**
+     * getter.
+     *
+     * @return the concept node
+     */
+    ConceptNode getNode() {
+      return this.node;
     }
   }
 

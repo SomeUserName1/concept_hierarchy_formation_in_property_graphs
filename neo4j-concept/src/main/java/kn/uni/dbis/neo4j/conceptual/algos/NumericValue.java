@@ -97,4 +97,13 @@ public class NumericValue extends Value {
     return "NumericValue:  count=" + this.getCount() + " mean= " + this.mean
             + " std=" + this.std;
   }
+
+  /**
+   * Returns a string that is formatted to be used in a latex tabular environment.
+   * @return a sting representation of the node for letx tables
+   */
+  @Override
+  public String toTexString() {
+    return "Numeric &  mean= " + this.mean + ", std=" + this.std + " &";
+  }
 }

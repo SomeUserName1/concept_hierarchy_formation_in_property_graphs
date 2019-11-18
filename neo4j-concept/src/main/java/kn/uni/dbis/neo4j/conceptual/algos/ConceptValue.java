@@ -86,4 +86,13 @@ public class ConceptValue extends Value implements Cloneable {
     return "ConceptValue: " + System.identityHashCode(this) + " count=" + this.getCount() + " Concept=("
             + this.concept.toString() + ")";
   }
+
+  /**
+   * Returns a string that is formatted to be used in a latex tabular environment.
+   * @return a sting representation of the node for letx tables
+   */
+  @Override
+  public String toTexString() {
+    return "Concept & " + this.concept.getLabel() + "&";
+  }
 }

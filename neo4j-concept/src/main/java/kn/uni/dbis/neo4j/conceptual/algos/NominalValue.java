@@ -90,4 +90,13 @@ public class NominalValue extends Value {
   public String toString() {
     return "NominalValue count=" + this.getCount() + " string=" + this.str;
   }
+
+  /**
+   * Returns a string that is formatted to be used in a latex tabular environment.
+   * @return a sting representation of the node for letx tables
+   */
+  @Override
+  public String toTexString() {
+    return "Nominal & " + this.str + "& ";
+  }
 }

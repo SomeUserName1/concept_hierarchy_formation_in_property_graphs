@@ -62,4 +62,11 @@ public abstract class Value {
   void setCount(final int count) {
     this.count = count;
   }
+
+
+  /**
+   * returns a string representing in .tex.
+   * @return a String containing a table entry of a tex table
+   */
+  public abstract String toTexString();
 }

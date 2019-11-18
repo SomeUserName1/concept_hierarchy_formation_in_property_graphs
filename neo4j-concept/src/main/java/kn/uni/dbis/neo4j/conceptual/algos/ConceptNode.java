@@ -20,35 +20,35 @@ public class ConceptNode {
   /**
    * Attribute aggregation over all (sub-)instances of this Concept.
    */
-  private final Map<String, List<Value>> attributes;
+  private final Map<String, List<Value>> attributes = new HashMap<>();
 
   /**
    * Number of Nodes under this ConceptNode.
    */
-  private int count;
+  private int count = 1;
   /**
    * Neo4j ID of the Incorporated node..
    */
-  private String id;
+  private String id = null;
+
+  /**
+   * Assigned label.
+   */
+  private String label = null;
 
   /**
    * The sub-concepts of this Concept.
    */
-  private ArrayList<ConceptNode> children;
+  private ArrayList<ConceptNode> children = new ArrayList<>();
   /**
    * The super-concept of this concept.
    */
-  private ConceptNode parent;
+  private ConceptNode parent = null;
 
   /**
    * Constructor.
    */
   public ConceptNode() {
-    this.count = 1;
-    this.id = null;
-    this.attributes = new HashMap<>();
-    this.children = new ArrayList<>();
-    this.parent = null;
   }
 
   /**
@@ -59,7 +59,6 @@ public class ConceptNode {
   public ConceptNode(final ConceptNode node) {
     this.count = node.count;
     this.id = node.id;
-    this.attributes = new HashMap<>();
 
     List<Value> values;
     String attributeName;
@@ -72,8 +71,7 @@ public class ConceptNode {
       }
     }
 
-    this.children = new ArrayList<>();
-    this.children = new ArrayList<>(node.children);
+    this.children.addAll(node.children);
     this.parent = node.parent;
   }
 
@@ -84,11 +82,6 @@ public class ConceptNode {
    * @param propertyContainer The property container to parse.
    */
   ConceptNode(final PropertyContainer propertyContainer) {
-    this.count = 1;
-    this.attributes = new HashMap<>();
-    this.children = new ArrayList<>();
-    this.parent = null;
-
     List<Value> values = new ArrayList<>();
 
     if (propertyContainer instanceof Relationship) {
@@ -211,15 +204,6 @@ public class ConceptNode {
   }
 
   /**
-   * Setter for the count.
-   *
-   * @param count number of instances and sub-concepts hosted by this concept
-   */
-  void setCount(final int count) {
-    this.count = count;
-  }
-
-  /**
    * Getter for the Attribute Value aggregation map.
    *
    * @return the map that stores the attributes as strings and possible values with counts as map
@@ -264,36 +248,25 @@ public class ConceptNode {
     this.parent = parent;
   }
 
-  /**
-   * Prints nodes recursively from this node downwards the tree.
-   *
-   * @param sb    StringBuilder to use.
-   * @param depth the depth when called in order to arrange the output appropriately
-   * @return a String holding the representation of the tree
-   */
-  String printRec(final StringBuilder sb, final int depth) {
-    if (depth == 0) {
-      sb.append("|__");
+  @Override
+  public boolean equals(final Object o) {
+    if (o instanceof ConceptNode) {
+      final ConceptNode node = (ConceptNode) o;
+        return node.getCount() == this.getCount() && node.getAttributes().equals(this.getAttributes());
     } else {
-      for (int i = 0; i < depth; i++) {
-        sb.append("\t");
-      }
-      sb.append("|____");
+      return false;
     }
+  }
 
-    sb.append(this.toString()).append("\n");
-
-    for (ConceptNode child : this.children) {
-      child.printRec(sb, depth + 1);
-    }
-
-    return sb.toString();
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.getCount(), this.getAttributes());
   }
 
   @Override
   public String toString() {
-    String id = this.id != null ? "ID: " + this.id : "";
-    return "ConceptNode " + id + " Count: " + this.count + " Attributes: "
+    String id = this.id != null ? " ID: " + this.id : "";
+    return "ConceptNode __" + this.label + "__ " + id + " Count: " + this.count + " Attributes: "
         + this.attributes.toString();
   }
 
@@ -306,13 +279,68 @@ public class ConceptNode {
     }
 
   /**
+   * Returns the label of the superclass that is cutoffLevel steps away from the root.
+   *
+   * @param cutoffLevel how far the returned concept should be from the root
+   * @return the label of a super-concept of the current node
+   */
+  String getCutoffLabel(final int cutoffLevel) {
+    return this.label.substring(0, cutoffLevel + 1);
+  }
+
+  /**
+   * getter for the label.
+   *
+   * @return the label of this node
+   */
+  public String getLabel() {
+    return this.label;
+  }
+
+  /**
+   * setter for the label.
+   *
+   * @param label the label to be set in this node
+   */
+  public void setLabel(final String label) {
+    this.label = label;
+  }
+
+  /**
+   * setter for children.
+   *
+   * @param idx   index
+   * @param child to be set
+   */
+  void setChild(final int idx, final ConceptNode child) {
+    this.children.set(idx, child);
+  }
+
+  /**
+   * removes children.
+   *
+   * @param child to be removed
+   */
+  void removeChild(final ConceptNode child) {
+    this.children.remove(child);
+  }
+
+  /**
+   * clears the children.
+   */
+  void clearChildren() {
+    this.children.clear();
+  }
+
+  /**
    * Setter for the Id field.
    * @param id id to be set
    */
   public void setId(final String id) {
     this.id = id;
   }
-
+}
+/*
   public ConceptNode getCutoffConcept(int cutoffLevel) {
     List<ConceptNode> trace = new ArrayList<>();
     ConceptNode current = this;
@@ -320,6 +348,6 @@ public class ConceptNode {
       trace.add(current);
       current = current.getParent();
     } while (current.getParent() != current);
-    return trace.get(cutoffLevel - 1);
+    return trace.get(cutoffLevel);
   }
-}
+ */
