@@ -71,6 +71,9 @@ public class ConceptNode {
    * @param node ConceptNode to copy.
    */
   public ConceptNode(final ConceptNode node) {
+    this.count.set(node.count.get());
+    this.id.set(node.id.get());
+
     List<Value> values;
     String attributeName;
 
@@ -109,7 +112,6 @@ public class ConceptNode {
       this.setId(Long.toString(mNode.getId()));
       for (final Label label : mNode.getLabels()) {
         values.add(new NominalValue(label.name()));
-
         this.attributes.put("Label", values);
       }
     }
@@ -257,7 +259,6 @@ public class ConceptNode {
    */
   public List<ConceptNode> getChildren() {
     return this.children;
-
   }
 
   /**
@@ -287,15 +288,11 @@ public class ConceptNode {
     this.parent.set(parent);
   }
 
-
   @Override
   public boolean equals(final Object o) {
     if (o instanceof ConceptNode) {
       final ConceptNode node = (ConceptNode) o;
-      final boolean result;
-      result = node.getCount() == this.getCount() && node.getAttributes().equals(this.getAttributes());
-
-      return result;
+        return node.getCount() == this.getCount() && node.getAttributes().equals(this.getAttributes());
     } else {
       return false;
     }
@@ -303,21 +300,18 @@ public class ConceptNode {
 
   @Override
   public int hashCode() {
-    final int hash;
-    hash = Objects.hash(this.getCount(), this.getAttributes());
-    return hash;
+    return Objects.hash(this.getCount(), this.getAttributes());
   }
 
   @Override
   public String toString() {
-    final String id = this.getId() != null ? "ID: " + this.getId() : "";
-    return "ConceptNode " + id + " Count: " + this.getCount() + " Attributes: "
-        + this.getAttributes();
+    String id = this.id.get() != null ? " ID: " + this.id : "";
+    return "ConceptNode __" + this.label + "__ " + id + " Count: " + this.count + " Attributes: "
+        + this.attributes.toString();
   }
 
   /**
    * Getter for the ID field.
-   *
    * @return the ID of the node or null
    */
   public String getId() {
@@ -340,7 +334,7 @@ public class ConceptNode {
    * @return the label of a super-concept of the current node
    */
   String getCutoffLabel(final int cutoffLevel) {
-    return this.getLabel().substring(0, cutoffLevel);
+    return this.getLabel().substring(0, cutoffLevel + 1);
   }
 
   /**

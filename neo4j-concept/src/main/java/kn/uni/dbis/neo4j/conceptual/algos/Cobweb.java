@@ -76,7 +76,6 @@ public final class Cobweb {
           splitNodes(host, currentNode, true);
           break;
         case 0:
-          LOG.info("Recurse");
           currentNode.updateCounts(newNode);
           break;
         default:
@@ -127,7 +126,6 @@ public final class Cobweb {
     int count = 0;
     ConceptNode clone;
     ConceptNode best = null;
-
     final ConceptNode currentNodeTemp = new ConceptNode(currentNode);
     currentNodeTemp.updateCounts(newNode);
     ConceptNode currentNodeClone;
@@ -148,7 +146,6 @@ public final class Cobweb {
       }
       count++;
     }
-
     return new Result(maxCU, best);
   }
 
@@ -160,8 +157,6 @@ public final class Cobweb {
    * @return the op result including the cu and the altered node
    */
   private static double createNewNodeCU(final ConceptNode currentNode, final ConceptNode newNode) {
-    final double cu;
-
     final ConceptNode clone = new ConceptNode(currentNode);
     if (currentNode.getId() != null) {
       final ConceptNode parentClone = new ConceptNode(currentNode.getParent());
@@ -169,9 +164,7 @@ public final class Cobweb {
     }
     clone.updateCounts(newNode);
     createNewNode(clone, newNode, false);
-    cu = currentNode.getId() == null ? computeCU(clone) : computeCU(clone.getParent());
-
-    return cu;
+    return (currentNode.getId() != null) ? computeCU(clone.getParent()) : computeCU(clone);
   }
 
   /**
@@ -179,33 +172,30 @@ public final class Cobweb {
    *
    * @param currentNode not to add the child to
    * @param newNode     to to be added
-   * @param setParent   flag indicating weather to set the parent pointers (false when computing the cu in order not to
-   *                    alter the tree when probing an action)
+   * @param setParent flag indicating weather to set the parent pointers (false when computing the cu in order not to
+   *                  alter the tree when probing an action)
    */
-  private static void createNewNode(final ConceptNode currentNode, final ConceptNode newNode,
-                                    final boolean setParent) {
-
+  private static void createNewNode(final ConceptNode currentNode, final ConceptNode newNode, final boolean setParent) {
     if (currentNode.getId() != null) {
       final ConceptNode parent = currentNode.getParent();
-        // we are in a leaf node. leaf nodes are concrete data instances and shall stay leaves
-        // remove the leaf from it's current parent
-        parent.removeChild(currentNode);
-        // make a new node containing the same count and attributes
-        final ConceptNode conceptNode = new ConceptNode(currentNode);
-        // add the new node as intermediate between the current leaf and its parent
-        parent.addChild(conceptNode);
-        // set the intermediate nodes id to null as its an inner node
-        conceptNode.setId(null);
-        // update the attribute counts to incorporate the new node
-        conceptNode.updateCounts(newNode);
-        // add the leaf and the new node as children
-        conceptNode.addChild(newNode);
-        conceptNode.addChild(currentNode);
-        currentNode.setParent(conceptNode);
-        if (setParent) {
-          newNode.setParent(conceptNode);
-        }
-
+      // we are in a leaf node. leaf nodes are concrete data instances and shall stay leaves
+      // remove the leaf from it's current parent
+      parent.removeChild(currentNode);
+      // make a new node containing the same count and attributes
+      final ConceptNode conceptNode = new ConceptNode(currentNode);
+      // add the new node as intermediate between the current leaf and its parent
+      parent.addChild(conceptNode);
+      // set the intermediate nodes id to null as its an inner node
+      conceptNode.setId(null);
+      // update the attribute counts to incorporate the new node
+      conceptNode.updateCounts(newNode);
+      // add the leaf and the new node as children
+      conceptNode.addChild(newNode);
+      conceptNode.addChild(currentNode);
+      currentNode.setParent(conceptNode);
+      if (setParent) {
+        newNode.setParent(conceptNode);
+      }
     } else {
       currentNode.updateCounts(newNode);
       currentNode.addChild(newNode);
@@ -223,18 +213,12 @@ public final class Cobweb {
    * @return op result including altered node and the cu
    */
   private static double splitNodesCU(final ConceptNode host, final ConceptNode currentNode) {
-    if (host == null) {
-      return Integer.MIN_VALUE;
-    }
-    final double cu;
-    if (host.getChildren().size() == 0) {
+    if (host == null || host.getChildren().size() == 0) {
       return Integer.MIN_VALUE;
     }
     final ConceptNode clone = new ConceptNode(currentNode);
     splitNodes(host, clone, false);
-    cu = computeCU(clone);
-
-    return cu;
+    return computeCU(clone);
   }
 
   /**
@@ -245,8 +229,7 @@ public final class Cobweb {
    * @param setParent flag indicating weather to set the parent pointers (false when computing the cu in order not to
    *                  alter the tree when probing an action)
    */
-  private static void splitNodes(final ConceptNode host, final ConceptNode current,
-                                 final boolean setParent) {
+  private static void splitNodes(final ConceptNode host, final ConceptNode current, final boolean setParent) {
     if (host == null) {
       return;
     }
@@ -254,10 +237,8 @@ public final class Cobweb {
     for (final ConceptNode child : host.getChildren()) {
       if (setParent) {
         child.setParent(current);
-        current.addChild(child);
-      } else {
-        current.addChild(child);
       }
+      current.addChild(child);
     }
     current.removeChild(host);
     if (setParent) {
@@ -273,54 +254,45 @@ public final class Cobweb {
    * @param newNode node to be incorporated
    * @return op result including altered node and the cu
    */
-  private static double mergeNodesCU(final ConceptNode current, final ConceptNode host,
-                                     final ConceptNode newNode) {
-    final double cu;
-    if (current.getChildren().size() < 2) {
-      return Integer.MIN_VALUE;
-    }
+  private static double mergeNodesCU(final ConceptNode current, final ConceptNode host, final ConceptNode newNode) {
     final ConceptNode clonedParent = new ConceptNode(current);
-    cu = (mergeNodes(clonedParent, host, newNode, false) != null) ? computeCU(clonedParent)
+    return (mergeNodes(clonedParent, host, newNode, false) != null) ? computeCU(clonedParent)
         : Integer.MIN_VALUE;
-
-    return cu;
   }
 
   /**
    * merges the host node with the next best host and appends its children to the resulting node.
    *
-   * @param host      node to be merged
-   * @param current   parent of the host
-   * @param newNode   node to be incorporated
+   * @param host    node to be merged
+   * @param current parent of the host
+   * @param newNode node to be incorporated
    * @param setParent flag indicating weather to set the parent pointers (false when computing the cu in order not to
    *                  alter the tree when probing an action)
    * @return the node that results by the merge.
    */
-  private static ConceptNode mergeNodes(final ConceptNode current, final ConceptNode host,
-                                        final ConceptNode newNode, final boolean setParent) {
+  private static ConceptNode mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode,
+                                 final boolean setParent) {
     if (host == null) {
       return null;
     }
-    final ConceptNode secondHost;
-    final ConceptNode mNode;
+    current.getChildren().remove(host);
 
-
-    current.removeChild(host);
-
-    secondHost = findHost(current, newNode).getNode();
+    final ConceptNode secondHost = findHost(current, newNode).getNode();
     if (secondHost == null) {
       return null;
     }
-
     current.removeChild(secondHost);
+    if (setParent) {
+      secondHost.setParent(null);
+      host.setParent(null);
+    }
 
-    mNode = new ConceptNode(host);
+    final ConceptNode mNode = new ConceptNode(host);
     mNode.clearChildren();
     mNode.setId(null);
     mNode.updateCounts(secondHost);
     mNode.addChild(host);
     mNode.addChild(secondHost);
-
     if (setParent) {
       host.setParent(mNode);
       secondHost.setParent(mNode);
@@ -339,13 +311,10 @@ public final class Cobweb {
    */
   private static double computeCU(final ConceptNode currentNode) {
     if (currentNode.getChildren().size() == 0) {
-      return 0;
+      return Integer.MIN_VALUE;
     }
-    final double cu;
     final double currentNodeEAP = getExpectedAttributePrediction(currentNode);
-    cu = computeCU(currentNode, currentNodeEAP);
-
-    return cu;
+    return computeCU(currentNode, currentNodeEAP);
   }
 
   /**
@@ -368,8 +337,7 @@ public final class Cobweb {
       cu += (double) child.getCount() / currentNodeCount
           * (getExpectedAttributePrediction(child) - currentNodeEAP);
     }
-    cu = cu / currentNodeChildCount;
-    return cu;
+    return cu / currentNodeChildCount;
   }
 
   /**
@@ -379,12 +347,10 @@ public final class Cobweb {
    * @return the EAP
    */
   private static double getExpectedAttributePrediction(final ConceptNode category) {
-    final double eap;
     final double noAttributes = category.getAttributes().size();
     if (noAttributes == 0) {
       return 0;
     }
-
     double exp = 0;
     final double total = category.getCount();
     double intermediate;
@@ -403,9 +369,7 @@ public final class Cobweb {
         }
       }
     }
-    eap = exp / noAttributes;
-
-    return eap;
+    return exp / noAttributes;
   }
 
   /**

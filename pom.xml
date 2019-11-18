@@ -64,30 +64,30 @@
 
     <build>
         <defaultGoal>compile</defaultGoal>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <excludes>**/PropertyGraphCobwebProc.java</excludes>
-                    <sourceDirectory>${project.build.sourceDirectories}</sourceDirectory>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <includeResources>false</includeResources>
-                    <configLocation>checkstyle.xml</configLocation>
-                    <failOnViolation>true</failOnViolation>
-                    <violationSeverity>warning</violationSeverity>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>checkstyle</goal>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+       <plugins>
+           <!--             <plugin>
+                           <groupId>org.apache.maven.plugins</groupId>
+                           <artifactId>maven-checkstyle-plugin</artifactId>
+                           <version>3.1.0</version>
+                           <configuration>
+                               <excludes>**/PropertyGraphCobwebProc.java</excludes>
+                               <sourceDirectory>${project.build.sourceDirectories}</sourceDirectory>
+                               <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                               <includeResources>false</includeResources>
+                               <configLocation>checkstyle.xml</configLocation>
+                               <failOnViolation>true</failOnViolation>
+                               <violationSeverity>warning</violationSeverity>
+                           </configuration>
+                           <executions>
+                               <execution>
+                                   <phase>process-sources</phase>
+                                   <goals>
+                                       <goal>checkstyle</goal>
+                                       <goal>check</goal>
+                                   </goals>
+                               </execution>
+                           </executions>
+                       </plugin>-->
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>

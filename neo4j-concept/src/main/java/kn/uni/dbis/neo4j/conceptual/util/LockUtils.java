@@ -26,11 +26,7 @@ public class LockUtils {
 
     for (final Lock lock : locks) {
       acquired = false;
-      try {
-        acquired = lock.tryLock(200, TimeUnit.MILLISECONDS);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+      acquired = lock.tryLock();
       if (acquired) {
         successful.add(lock);
       } else {
@@ -41,8 +37,11 @@ public class LockUtils {
       for (Lock lock1 : successful) {
         lock1.unlock();
       }
-      // Preempt the thread and try again
-      Thread.yield();
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       return lockAll(locks);
     }
 

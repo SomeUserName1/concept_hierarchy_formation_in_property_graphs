@@ -42,7 +42,7 @@ public final class PropertyGraphCobwebPerfTest {
    * @throws IOException if copying the dataset fails
    */
   public static void main(final String[] args) throws IOException {
-    final Path cloneFrom = DefaultPaths.PLAIN_STORES_PATH.resolve("Rome99.db");
+    final Path cloneFrom = DefaultPaths.PLAIN_STORES_PATH.resolve("InternetTopology.db");
     System.out.println(cloneFrom);
 
     // start a web GUI on a copy of our test graph

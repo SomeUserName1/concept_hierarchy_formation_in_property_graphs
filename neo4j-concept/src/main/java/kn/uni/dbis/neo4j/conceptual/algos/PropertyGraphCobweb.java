@@ -24,7 +24,6 @@ import org.neo4j.graphdb.Transaction;
 import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
 
-import static kn.uni.dbis.neo4j.conceptual.util.PrintUtils.printFullTrees;
 
 
 /**
@@ -57,7 +56,7 @@ public class PropertyGraphCobweb {
    */
   public void integrate(final GraphDatabaseService db, final List<Node> nodes, final List<Relationship> relationships) {
     // Static categorization according to properties, labels and relationship type
-      ExecutorService threadPool = Executors.newFixedThreadPool(8);
+      ExecutorService threadPool = Executors.newFixedThreadPool(4);
       Runnable cobwebRunnable;
       for (Node node : nodes) {
         cobwebRunnable = () -> {
@@ -75,7 +74,6 @@ public class PropertyGraphCobweb {
           try (Transaction ignored = db.beginTx()) {
             final ConceptNode properties = new ConceptNode(rel);
             Cobweb.cobweb(properties, this.getRelationshipPropertiesTree());
-            printFullTrees(this.relationshipPropertiesTree.get());
           }
         };
         threadPool.execute(cobwebRunnable);
@@ -97,7 +95,7 @@ public class PropertyGraphCobweb {
           threadPool.submit(() -> MathUtils.log2(TreeUtils.deepestLevel(this.getRelationshipPropertiesTree())));
 
       threadPool.execute(() -> TreeUtils.labelTree(this.getNodePropertiesTree(), "", "n"));
-      threadPool.execute(() -> TreeUtils.labelTree(this.getNodePropertiesTree(), "", "r"));
+      threadPool.execute(() -> TreeUtils.labelTree(this.getRelationshipPropertiesTree(), "", "r"));
 
       threadPool.shutdown();
 
@@ -131,7 +129,7 @@ public class PropertyGraphCobweb {
 
             co.clear();
             for (Relationship rel : node.getRelationships()) {
-              properties = TreeUtils.findById(Long.toString(rel.getId()), this.getNodeSummaryTree());
+              properties = TreeUtils.findById(Long.toString(rel.getId()), this.getRelationshipPropertiesTree());
               assert properties != null;
               label = properties.getCutoffLabel(finalCutoffLevelRelationships);
               final NominalValue check = new NominalValue(label);
