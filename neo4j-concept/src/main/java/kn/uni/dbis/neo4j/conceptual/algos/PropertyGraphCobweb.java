@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import kn.uni.dbis.neo4j.conceptual.util.PrintUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;

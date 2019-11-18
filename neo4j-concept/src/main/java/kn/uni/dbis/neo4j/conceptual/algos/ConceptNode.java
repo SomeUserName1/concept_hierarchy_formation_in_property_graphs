@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.neo4j.graphdb.Label;
@@ -56,7 +57,7 @@ public class ConceptNode {
   /**
    * Lock used by the cobweb methods.
    */
-  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+  private final ReentrantLock lock = new ReentrantLock();
 
   /**
    * Default constructor.
@@ -72,6 +73,7 @@ public class ConceptNode {
   public ConceptNode(final ConceptNode node) {
     List<Value> values;
     String attributeName;
+
     for (final ConcurrentMap.Entry<String, List<Value>> attribute : node.getAttributes().entrySet()) {
       attributeName = attribute.getKey();
       values = Collections.synchronizedList(new ArrayList<>());
@@ -137,7 +139,7 @@ public class ConceptNode {
    * @return the transformed node
    */
   public ConceptNode root() {
-    try (ResourceLock ignored = lockAll(this.lock.writeLock())) {
+    try (ResourceLock ignored = lockAll(this.lock)) {
       this.setCount(0);
       this.setParent(this);
     }
@@ -153,8 +155,6 @@ public class ConceptNode {
     List<Value> thisValues;
     NumericValue thisNumeric;
     boolean matched;
-
-    try (ResourceLock ignored = lockAll(this.getLock().writeLock(), usedForUpdate.getLock().readLock())) {
 
     this.setCount(this.getCount() + usedForUpdate.getCount());
     // loop over the attributes of the node to incorporate
@@ -202,7 +202,6 @@ public class ConceptNode {
         }
         this.getAttributes().put(otherAttributes.getKey(), copies);
       }
-    }
     }
   }
 
@@ -294,9 +293,8 @@ public class ConceptNode {
     if (o instanceof ConceptNode) {
       final ConceptNode node = (ConceptNode) o;
       final boolean result;
-      try (ResourceLock ignored = lockAll(this.lock.readLock(), node.lock.readLock())) {
-        result = node.getCount() == this.getCount() && node.getAttributes().equals(this.getAttributes());
-      }
+      result = node.getCount() == this.getCount() && node.getAttributes().equals(this.getAttributes());
+
       return result;
     } else {
       return false;
@@ -306,19 +304,15 @@ public class ConceptNode {
   @Override
   public int hashCode() {
     final int hash;
-    try (ResourceLock ignored = lockAll(this.lock.readLock())) {
-      hash = Objects.hash(this.getCount(), this.getAttributes());
-    }
+    hash = Objects.hash(this.getCount(), this.getAttributes());
     return hash;
   }
 
   @Override
   public String toString() {
-    try (ResourceLock ignored = lockAll(this.lock.readLock())) {
-      final String id = this.getId() != null ? "ID: " + this.getId() : "";
-      return "ConceptNode " + id + " Count: " + this.getCount() + " Attributes: "
-          + this.getAttributes();
-    }
+    final String id = this.getId() != null ? "ID: " + this.getId() : "";
+    return "ConceptNode " + id + " Count: " + this.getCount() + " Attributes: "
+        + this.getAttributes();
   }
 
   /**
@@ -398,7 +392,7 @@ public class ConceptNode {
    *
    * @return the lock
    */
-  ReentrantReadWriteLock getLock() {
+  ReentrantLock getLock() {
     return this.lock;
   }
 }

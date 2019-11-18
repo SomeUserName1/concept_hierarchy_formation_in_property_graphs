@@ -3,9 +3,6 @@ package kn.uni.dbis.neo4j.conceptual.algos;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Logger;
@@ -14,7 +11,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.util.concurrent.AtomicDouble;
 
-import kn.uni.dbis.neo4j.conceptual.util.PrintUtils;
 import kn.uni.dbis.neo4j.conceptual.util.ResourceLock;
 
 import static kn.uni.dbis.neo4j.conceptual.util.LockUtils.lockAll;
@@ -29,7 +25,7 @@ public final class Cobweb {
   /**
    * Logger.
    */
-  static final Logger LOG = Logger.getLogger("PropertyGraphCobweb");
+  private static final Logger LOG = Logger.getLogger("PropertyGraphCobweb");
 
   /**
    * hidden default constructor.
@@ -37,32 +33,6 @@ public final class Cobweb {
   private Cobweb() {
     // NOOP
   }
-/*
-
-   * @param threadPool  used to execute probing
-  ,
-                            final ExecutorService threadPool
-      try {
-    final Future<Double> createFuture = threadPool.submit(() -> createNewNodeCU(currentNode, newNode));
-    final Result findResult = threadPool.submit(() ->findHost(currentNode, newNode)).get();
-    final ConceptNode host = findResult.getNode();
-    final Future<Double> mergeFuture = threadPool.submit(() -> mergeNodesCU(currentNode, host, newNode));
-    final Future<Double> splitFuture = threadPool.submit(() -> splitNodesCU(host, newNode));
-
-    final double[] results = {findResult.getCu(), createFuture.get(), mergeFuture.get(), splitFuture.get()};
-
-
-    // By default take create new as standard action if no other is better
-    double best = results[1];
-    int bestIdx = 1;
-    for (int i = 0; i < results.length; i++) {
-      if (results[i] > best) {
-        best = results[i];
-        bestIdx = i;
-      }
-    }
-*/
-
 
   /**
    * run the actual cobweb algorithm.
@@ -70,49 +40,78 @@ public final class Cobweb {
    * @param newNode     node to incorporate
    * @param currentNode node currently visiting
    */
-  public static void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
-    final Result findResult = findHost(currentNode, newNode);
-    final ConceptNode host = findResult.getNode();
-    final double[] results = {findResult.getCu(), createNewNodeCU(currentNode, newNode),
-        mergeNodesCU(currentNode, host, newNode), splitNodesCU(host, newNode)};
+  static void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
+    int bestIdx;
+    ConceptNode host;
+    ConceptNode mergedNode = null;
 
-    // By default take create new as standard action if no other is better
-    double best = results[1];
-    int bestIdx = 1;
-    for (int i = 0; i < results.length; i++) {
-      if (results[i] > best) {
-        best = results[i];
-        bestIdx = i;
+
+    try (ResourceLock ignored = lockAll(getLevelLocks(currentNode, newNode))) {
+      final Result findResult = findHost(currentNode, newNode);
+      host = findResult.getNode();
+      final double[] results = {findResult.getCu(), createNewNodeCU(currentNode, newNode),
+          mergeNodesCU(currentNode, host, newNode), splitNodesCU(host, newNode)};
+
+      // By default take create new as standard action if no other is better
+      double best = results[1];
+      bestIdx = 1;
+      for (int i = 0; i < results.length; i++) {
+        if (results[i] > best) {
+          best = results[i];
+          bestIdx = i;
+        }
+      }
+      switch (bestIdx) {
+        case 1:
+          createNewNode(currentNode, newNode, true);
+          return;
+        case 2:
+          mergedNode = mergeNodes(currentNode, host, newNode, true);
+          if (mergedNode == null) {
+            throw new RuntimeException("Unreachable");
+          }
+          currentNode.updateCounts(newNode);
+          break;
+        case 3:
+          splitNodes(host, currentNode, true);
+          break;
+        case 0:
+          LOG.info("Recurse");
+          currentNode.updateCounts(newNode);
+          break;
+        default:
+          throw new RuntimeException("Invalid best operation");
       }
     }
 
     switch (bestIdx) {
-      case 1:
-        createNewNode(currentNode, newNode, true);
-        LOG.info("Create");
-        break;
       case 2:
-        final ConceptNode mergedNode = mergeNodes(currentNode, host, newNode, true);
-        if (mergedNode == null) {
-          throw new RuntimeException("Unreachable");
-        }
-        currentNode.updateCounts(newNode);
-        LOG.info("Merge");
         cobweb(newNode, mergedNode);
-        break;
+        return;
       case 3:
-        LOG.info("Split");
-        splitNodes(host, currentNode, true);
         cobweb(newNode, currentNode);
-        break;
+        return;
       case 0:
-        LOG.info("Recurse");
-        currentNode.updateCounts(newNode);
         cobweb(newNode, host);
-        break;
+        return;
       default:
         throw new RuntimeException("Invalid best operation");
     }
+  }
+
+  /**
+   * Creates an array list of locks necessary to lock properly.
+   *
+   * @return ArrayList of locks
+   */
+  private static List<Lock> getLevelLocks(ConceptNode currentNode, ConceptNode newNode) {
+    ArrayList<Lock> locks = new ArrayList<>();
+    locks.add(newNode.getLock());
+    for (ConceptNode child : currentNode.getChildren()) {
+      locks.add(child.getLock());
+    }
+    locks.add(currentNode.getLock());
+    return locks;
   }
 
   /**
@@ -129,36 +128,27 @@ public final class Cobweb {
     ConceptNode clone;
     ConceptNode best = null;
 
-    ArrayList<Lock> locks = new ArrayList<>();
-    locks.add(currentNode.getLock().readLock());
-    locks.add(newNode.getLock().readLock());
-    for (ConceptNode child : currentNode.getChildren()) {
-      locks.add(child.getLock().readLock());
-    }
+    final ConceptNode currentNodeTemp = new ConceptNode(currentNode);
+    currentNodeTemp.updateCounts(newNode);
+    ConceptNode currentNodeClone;
+    final double currentNodeEAP = getExpectedAttributePrediction(currentNode);
 
-    try (ResourceLock ignored = lockAll(locks)) {
-      final ConceptNode currentNodeTemp = new ConceptNode(currentNode);
-      currentNodeTemp.updateCounts(newNode);
-      ConceptNode currentNodeClone;
-      final double currentNodeEAP = getExpectedAttributePrediction(currentNode);
+    for (final ConceptNode child : currentNode.getChildren()) {
+      clone = new ConceptNode(child);
+      clone.updateCounts(newNode);
 
-      for (final ConceptNode child : currentNode.getChildren()) {
-        clone = new ConceptNode(child);
-        clone.updateCounts(newNode);
+      currentNodeClone = new ConceptNode(currentNodeTemp);
 
-        currentNodeClone = new ConceptNode(currentNodeTemp);
+      currentNodeClone.setChild(count, clone);
 
-        currentNodeClone.setChild(count, clone);
-
-        curCU = computeCU(currentNodeClone, currentNodeEAP);
-        if (maxCU < curCU) {
-          maxCU = curCU;
-          best = child;
-        }
-        count++;
+      curCU = computeCU(currentNodeClone, currentNodeEAP);
+      if (maxCU < curCU) {
+        maxCU = curCU;
+        best = child;
       }
-
+      count++;
     }
+
     return new Result(maxCU, best);
   }
 
@@ -171,18 +161,16 @@ public final class Cobweb {
    */
   private static double createNewNodeCU(final ConceptNode currentNode, final ConceptNode newNode) {
     final double cu;
-    try (ResourceLock ignored = lockAll(currentNode.getParent().getLock().readLock(),
-        currentNode.getLock().readLock())) {
 
-      final ConceptNode clone = new ConceptNode(currentNode);
-      if (currentNode.getId() != null) {
-        final ConceptNode parentClone = new ConceptNode(currentNode.getParent());
-        clone.setParent(parentClone);
-      }
-      clone.updateCounts(newNode);
-      createNewNode(clone, newNode, false);
-      cu = currentNode.getId() == null ? computeCU(clone) : computeCU(clone.getParent());
+    final ConceptNode clone = new ConceptNode(currentNode);
+    if (currentNode.getId() != null) {
+      final ConceptNode parentClone = new ConceptNode(currentNode.getParent());
+      clone.setParent(parentClone);
     }
+    clone.updateCounts(newNode);
+    createNewNode(clone, newNode, false);
+    cu = currentNode.getId() == null ? computeCU(clone) : computeCU(clone.getParent());
+
     return cu;
   }
 
@@ -196,17 +184,9 @@ public final class Cobweb {
    */
   private static void createNewNode(final ConceptNode currentNode, final ConceptNode newNode,
                                     final boolean setParent) {
-    final int holdCount = currentNode.getParent().getLock().getReadHoldCount();
-    if (!setParent) {
-      for (int i = 0; i < holdCount; i++) {
-        currentNode.getParent().getLock().readLock().unlock();
-      }
-    }
-    // FIXME create fails; CU may be /is wrong
-    try (ResourceLock ignored = lockAll(currentNode.getParent().getLock().writeLock(),
-        currentNode.getLock().writeLock(), newNode.getLock().writeLock())) {
-      if (currentNode.getId() != null) {
-        final ConceptNode parent = currentNode.getParent();
+
+    if (currentNode.getId() != null) {
+      final ConceptNode parent = currentNode.getParent();
         // we are in a leaf node. leaf nodes are concrete data instances and shall stay leaves
         // remove the leaf from it's current parent
         parent.removeChild(currentNode);
@@ -226,20 +206,13 @@ public final class Cobweb {
           newNode.setParent(conceptNode);
         }
 
-      } else {
-        currentNode.updateCounts(newNode);
-        currentNode.addChild(newNode);
-        if (setParent) {
-          newNode.setParent(currentNode);
-        }
+    } else {
+      currentNode.updateCounts(newNode);
+      currentNode.addChild(newNode);
+      if (setParent) {
+        newNode.setParent(currentNode);
       }
     }
-    if (!setParent) {
-      for (int i = 0; i < holdCount; i++) {
-        currentNode.getParent().getLock().readLock().lock();
-      }
-    }
-
   }
 
   /**
@@ -254,14 +227,13 @@ public final class Cobweb {
       return Integer.MIN_VALUE;
     }
     final double cu;
-    try (ResourceLock ignored = lockAll(currentNode.getLock().readLock(), host.getLock().readLock())) {
-      if (host.getChildren().size() == 0) {
-        return Integer.MIN_VALUE;
-      }
-      final ConceptNode clone = new ConceptNode(currentNode);
-      splitNodes(host, clone, false);
-      cu = computeCU(clone);
+    if (host.getChildren().size() == 0) {
+      return Integer.MIN_VALUE;
     }
+    final ConceptNode clone = new ConceptNode(currentNode);
+    splitNodes(host, clone, false);
+    cu = computeCU(clone);
+
     return cu;
   }
 
@@ -279,35 +251,17 @@ public final class Cobweb {
       return;
     }
 
-    ArrayList<Lock> locks = new ArrayList<>();
-    locks.add(current.getLock().writeLock());
-    if (setParent) {
-      locks.add(host.getLock().writeLock());
-      for (ConceptNode child : host.getChildren()) {
-        locks.add(child.getLock().writeLock());
-      }
-    } else {
-      locks.add(host.getLock().readLock());
-      for (ConceptNode child : host.getChildren()) {
-        locks.add(child.getLock().readLock());
+    for (final ConceptNode child : host.getChildren()) {
+      if (setParent) {
+        child.setParent(current);
+        current.addChild(child);
+      } else {
+        current.addChild(child);
       }
     }
-
-    try (ResourceLock ignored = lockAll(locks)) {
-      for (final ConceptNode child : host.getChildren()) {
-        if (setParent) {
-          child.setParent(current);
-          current.addChild(child);
-        } else {
-          current.addChild(child);
-        }
-      }
-      current.removeChild(host);
-    }
+    current.removeChild(host);
     if (setParent) {
-      try (ResourceLock ignored1 = lockAll(host.getLock().writeLock())) {
-        host.setParent(null);
-      }
+      host.setParent(null);
     }
   }
 
@@ -322,14 +276,13 @@ public final class Cobweb {
   private static double mergeNodesCU(final ConceptNode current, final ConceptNode host,
                                      final ConceptNode newNode) {
     final double cu;
-    try (ResourceLock ignored = lockAll(current.getLock().readLock())) {
-      if (current.getChildren().size() < 2) {
-        return Integer.MIN_VALUE;
-      }
-      final ConceptNode clonedParent = new ConceptNode(current);
-      cu = (mergeNodes(clonedParent, host, newNode, false) != null) ? computeCU(clonedParent)
-          : Integer.MIN_VALUE;
+    if (current.getChildren().size() < 2) {
+      return Integer.MIN_VALUE;
     }
+    final ConceptNode clonedParent = new ConceptNode(current);
+    cu = (mergeNodes(clonedParent, host, newNode, false) != null) ? computeCU(clonedParent)
+        : Integer.MIN_VALUE;
+
     return cu;
   }
 
@@ -351,47 +304,29 @@ public final class Cobweb {
     final ConceptNode secondHost;
     final ConceptNode mNode;
 
-    ArrayList<Lock> locks = new ArrayList<>();
-    locks.add(current.getLock().writeLock());
+
+    current.removeChild(host);
+
+    secondHost = findHost(current, newNode).getNode();
+    if (secondHost == null) {
+      return null;
+    }
+
+    current.removeChild(secondHost);
+
+    mNode = new ConceptNode(host);
+    mNode.clearChildren();
+    mNode.setId(null);
+    mNode.updateCounts(secondHost);
+    mNode.addChild(host);
+    mNode.addChild(secondHost);
+
     if (setParent) {
-      locks.add(host.getLock().writeLock());
-    } else {
-      locks.add(host.getLock().readLock());
+      host.setParent(mNode);
+      secondHost.setParent(mNode);
+      mNode.setParent(current);
     }
-    locks.add(newNode.getLock().readLock());
-
-    try (ResourceLock ignored1 = lockAll(locks)) {
-
-      current.removeChild(host);
-
-      secondHost = findHost(current, newNode).getNode();
-      if (secondHost == null) {
-        return null;
-      }
-      locks.clear();
-      if (setParent) {
-        locks.add(secondHost.getLock().writeLock());
-      } else {
-        locks.add(secondHost.getLock().readLock());
-      }
-      try (ResourceLock ignored2 = lockAll(locks)) {
-        current.removeChild(secondHost);
-
-        mNode = new ConceptNode(host);
-        mNode.clearChildren();
-        mNode.setId(null);
-        mNode.updateCounts(secondHost);
-        mNode.addChild(host);
-        mNode.addChild(secondHost);
-
-        if (setParent) {
-          host.setParent(mNode);
-          secondHost.setParent(mNode);
-          mNode.setParent(current);
-          current.addChild(mNode);
-        }
-      }
-    }
+    current.addChild(mNode);
 
     return mNode;
   }
@@ -399,49 +334,41 @@ public final class Cobweb {
   /**
    * computes the category utility as defined by fisher 1987.
    *
-   * @param parent the node which acts as reference node wrt. the children/partitions of the concepts
+   * @param currentNode the node which acts as reference node wrt. the children/partitions of the concepts
    * @return the category utility
    */
-  private static double computeCU(final ConceptNode parent) {
-    if (parent.getChildren().size() == 0) {
+  private static double computeCU(final ConceptNode currentNode) {
+    if (currentNode.getChildren().size() == 0) {
       return 0;
     }
     final double cu;
-    try (ResourceLock ignored = lockAll(parent.getLock().readLock())) {
-      final double parentEAP = getExpectedAttributePrediction(parent);
-      cu = computeCU(parent, parentEAP);
-    }
+    final double currentNodeEAP = getExpectedAttributePrediction(currentNode);
+    cu = computeCU(currentNode, currentNodeEAP);
+
     return cu;
   }
 
   /**
    * computes the category utility as defined by fisher 1987.
    *
-   * @param parent    the node which acts as reference node wrt. the children/partitions of the concepts
-   * @param parentEAP precomputed Expected Attribute Prediction Probability for the parent node to avoid recomputation
+   * @param currentNode    the node which acts as reference node wrt. the children/partitions of the concepts
+   * @param currentNodeEAP precomputed Expected Attribute Prediction Probability for the currentNode node to
+   *                       avoid recomputation
    * @return the category utility
    */
-  private static double computeCU(final ConceptNode parent, final double parentEAP) {
+  private static double computeCU(final ConceptNode currentNode, final double currentNodeEAP) {
     double cu = 0.0;
-    final double parentChildCount = parent.getChildren().size();
-    if (parentChildCount == 0) {
+    final double currentNodeChildCount = currentNode.getChildren().size();
+    if (currentNodeChildCount == 0) {
       return Integer.MIN_VALUE;
     }
 
-    ArrayList<Lock> locks = new ArrayList<>();
-    locks.add(parent.getLock().readLock());
-    for (ConceptNode child : parent.getChildren()) {
-      locks.add(child.getLock().readLock());
+    final double currentNodeCount = currentNode.getCount();
+    for (final ConceptNode child : currentNode.getChildren()) {
+      cu += (double) child.getCount() / currentNodeCount
+          * (getExpectedAttributePrediction(child) - currentNodeEAP);
     }
-
-    try (ResourceLock ignored = lockAll(locks)) {
-      final double parentCount = parent.getCount();
-      for (final ConceptNode child : parent.getChildren()) {
-          cu += (double) child.getCount() / parentCount
-              * (getExpectedAttributePrediction(child) - parentEAP);
-        }
-        cu = cu / parentChildCount;
-    }
+    cu = cu / currentNodeChildCount;
     return cu;
   }
 
@@ -453,32 +380,31 @@ public final class Cobweb {
    */
   private static double getExpectedAttributePrediction(final ConceptNode category) {
     final double eap;
-    try (ResourceLock ignored = lockAll(category.getLock().readLock())) {
-      final double noAttributes = category.getAttributes().size();
-      if (noAttributes == 0) {
-        return 0;
-      }
+    final double noAttributes = category.getAttributes().size();
+    if (noAttributes == 0) {
+      return 0;
+    }
 
-      double exp = 0;
-      final double total = category.getCount();
-      double intermediate;
-      NumericValue num;
+    double exp = 0;
+    final double total = category.getCount();
+    double intermediate;
+    NumericValue num;
 
-      for (final Map.Entry<String, List<Value>> attrib : category.getAttributes().entrySet()) {
-        for (final Value val : attrib.getValue()) {
-          try (ResourceLock ignored1 = lockAll(val.getLock().readLock())) {
-            if (val instanceof NumericValue) {
-              num = (NumericValue) val;
-              exp += 1.0 / (num.getStd() / num.getMean() + 1) - 1;
-            } else {
-              intermediate = (double) val.getCount() / total;
-              exp += intermediate * intermediate;
-            }
+    for (final Map.Entry<String, List<Value>> attrib : category.getAttributes().entrySet()) {
+      for (final Value val : attrib.getValue()) {
+        try (ResourceLock ignored1 = lockAll(val.getLock().readLock())) {
+          if (val instanceof NumericValue) {
+            num = (NumericValue) val;
+            exp += 1.0 / (num.getStd() / num.getMean() + 1) - 1;
+          } else {
+            intermediate = (double) val.getCount() / total;
+            exp += intermediate * intermediate;
           }
         }
       }
-      eap = exp / noAttributes;
     }
+    eap = exp / noAttributes;
+
     return eap;
   }
 

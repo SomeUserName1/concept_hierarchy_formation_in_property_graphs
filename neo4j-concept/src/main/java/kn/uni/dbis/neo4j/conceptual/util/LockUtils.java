@@ -27,7 +27,7 @@ public class LockUtils {
     for (final Lock lock : locks) {
       acquired = false;
       try {
-        acquired = lock.tryLock(3, TimeUnit.SECONDS);
+        acquired = lock.tryLock(200, TimeUnit.MILLISECONDS);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }

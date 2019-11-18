@@ -12,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 
-import kn.uni.dbis.neo4j.conceptual.algos.Cobweb;
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptNode;
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptValue;
 import kn.uni.dbis.neo4j.conceptual.algos.NominalValue;
