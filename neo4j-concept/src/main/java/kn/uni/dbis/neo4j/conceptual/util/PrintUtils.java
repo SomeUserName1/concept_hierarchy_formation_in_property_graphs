@@ -128,9 +128,9 @@ public final class PrintUtils {
    * convenience method for printing.
    * @param roots stupid
    */
-  public void printFullTrees(final ConceptNode... roots) {
+  public static void printFullTrees(final ConceptNode... roots) {
     for (final ConceptNode root : roots) {
-      LOG.info(PrintUtils.printRec(root, new StringBuilder(), 0,
+      LOG.info("\n" + PrintUtils.printRec(root, new StringBuilder(), 0,
           TreeUtils.deepestLevel(root)));
     }
   }

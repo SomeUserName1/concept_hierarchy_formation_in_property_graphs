@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import kn.uni.dbis.neo4j.conceptual.util.PrintUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -23,6 +24,8 @@ import org.neo4j.graphdb.Transaction;
 
 import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
+
+import static kn.uni.dbis.neo4j.conceptual.util.PrintUtils.printFullTrees;
 
 
 /**
@@ -73,6 +76,7 @@ public class PropertyGraphCobweb {
           try (Transaction ignored = db.beginTx()) {
             final ConceptNode properties = new ConceptNode(rel);
             Cobweb.cobweb(properties, this.getRelationshipPropertiesTree());
+            printFullTrees(this.relationshipPropertiesTree.get());
           }
         };
         threadPool.execute(cobwebRunnable);

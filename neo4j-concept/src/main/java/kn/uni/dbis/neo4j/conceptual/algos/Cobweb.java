@@ -14,6 +14,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.util.concurrent.AtomicDouble;
 
+import kn.uni.dbis.neo4j.conceptual.util.PrintUtils;
 import kn.uni.dbis.neo4j.conceptual.util.ResourceLock;
 
 import static kn.uni.dbis.neo4j.conceptual.util.LockUtils.lockAll;
@@ -70,7 +71,6 @@ public final class Cobweb {
    * @param currentNode node currently visiting
    */
   public static void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
-
     final Result findResult = findHost(currentNode, newNode);
     final ConceptNode host = findResult.getNode();
     final double[] results = {findResult.getCu(), createNewNodeCU(currentNode, newNode),
@@ -89,25 +89,25 @@ public final class Cobweb {
     switch (bestIdx) {
       case 1:
         createNewNode(currentNode, newNode, true);
+        LOG.info("Create");
         break;
       case 2:
         final ConceptNode mergedNode = mergeNodes(currentNode, host, newNode, true);
         if (mergedNode == null) {
           throw new RuntimeException("Unreachable");
         }
-        try (ResourceLock ignored = lockAll(currentNode.getLock().writeLock(), newNode.getLock().readLock())) {
-          currentNode.updateCounts(newNode);
-        }
+        currentNode.updateCounts(newNode);
+        LOG.info("Merge");
         cobweb(newNode, mergedNode);
         break;
       case 3:
+        LOG.info("Split");
         splitNodes(host, currentNode, true);
         cobweb(newNode, currentNode);
         break;
       case 0:
-        try (ResourceLock ignored = lockAll(currentNode.getLock().writeLock(), currentNode.getLock().readLock())) {
-          currentNode.updateCounts(newNode);
-        }
+        LOG.info("Recurse");
+        currentNode.updateCounts(newNode);
         cobweb(newNode, host);
         break;
       default:
@@ -130,11 +130,11 @@ public final class Cobweb {
     ConceptNode best = null;
 
     ArrayList<Lock> locks = new ArrayList<>();
+    locks.add(currentNode.getLock().readLock());
+    locks.add(newNode.getLock().readLock());
     for (ConceptNode child : currentNode.getChildren()) {
       locks.add(child.getLock().readLock());
     }
-    locks.add(currentNode.getLock().readLock());
-    locks.add(newNode.getLock().readLock());
 
     try (ResourceLock ignored = lockAll(locks)) {
       final ConceptNode currentNodeTemp = new ConceptNode(currentNode);
@@ -171,8 +171,8 @@ public final class Cobweb {
    */
   private static double createNewNodeCU(final ConceptNode currentNode, final ConceptNode newNode) {
     final double cu;
-    try (ResourceLock ignored = lockAll(currentNode.getLock().readLock(),
-        currentNode.getParent().getLock().readLock())) {
+    try (ResourceLock ignored = lockAll(currentNode.getParent().getLock().readLock(),
+        currentNode.getLock().readLock())) {
 
       final ConceptNode clone = new ConceptNode(currentNode);
       if (currentNode.getId() != null) {
@@ -280,15 +280,18 @@ public final class Cobweb {
     }
 
     ArrayList<Lock> locks = new ArrayList<>();
-    for (ConceptNode child : host.getChildren()) {
-      if (setParent) {
+    locks.add(current.getLock().writeLock());
+    if (setParent) {
+      locks.add(host.getLock().writeLock());
+      for (ConceptNode child : host.getChildren()) {
         locks.add(child.getLock().writeLock());
-      } else {
+      }
+    } else {
+      locks.add(host.getLock().readLock());
+      for (ConceptNode child : host.getChildren()) {
         locks.add(child.getLock().readLock());
       }
     }
-    locks.add(current.getLock().writeLock());
-    locks.add(host.getLock().readLock());
 
     try (ResourceLock ignored = lockAll(locks)) {
       for (final ConceptNode child : host.getChildren()) {
@@ -355,6 +358,7 @@ public final class Cobweb {
     } else {
       locks.add(host.getLock().readLock());
     }
+    locks.add(newNode.getLock().readLock());
 
     try (ResourceLock ignored1 = lockAll(locks)) {
 
@@ -419,19 +423,18 @@ public final class Cobweb {
    */
   private static double computeCU(final ConceptNode parent, final double parentEAP) {
     double cu = 0.0;
+    final double parentChildCount = parent.getChildren().size();
+    if (parentChildCount == 0) {
+      return Integer.MIN_VALUE;
+    }
 
     ArrayList<Lock> locks = new ArrayList<>();
+    locks.add(parent.getLock().readLock());
     for (ConceptNode child : parent.getChildren()) {
       locks.add(child.getLock().readLock());
     }
-    locks.add(parent.getLock().readLock());
 
     try (ResourceLock ignored = lockAll(locks)) {
-      final double parentChildCount = parent.getChildren().size();
-      if (parentChildCount == 0) {
-        return Integer.MIN_VALUE;
-      }
-
       final double parentCount = parent.getCount();
       for (final ConceptNode child : parent.getChildren()) {
           cu += (double) child.getCount() / parentCount

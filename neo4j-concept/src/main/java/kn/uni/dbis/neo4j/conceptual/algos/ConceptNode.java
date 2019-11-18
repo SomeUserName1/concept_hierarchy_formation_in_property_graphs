@@ -154,6 +154,8 @@ public class ConceptNode {
     NumericValue thisNumeric;
     boolean matched;
 
+    try (ResourceLock ignored = lockAll(this.getLock().writeLock(), usedForUpdate.getLock().readLock())) {
+
     this.setCount(this.getCount() + usedForUpdate.getCount());
     // loop over the attributes of the node to incorporate
     for (final ConcurrentMap.Entry<String, List<Value>> otherAttributes : usedForUpdate.getAttributes().entrySet()) {
@@ -200,6 +202,7 @@ public class ConceptNode {
         }
         this.getAttributes().put(otherAttributes.getKey(), copies);
       }
+    }
     }
   }
 
