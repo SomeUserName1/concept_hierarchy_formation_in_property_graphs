@@ -94,7 +94,6 @@ class PropertyGraphCobwebProcTest {
           tree.getNodeSummaryTree()};
 
       PrintUtils.printCutoffTrees(subtrees);
-      PrintUtils.prettyPrint(subtrees[2]);
       final List<String> ids = new ArrayList<>();
       for (ConceptNode root : subtrees) {
         ids.clear();

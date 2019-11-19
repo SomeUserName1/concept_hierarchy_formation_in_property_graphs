@@ -21,7 +21,7 @@ import static kn.uni.dbis.neo4j.conceptual.util.LockUtils.lockAll;
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
 @ThreadSafe
-public final class Cobweb {
+final class Cobweb {
   /**
    * Logger.
    */
@@ -34,6 +34,7 @@ public final class Cobweb {
     // NOOP
   }
 
+  // FIXME lose nodes somewhere?
   /**
    * run the actual cobweb algorithm.
    *
@@ -44,7 +45,6 @@ public final class Cobweb {
     int bestIdx;
     ConceptNode host;
     ConceptNode mergedNode = null;
-
 
     try (ResourceLock ignored = lockAll(getLevelLocks(currentNode, newNode))) {
       final Result findResult = findHost(currentNode, newNode);
@@ -61,6 +61,7 @@ public final class Cobweb {
           bestIdx = i;
         }
       }
+
       switch (bestIdx) {
         case 1:
           createNewNode(currentNode, newNode, true);
@@ -106,10 +107,13 @@ public final class Cobweb {
   private static List<Lock> getLevelLocks(ConceptNode currentNode, ConceptNode newNode) {
     ArrayList<Lock> locks = new ArrayList<>();
     locks.add(newNode.getLock());
-    for (ConceptNode child : currentNode.getChildren()) {
-      locks.add(child.getLock());
+    synchronized (currentNode.getChildren()) {
+      for (ConceptNode child : currentNode.getChildren()) {
+        locks.add(child.getLock());
+      }
     }
     locks.add(currentNode.getLock());
+    locks.add(currentNode.getParent().getLock());
     return locks;
   }
 

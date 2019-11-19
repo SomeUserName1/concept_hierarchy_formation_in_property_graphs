@@ -56,13 +56,14 @@ public class PropertyGraphCobweb {
    */
   public void integrate(final GraphDatabaseService db, final List<Node> nodes, final List<Relationship> relationships) {
     // Static categorization according to properties, labels and relationship type
-      ExecutorService threadPool = Executors.newFixedThreadPool(4);
+      ExecutorService threadPool = Executors.newFixedThreadPool(8);
       Runnable cobwebRunnable;
       for (Node node : nodes) {
         cobwebRunnable = () -> {
           try (Transaction ignored = db.beginTx()) {
             final ConceptNode properties = new ConceptNode(node);
             Cobweb.cobweb(properties, this.getNodePropertiesTree());
+            LOG.info("Incorporated node");
           }
         };
         threadPool.execute(cobwebRunnable);
@@ -74,6 +75,7 @@ public class PropertyGraphCobweb {
           try (Transaction ignored = db.beginTx()) {
             final ConceptNode properties = new ConceptNode(rel);
             Cobweb.cobweb(properties, this.getRelationshipPropertiesTree());
+            LOG.info("Incorporated edge");
           }
         };
         threadPool.execute(cobwebRunnable);
@@ -110,6 +112,7 @@ public class PropertyGraphCobweb {
         e.printStackTrace();
       }
 
+      LOG.info("Finished nodes and relations, starting node summaries");
 
       threadPool = Executors.newWorkStealingPool();
       for (Node node : nodes) {

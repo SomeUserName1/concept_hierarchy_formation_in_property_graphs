@@ -25,7 +25,6 @@ public class LockUtils {
     boolean acquired = false;
 
     for (final Lock lock : locks) {
-      acquired = false;
       acquired = lock.tryLock();
       if (acquired) {
         successful.add(lock);
@@ -38,19 +37,19 @@ public class LockUtils {
         lock1.unlock();
       }
       try {
-        Thread.sleep(10);
+        Thread.sleep(5);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
       return lockAll(locks);
     }
 
-    return  () -> {
-      for (final Lock lock : locks) {
-        lock.unlock();
-      }
-    };
-  }
+      return () -> {
+        for (final Lock lock : locks) {
+          lock.unlock();
+        }
+      };
+    }
 }
 
 
