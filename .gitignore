@@ -7,3 +7,13 @@ target/
 /doc/img/
 /src_project/main/python/__pycache__/
 *.log
+*.aux
+*.loc
+*.toc
+*.lol
+*.lof
+*.lot
+*.out
+*.blg
+*.bbl
+*.synctex.gz
