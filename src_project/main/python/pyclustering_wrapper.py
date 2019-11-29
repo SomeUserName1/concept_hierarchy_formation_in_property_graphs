@@ -352,7 +352,7 @@ class KMediansWrapper(BaseEstimator, ClusterMixin):
     def fit(self, x):
         x = check_array(x, accept_sparse='csr')
         self.wrapped_instance = kmedians(data=x,
-                                         initial_centers=kmeans_plusplus_initializer(x, self.n_clusters).initialize(),
+                                         initial_medians=kmeans_plusplus_initializer(x, self.n_clusters).initialize(),
                                          tolerance=self.tolerance,
                                          metric=self.metric
                                          )

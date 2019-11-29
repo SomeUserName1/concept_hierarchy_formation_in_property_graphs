@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json
 import logging
 import random
@@ -16,7 +17,8 @@ from scipy.cluster.hierarchy import dendrogram, single
 from scipy.stats import randint, uniform
 from scipy.spatial.distance import pdist
 from sklearn import metrics
-from sklearn.cluster import DBSCAN, AffinityPropagation, SpectralClustering, OPTICS
+from sklearn.cluster import DBSCAN, AffinityPropagation, SpectralClustering, OPTICS, Birch, SpectralBiclustering, \
+    SpectralCoclustering
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.manifold import TSNE
 from sklearn.model_selection import RandomizedSearchCV
@@ -33,10 +35,10 @@ from concept_formation.visualize import visualize as visualize_trestle
 from concept_formation.visualize import visualize_clusters as visualize_trestle_clusters
 
 # ____________ CONSTANTS: Paths ________________--
-BASE = "/home/fabian/Nextcloud/workspace/uni/8/bachelor_project"
+BASE = "/home/someusername/Nextcloud/workspace/uni/bachelor/klopfer-bachelor"
 IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
-#log = open(path.join(BASE, "doc", 'clustering_survey_memory.log'), 'w')
+log = open(path.join(BASE, "doc" 'clustering_survey.log'), 'a+')
 
 results = {'single': [27, 28, 26, 25], 'rsl': [27, 28, 29, 35], 'hdbscan': [30, 31, 29, 27], 'dbscan': [9, 2, 8, 5],
            'optics': [9, 2, 3, 8], 'affinity_prop': [10, 9, 4, 5], 'spectral': [1, 2, 8, 5], 'kmeans': [5, 5, 8, 5],
@@ -50,6 +52,7 @@ times = {'single': [0.000783, 0.029643], 'rsl': [0.00427, 0.058494], 'hdbscan': 
          'mbsas': [0.06174, 0.043392], 'ttsas': [0.06538, 0.02016234], 'som': [0.05452, 0.49852],
          'trestle': [0.098921, 0.58683]}
 
+
 class Dataset(Enum):
     SYNTHETIC = (BASE + "/data/synthetic.json", BASE + "/data/synthetic.tree")
     NOISY_SYNTHETIC = (BASE + "/data/synthetic_noisy.json", BASE + "/data/synthetic.tree")
@@ -57,7 +60,7 @@ class Dataset(Enum):
 
 
 def two_step(vectorized_data, distance_matrix, dataset, n_samples, noise):
-    for searcher in [cluster_dbscan(n_samples), cluster_affinity_prop(),
+    for searcher in [cluster_dbscan(n_samples), cluster_affinity_prop(), cluster_optics(n_samples),
                      cluster_spectral(n_samples), cluster_kmeans(n_samples), cluster_kmedians(n_samples),
                      cluster_kmedoids(n_samples), cluster_rock(n_samples), cluster_bsas(n_samples),
                      cluster_mbsas(n_samples),
@@ -98,8 +101,8 @@ def two_step(vectorized_data, distance_matrix, dataset, n_samples, noise):
 def one_step(vectorized_data, dataset, noise):
     rsl = RobustSingleLinkage(metric='l1')
     hdb = HDBSCAN(metric='l1', memory=CACHE_PATH, core_dist_n_jobs=-1, min_samples=2, min_cluster_size=2)
-    optics =  cluster_optics(n_samples)
-    for algo in [rsl, hdb, optics]:
+
+    for algo in [rsl, hdb]:
         logger.info("======================== " + type(algo).__name__ + " with Noise? " + str(noise)
                     + " ==========================")
 
@@ -125,10 +128,10 @@ def one_step(vectorized_data, dataset, noise):
             if not os.path.exists(p):
                 os.makedirs(p)
 
-             compute_ted(children_or_tree=algo.single_linkage_tree_._linkage, n_clusters=num_initial_clusters,
+            compute_ted(children_or_tree=algo.single_linkage_tree_._linkage, n_clusters=num_initial_clusters,
                          dataset=dataset)
 
-             visualize_clusters(algo, vectorized_data, p, noise)
+            visualize_clusters(algo, vectorized_data, p, noise)
 
             plt.figure()
             algo.single_linkage_tree_.plot(cmap='viridis', colorbar=True)
@@ -329,7 +332,7 @@ def cluster_spectral(n_samples):
 def cluster_dbscan(n_samples):
     grid_params = {
         "eps": uniform(loc=0.1, scale=5.0),
-        "min_samples": randint(2, round(0.1 * n_samples) + 2),
+        "min_samples": uniform(0, 0.1),
         "leaf_size": randint(5, round(0.1 * n_samples) + 5)
     }
     clust = DBSCAN(metric='precomputed', n_jobs=-1)
@@ -340,9 +343,9 @@ def cluster_dbscan(n_samples):
 
 def cluster_optics(n_samples):
     grid_params = {
-        "min_samples": randint(2, round(0.1 * n_samples) + 2),
-        "leaf_size": randint(5, 100),
-        "min_cluster_size": uniform(0, 0.1)
+        "min_samples":uniform(0.000001, 0.3),
+        "leaf_size": randint(5, round(0.1 * n_samples) + 5),
+        "min_cluster_size": uniform(0.0000001, 0.1)
     }
     clust = OPTICS(metric='precomputed', n_jobs=-1)
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
@@ -350,13 +353,14 @@ def cluster_optics(n_samples):
 
     return searcher
 
+
 def cluster_birch(n_samples):
     grid_params = {
         "threshold": uniform(loc=0.1, scale=0.9),
-        "leaf_size": randint(5, 100),
-        "min_cluster_size": uniform(0, 0.1)
+        "branching_factor": randint(5, 100),
+        "n_clusters": 2
     }
-    clust = OPTICS(metric='precomputed', n_jobs=-1)
+    clust = Birch(n_clusters=2)
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=100)
 
@@ -792,15 +796,12 @@ def plot_results():
     plt.savefig(p + "time_bench_reduced.svg")
 
 
-
-
-
 if __name__ == '__main__':
-    logger = logging.getLogger("clusering_survey")
+    logger = logging.getLogger("clustering_survey")
     logger.setLevel(logging.DEBUG)
 
     # create file handler which logs even debug messages
-    fh = logging.FileHandler(path.join(BASE, "doc", "clusering_survey.log"), mode='w')
+    fh = logging.FileHandler(path.join(BASE, "doc", "clustering_survey.log"), mode='w')
     fh.setLevel(logging.DEBUG)
 
     # create console handler with a higher log level
@@ -816,5 +817,5 @@ if __name__ == '__main__':
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    # main(n_samples=(3**3), dataset=Dataset.SYNTHETIC, width=3, depth=3)
+    main(n_samples=(3**3), dataset=Dataset.SYNTHETIC, width=3, depth=3)
     plot_results()

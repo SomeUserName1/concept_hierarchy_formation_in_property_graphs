@@ -1,4 +1,5 @@
 /.idea/
+.idea/
 out/
 target/
 /neo4j-concept/infer-out/

@@ -11,9 +11,11 @@
 \NeedsTeXFormat{LaTeX2e}
 % Farben
 \usepackage{xcolor}
+\usepackage{nameref}
 
 % Seiten-Einrichtung
 \usepackage{geometry}
+\usepackage{changepage}
 % DinA4 Initialisierung
 % Benutzer kann es mittels \format aendern (siehe unten)
 \geometry{paperheight=29.7cm, paperwidth=21.0cm, left=2.5cm, right=2.5cm, bottom=2cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=22pt}%
@@ -25,6 +27,7 @@
 
 % Absolute Positionierung der Textfelder inkl. Uni Konstanz Logo
 \usepackage[absolute, overlay]{textpos}
+\usepackage{ragged2e}
 
 % Unterstreichungen (Anpassen der Dicke und der Farbe)
 \usepackage{soul}
@@ -82,6 +85,7 @@
 
 % Paket für Tabellen im Corporate Design der Universität Konstanz
 \usepackage{tabu}
+\usepackage{booktabs}
 
 % Referenzierung
 \usepackage[bookmarksopen,bookmarksdepth=5]{hyperref}
@@ -91,11 +95,12 @@
 \usepackage[explicit]{titlesec}
 
 % Code listings
-\usepackage{listings}
+\usepackage[newfloat]{minted}
 
 % Zitatieren
 \usepackage{csquotes}
-\usepackage{cite}
+\usepackage[backend=biber,style=numeric,
+citestyle=numeric]{biblatex}
 
 % Mathe und algos
 \usepackage{amssymb}
@@ -224,8 +229,6 @@
 % gestrichelte Linie im Seeblau (halbe Dicke der durchgezogenen Linie)
 \def\unimidrule{\tabucline[0.1ex seeblau100 on 4pt off 3.5pt]}
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Seitenformat / Foliengroesse %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -270,7 +273,7 @@
 		\setlength{\boxlinewidth}{1pt}
 	\else%
 	\ifx\dinformat\dinavier%
-		\geometry{paperheight=29.7cm, paperwidth=21.0cm, inner=1cm, outer=2.5cm, bottom=2cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=22pt}%
+		\geometry{paperheight=29.7cm, paperwidth=21.0cm, inner=2.5cm, outer=2.5cm, bottom=2cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=22pt}%
 		\setlength{\logoheight}{20mm}
 		\setlength{\boxlinewidth}{1pt}
 	\else%
@@ -290,7 +293,7 @@
 		\setlength{\boxlinewidth}{1.5pt}
 	\else%
 	\ifx\dinformat\dinaviertufte%
-		\geometry{paperheight=29.7cm, paperwidth=21.0cm, inner=1cm, outer=6.5cm, bottom=2cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=22pt, marginparwidth=5.5cm}%
+		\geometry{paperheight=29.7cm, paperwidth=21.0cm, inner=2.5cm, outer=6.5cm, bottom=3cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=1.5cm, marginparwidth=5cm}%
 		\setlength{\logoheight}{20mm}
 		\setlength{\boxlinewidth}{1pt}
 	\fi%
@@ -302,6 +305,22 @@
 	\fi%
 }%
 
+\newcommand{\positionnumber}{%
+  \ifnum\c@section=0 %
+  \thechapter
+  \else
+  \ifnum\c@subsection=0 %
+  \thesection
+  \else
+  \ifnum\c@subsubsection=0 %
+  \thesubsection
+  \else
+  \thesubsubsection
+  \fi
+  \fi
+  \fi
+}
+\newcommand*{\fullref}[1]{\hyperref[{#1}]{\autoref*{#1} \nameref*{#1}}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1840,20 +1859,57 @@ Konstanz, \jahr%
 
 \renewcommand\footnoterule{{\color{seeblau100}\kern-3pt \hrule width 2in \kern 2.6pt}}
 
+
+%%%% Figure command
+
+\newcommand{\fig}[4]{
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=#4\textwidth, keepaspectratio]{#1}
+    \caption{#3}
+    \label{fig:#2}
+\end{figure}
+}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tufte-style Sidenotes and images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newcommand{\marginfigure}[4]{
-\marginnote{
-    \captionsetup{type=figure}
-    \begin{figure}[H]
-        \includegraphics[width=\marginparwidth,keepaspectratio]{#1}
-    \end{figure}
-    \captionof{figure}{#3}\label{fig:#2}
-}[#4]
+    \ifthispageodd{
+        \marginnote{
+            \captionsetup{type=figure, justification=raggedright}
+            \begin{figure}[H]
+                \includegraphics[width=\marginparwidth,keepaspectratio]{#1}
+            \end{figure}
+            \captionof{figure}{#3}\label{fig:#2}
+        }[#4]
+    }{
+        \marginnote{
+        %\begin{flushright}
+            \begin{minipage}[H]{0.99\marginparwidth}
+                \captionsetup{type=figure, justification=raggedright}
+                \begin{figure}[H]
+                       \includegraphics[width=\linewidth,keepaspectratio]{#1}
+                \end{figure}
+                \captionof{figure}{#3}\label{fig:#2}
+            \end{minipage}
+        }[#4]
+        %\end{flushright}
+    }
 }
 
-\newcommand{\note}[1]{\footnote{\textit{#1}}}
+\newcommand{\margincode}[5]{
+    \marginnote{
+        \begin{minipage}[H]{0.99\marginparwidth}
+        \captionsetup{type=listing, justification=raggedright}
+            \inputminted[fontsize=\tiny]{#4}{#1}
+            \captionof{listing}{#3}\label{lst:#2}
+        \end{minipage}
+    }[#5]
+}
+
+\newcommand{\note}[1]{\footnote{\noindent\textit{#1}}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
