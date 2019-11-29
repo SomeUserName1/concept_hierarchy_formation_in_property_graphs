@@ -1,7 +1,5 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
-import java.util.Objects;
-
 /**
  * Holder for numeric values, aggregates from single values a gaussian/normal distribution.
  *

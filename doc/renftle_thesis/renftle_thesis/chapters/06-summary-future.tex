@@ -1,0 +1,143 @@
+\chapter{Summary}
+
+In this thesis, we have layed some important groundwork for sophisticated graph
+query optimization.
+
+% What have we done
+%  theoretical work
+%  evaluation
+% 
+% What are the current limitations
+% What is future work
+
+\paragraph{A Graph Query Algebra}
+
+We have formally introduced a query
+algebra for graph databases, extending the algebra of Hölsch et al.%
+\cite{holsch_algebra_2016} (cf. Chapter \ref{chap:query-algebra}).
+We have proven that this graph algebra is well-defined and complete.
+Currently, our graph algebra allows to express subgraph matching with label,
+type and uniqueness constraints, which is an essential part of any
+graph query language.
+
+\paragraph{A Statistical Model to Estimate Result Cardinality}
+
+Moreover, we have illustrated that a global assumption on the distribution of node
+labels in a graph database can lead to severe estimation errors for datasets
+where this assumption is violated.
+We have introduced two new data structures, the \emph{label partition} and the
+\emph{sublabel map}, to address this problem.
+
+We have then implemented our own cardinality estimation model in the Neo4j
+graph database.
+The model provides cardinality estimations for a subset of operators of our
+graph algebra, namely for the \op{GetNodes}, \op{Expand} and
+\op{NodeLabelSelection} operators
+(cf. Section \ref{sec:cypher-to-operators} for the corresponding subset of
+Cypher).
+For each of these operators, we have explained in detail, which assumptions
+lead to the respective estimation function.
+Our model uses similar database statistics as Neo4j, plus a label partition and a
+sublabel map. Using the information provided by these two data structures, our
+model can avoid estimation errors if labels are not independent.
+Furthermore, by keeping track of the \emph{label probabilities} at each node
+variable of the query pattern, our model is able to deal with strong
+dependencies between node labels and the presence of relationships.
+
+We have compared our estimation model to the estimation model of Neo4j
+in a statistical analysis. On a catalog of 44 queries about the LDBC Social
+Network Benchmark (SNB)\cite{erling_ldbc_2015}, our estimations are
+significantly more correlated with the actual result sizes than the
+estimations of Neo4j. Our model also has significantly lower relative
+estimation errors.
+
+\chapter{Future Work}
+
+\paragraph{Generalizing the Graph Algebra}
+
+We believe that a general graph query algebra is a powerful
+mathematical tool to design new graph query optimizers and to analyze the variety
+of existing graph databases using a common language.
+This motivation has led to the first version of the graph algebra in this thesis.
+In the future, we want to extend our algebra to cover more use cases,
+e.g. result projections and shortest-paths queries.
+
+\paragraph{Conducting More Tests}
+
+The tests of our model for graph query cardinality estimation have revealed,
+that it correlates better with the actual result sizes and generates lower relative
+estimation errors than Neo4j's current model on a catalog
+of 44 queries about the SNB.
+To prove that our model also has the lower absolute estimation errors, we will have
+to increase the size of the query catalog.
+We will also conduct similar tests on other datasets (e.g. the Movie Database%
+\footnote{\url{https://neo4j.com/developer/movie-database/}}) to prove the general
+superiority of our estimation model.
+
+\paragraph{Extending the Query Space of the Estimation Model}
+
+Currently, our estimation model is only defined for
+a very limited query space (cf. Section \ref{sec:query-restrictions}).
+In the future, we want to extend the query space covered by the model by
+defining estimation functions for the remaining operators \op{Traverse},
+\op{DistinctSelection} and \op{NodeJoin}. The estimation function for the
+\op{Traverse} operator requires statistics about the likeliness of cycles in
+the database graph. Defining and implementing these statistics is thus a
+necessary next step to complete our estimation model.
+
+\paragraph{An Algorithm to Update the Label Partition and the Sublabel Map
+           Online}
+
+Our estimation model is informed by a label partition and a sublabel map to
+avoid estimation errors if labels are not independent. While we have illustrated
+methods to generate these data structures \emph{offline}, it remains an open
+research question how they can be updated \emph{online} in the presence of
+database updates.
+The design of an online algorithm to update the label partition and the
+sublabel map is needed to make our estimation model suitable for
+update-intensive graph database applications.
+
+\paragraph{Designing the Remaining Parts of the Cascades Query Optimizer}
+
+As mentioned in the Introduction, the estimation model proposed in this thesis
+is planned as a part of a new query optimizer for graph databases that will be
+implemented in the Cascades framework\cite{graefe_cascades_1995}.
+In the future, we want to design and implement the remaining parts of this
+optimizer. Firstly, we have to define \emph{physical operators} that are
+able to produce the results of combinations of our logical operators in a
+specific graph DBMS.
+Secondly, we  have to design a \emph{cost model} to estimate the
+memory and CPU costs of these operators.
+Thirdly, we have to define a complete set of equivalence rules on the
+graph query algebra, which can then be used by the Cascades optimizer to
+explore the query space.
+
+\paragraph{Combining Research on Graph and Relational Databases}
+
+As a final remark we want to emphasize that,
+cardinality estimation in graph databases
+and relational databases poses very similar problems. We belief that, much of
+the research that has led to todays relational optimizers is also relevant to
+graph databases and should not be overlooked. As detailed above, we consider a
+general graph query algebra
+(motivated by the relational algebra) and a modular, algebraic graph query
+optimizer (motivated by the Cascades optimizer for relational databases)
+to be promising research areas for the advancement of graph databases.
+
+Inversely, we are also convinced that insights from graph database research can
+help to solve current problems of relational databases.
+For instance, Guy Lohman states that estimating the
+\emph{selectivity of join predicates} is a major issue in  current relational
+databases\footnote{\url{http://wp.sigmod.org/?p=1075}, 24.06.2017}.
+A relational join can be translated to a relationship matching in a graph database and the
+join predicate can often be translated to a constraint on the relationship
+type.
+Translating the triple statistics maintained in graph databases (number of
+relationships of a particular type between nodes having particular labels) to
+triple statistics for relational databases (cardinality of a join between two
+tables using a particular predicate) could allow to use our graph query
+estimation model in a relational database and potentially improve the
+state-of-the-art of relational cardinality estimation.
+
+We believe that there are many "low-hanging fruits" for researchers that simply
+require some transfer between the relational and graph database communities.

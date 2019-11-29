@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author Fabian Klopfer &lt;fabian.klopfer@uni-konstanz.de&gt;
  */
-public class ConceptValue extends Value implements Cloneable {
+public class ConceptValue extends Value {
   /**
    * The concept to encapsulate.
    */

@@ -1,12 +1,73 @@
-% Neo4J / Graph Databases
+% Definitionen
+% Taxonomy
+@Inbook{Krcmar2015,
+author="Krcmar, Helmut",
+title="Informationsmanagement",
+bookTitle="Informationsmanagement",
+year="2015",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="85--111",
+abstract="In diesem Kapitel skizziere ich zun{\"a}chst anhand der Beschreibung des Informationsmanagements (IM) als Managementaufgabe mein Grundverst{\"a}ndnis von Management. Anschlie{\ss}end werden anhand unterschiedlicher Konzepte und Definitionen aus der Literatur wichtige Aspekte des IM vorgestellt, die zur Erfassung der Realit{\"a}t, aber auch zu ihrer Gestaltung dienen k{\"o}nnen. Die Konzepte werden vor dem Hintergrund der Kriterien, die aus der Diskussion um den Informationsbegriff hervorgegangen sind, verglichen und bewertet. Schlie{\ss}lich wird das IM-Modell, das den weiteren Ausf{\"u}hrungen dieses Buches zugrunde liegt, vorgestellt und erl{\"a}utert.",
+isbn="978-3-662-45863-1",
+doi="10.1007/978-3-662-45863-1_4",
+url="https://doi.org/10.1007/978-3-662-45863-1_4"
+}
+% DBMS book
+@book{Ramakrishnan:2002:DMS:560733,
+    author = {Ramakrishnan, Raghu and Gehrke, Johannes},
+    title = {Database Management Systems},
+    year = {2003},
+    edition = {3},
+    publisher = {McGraw-Hill, Inc.},
+    address = {New York, NY, USA},
+} 
+% Graph databases book on neo4j
 @book{neo4j_book,
   title={Graph databases},
   author={Robinson, Ian and Webber, Jim and Eifrem, Emil},
   year={2013},
   publisher={" O'Reilly Media, Inc."}
 }
+% Property Graph Model
+@inproceedings{angles2018property,
+    title={The Property Graph Database Model.},
+    author={Angles, Renzo},
+    booktitle={AMW},
+    year={2018}
+}
 
-% Clustering
+% Concept formation
+@book{bruner2017study,
+  title={A study of thinking},
+  author={Bruner, Jerome},
+  year={2017},
+  publisher={Routledge}
+}
+
+
+% FCA: Book
+@book{ganter2012formal,
+  title={Formal concept analysis: mathematical foundations},
+  author={Ganter, Bernhard and Wille, Rudolf},
+  year={2012},
+  publisher={Springer Science \& Business Media}
+}
+
+% FCA: First Paper
+@incollection{wille1982restructuring,
+  title={Restructuring Lattice Theory: An Approach Based on Hierarchies of Concepts},
+  author={Wille, Rudolf},
+  booktitle={Ordered Sets},
+  pages={445--470},
+  year={1982},
+  publisher={Springer}
+}
+
+
+
+
+% Clustering Survey
 @article{overview_clust,
   title={Data clustering: a review},
   author={Jain, Anil K and Murty, M Narasimha and Flynn, Patrick J},
@@ -17,136 +78,91 @@
   year={1999},
   publisher={Acm}
 }
-@article{chameleon_clust,
-  title={Chameleon: Hierarchical clustering using dynamic modeling},
-  author={Karypis, George and Han, Eui-Hong and Kumar, Vipin},
-  journal={Computer},
-  volume={32},
-  number={8},
-  pages={68--75},
-  year={1999},
-  publisher={IEEE}
-}
 
-@inproceedings{bayesian_clust,
-  title={Bayesian hierarchical clustering},
-  author={Heller, Katherine A and Ghahramani, Zoubin},
-  booktitle={Proceedings of the 22nd international conference on Machine learning},
-  pages={297--304},
-  year={2005},
-  organization={ACM}
-}
-
-@article{uncertain_clust,
-  title={An information-theoretic approach to hierarchical clustering of uncertain data},
-  author={Gullo, Francesco and Ponti, Giovanni and Tagarelli, Andrea and Greco, Sergio},
-  journal={Information Sciences},
-  volume={402},
-  pages={199--215},
-  year={2017},
-  publisher={Elsevier}
-}
-
-% Functional Dependencies
-@article{overview_fd,
-  title={Functional dependency discovery: An experimental evaluation of seven algorithms},
-  author={Papenbrock, Thorsten and Ehrlich, Jens and Marten, Jannik and Neubert, Tommy and Rudolph, Jan-Peer and Sch{\"o}nberg, Martin and Zwiener, Jakob and Naumann, Felix},
-  journal={Proceedings of the VLDB Endowment},
-  volume={8},
-  number={10},
-  pages={1082--1093},
-  year={2015},
-  publisher={VLDB Endowment}
-}
-
-
-@article{tane_fd,
-  title={TANE: An efficient algorithm for discovering functional and approximate dependencies},
-  author={Huhtala, Yka and K{\"a}rkk{\"a}inen, Juha and Porkka, Pasi and Toivonen, Hannu},
-  journal={The computer journal},
-  volume={42},
-  number={2},
-  pages={100--111},
-  year={1999},
-  publisher={OUP}
-}
-
-@inproceedings{conditional_fd,
-  title={Conditional functional dependencies for data cleaning},
-  author={Bohannon, Philip and Fan, Wenfei and Geerts, Floris and Jia, Xibei and Kementsietsidis, Anastasios},
-  booktitle={Data Engineering, 2007. ICDE 2007. IEEE 23rd International Conference on},
-  pages={746--755},
-  year={2007},
-  organization={IEEE}
-}
-
-
-@article{discov_conditional_fd,
-  title={Discovering conditional functional dependencies},
-  author={Fan, Wenfei and Geerts, Floris and Li, Jianzhong and Xiong, Ming},
-  journal={IEEE Transactions on Knowledge and Data Engineering},
-  volume={23},
-  number={5},
-  pages={683--698},
+% Data mining book
+@book{han2011data,
+  title={Data mining: concepts and techniques},
+  author={Han, Jiawei and Pei, Jian and Kamber, Micheline},
   year={2011},
-  publisher={IEEE}
-}
-
-
-@inproceedings{auto_fd,
-  title={Automatic Discovery of Functional Dependencies and Conditional Functional Dependencies : A Comparative Study},
-  author={Nabiha Asghar and Amira Ghenai},
-  year={2015}
-}
-
-
-% Type Theory
-@article{hott_types,
-  title={Homotopy type theory: Univalent foundations of mathematics},
-  author={Voevodsky, Vladimir and others},
-  journal={Institute for Advanced Study (Princeton), The Univalent Foundations Program},
-  pages={2007--2009},
-  year={2013}
-}
-
-@incollection{intutionistic_types,
-  title={An intuitionistic theory of types: Predicative part},
-  author={Martin-L{\"o}f, Per},
-  booktitle={Studies in Logic and the Foundations of Mathematics},
-  volume={80},
-  pages={73--118},
-  year={1975},
   publisher={Elsevier}
 }
 
-@book{typetheoryfunctionalprog_types,
-  title={Type theory and functional programming},
-  author={Thompson, Simon},
-  year={1991},
-  publisher={Addison Wesley}
+%%%%%%% ALOGRITHMS
+% Classit
+@article{lassit,
+  title={Models of incremental concept formation},
+  author={Gennari, John H and Langley, Pat and Fisher, Doug},
+  journal={Artificial intelligence},
+  volume={40},
+  number={1-3},
+  pages={11--61},
+  year={1989},
+  publisher={Elsevier}
 }
 
-@article{DBLP:prob_dep_types,
-  author    = {Jonathan H. Warrell},
-  title     = {A Probabilistic Dependent Type System based on Non-Deterministic Beta
-               Reduction},
-  journal   = {CoRR},
-  volume    = {abs/1602.06420},
-  year      = {2016},
-  url       = {http://arxiv.org/abs/1602.06420},
-  archivePrefix = {arXiv},
-  eprint    = {1602.06420},
-  timestamp = {Mon, 13 Aug 2018 16:48:45 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/corr/Warrell16},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@book{dep_types,
-  title={Towards a practical programming language based on dependent type theory},
-  author={Norell, Ulf},
-  volume={32},
-  year={2007},
-  publisher={Citeseer}
+% Cobweb
+@Article{Fisher1987,
+author="Fisher, Douglas H.",
+title="Knowledge acquisition via incremental conceptual clustering",
+journal="Machine Learning",
+year="1987",
+month="Sep",
+day="01",
+volume="2",
+number="2",
+pages="139--172",
+abstract="Conceptual clustering is an important way of summarizing and explaining data. However, the recent formulation of this paradigm has allowed little exploration of conceptual clustering as a means of improving performance. Furthermore, previous work in conceptual clustering has not explicitly dealt with constraints imposed by real world environments. This article presents COBWEB, a conceptual clustering system that organizes data so as to maximize inference ability. Additionally, COBWEB is incremental and computationally economical, and thus can be flexibly applied in a variety of domains.",
+issn="1573-0565",
+doi="10.1007/BF00114265",
+url="https://doi.org/10.1007/BF00114265"
 }
 
 
+% Cobweb/3
+@article{mckusick1990cobweb,
+  title={Cobweb/3: A portable implementation},
+  author={McKusick, Kathleen and Thompson, Kevin},
+  year={1990}
+}
+
+% Incremental Galois Lattices
+@article{doi:10.1111/j.1467-8640.1995.tb00031.x,
+author = {Godin, Robert and Missaoui, Rokia and Alaoui, Hassan},
+title = {INCREMENTAL CONCEPT FORMATION ALGORITHMS BASED ON GALOIS (CONCEPT) LATTICES},
+journal = {Computational Intelligence},
+
+volume = {11},
+number = {2},
+pages = {246-267},
+keywords = {concept lattice, Galois lattice, conceptual clustering, incremental algorithm, concept formation},
+doi = {10.1111/j.1467-8640.1995.tb00031.x},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1467-8640.1995.tb00031.x},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1111/j.1467-8640.1995.tb00031.x},
+abstract = {The Galois (or concept) lattice produced from a binary relation has proved useful for many applications. Building the Galois lattice can be considered a conceptual clustering method because it results in a concept hierarchy. This article presents incremental algorithms for updating the Galois lattice and corresponding graph, resulting in an incremental concept formation method. Different strategies are considered based on a characterization of the modifications implied by such an update. Results of empirical tests are given in order to compare the performance of the incremental algorithms to three other batch algorithms. Surprisingly, when the total time for incremental generation is used, the simplest and less efficient variant of the incremental algorithms outperforms the batch algorithms in most cases. When only the incremental update time is used, the incremental algorithm outperforms all the batch algorithms. Empirical evidence shows that, on the average, the incremental update is done in time proportional to the number of instances previously treated. Although the worst case is exponential, when there is a fixed upper bound on the number of features related to an instance, which is usually the case in practical applications, the worst-case analysis of the algorithm also shows linear growth with respect to the number of instances.},
+year = {1995}
+}
+
+
+
+% Trestle
+@inproceedings{thompson1989incremental,
+  title={Incremental concept formation with composite objects},
+  author={Thompson, Kevin and Langley, Pat},
+  booktitle={Proceedings of the sixth international workshop on Machine learning},
+  pages={371--374},
+  year={1989},
+  organization={Elsevier}
+}
+
+
+%%% Images
+@misc{TaxonomicRankGraph,  
+    title = {File:Taxonomic Rank Graph.svg - Wikimedia Commons}, 
+    author ={Annina Breen},
+    year={2015},
+    publisher={Wikimedia},
+    date = {2019-11-09},  
+    file = {:./references/wiki-File:Taxonomic_Rank_Graph.svg.html:html},  
+    url = {https://commons.wikimedia.org/wiki/File:Taxonomic_Rank_Graph.svg},  
+    urldate = {2019-11-23}
+}

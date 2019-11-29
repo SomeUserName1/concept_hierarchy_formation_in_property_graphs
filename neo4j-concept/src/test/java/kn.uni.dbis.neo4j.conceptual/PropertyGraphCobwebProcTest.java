@@ -47,6 +47,7 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    * @param dataset the dataset specified in the class scope, used to access it's node and relationship count
    */
+  @Disabled
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.name RETURN n")
   @Test
   void testCobwebSmall(final GraphDatabaseService db, final Dataset dataset) {
@@ -82,6 +83,7 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    * @param dataset the dataset specified in the class scope, used to access it's node and relationship count
    */
+  @Disabled
   @Test
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.Rome99)
@@ -149,7 +151,6 @@ class PropertyGraphCobwebProcTest {
    * @param db stupid
    * @param dataset stupid
    */
-  @Disabled
   //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.InternetTopology)
   @Test
