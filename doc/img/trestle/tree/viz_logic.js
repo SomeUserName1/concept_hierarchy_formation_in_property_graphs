@@ -1,7 +1,7 @@
 (function () {
   const CV_KEY = "#ContinuousValue#"; 
 
-  window.data = {};
+  window.data = {}
 
   var w = 1280,
     h = window.innerHeight,
@@ -86,7 +86,7 @@
   }
 
   function filterTypes(attr) {
-    var typs = [];
+    var typs = []
     if(attr[0] === '_'){
       typs.push('hidden');
     }
@@ -151,7 +151,7 @@
       }
       av_properties[attr] = at_scale;
     }
-  };
+  }
 
   function randomImage(d,attr) {
     if(attr === "none"){
@@ -256,7 +256,7 @@
           .style("fill-opacity", function(d) { return d.parent === focus ? 1 : 0; })
           .on("start", function(d) { if (d.parent === focus) this.style.display = "inline"; })
           .on("end", function(d) { if (d.parent !== focus) this.style.display = "none"; });
-    };
+    }
 
     function zoomTo(v) {
       var k = diameter / v[2]; view = v;
@@ -265,7 +265,7 @@
     }
 
     // changeText();  
-  };
+  }
 
   function majorityValue(table) {
     var values = Object.keys(table);
@@ -406,7 +406,7 @@
       colorBy.append(opt);
     }
     colorBy.change(colorSelectChanged);
-  };
+  }
 
   window.colorSelectChanged = function() {
     var attr = $("#focus-attr").val();
@@ -526,21 +526,21 @@
       }
     }
     recolor(data);
-  };
+  }
 
   window.make_property_sheet = function(node_data) {
-    d = node_data['counts'];
+    d = node_data['counts']
     
     var property_sheet = $("#properties"); 
     var prop_filter = $("#property-filter");
     property_sheet.html('');
 
-    $("#concept-name").text(node_data['name']);
-    $("#concept-size").text(node_data['size']);
+    $("#concept-name").text(node_data['name'])
+    $("#concept-size").text(node_data['size'])
     var n_children = node_data['children'] ? node_data['children'].length : 0;
-    $("#concept-child-size").text(n_children);
+    $("#concept-child-size").text(n_children)
     var d_keys = Object.keys(d);
-    var attrs = [];
+    var attrs = []
 
     for (var i = 0; i < d_keys.length; i++){
       var attrScale = av_properties[d_keys[i]];
@@ -577,10 +577,10 @@
     attrs.sort();
     attrs.reverse();
     for (var a in attrs) {
-      attr = attrs[a];
+      attr = attrs[a]
       var tr = $("<tr></tr>");
       var ar = $('<td colspan="3">'+attr+'</td>');
-      ar.addClass("prop-column");
+      ar.addClass("prop-column")
       tr.addClass("info");
       tr.append(ar);
       property_sheet.append(tr);
@@ -605,19 +605,19 @@
         vd.addClass("val-row");
         tr.append(vd);
         var cd = $("<td>"+n+"</td>");
-        var pd = $("<td>"+(n/node_data['size']*100).toFixed(2)+"%</td>");
+        var pd = $("<td>"+(n/node_data['size']*100).toFixed(2)+"%</td>")
         tr.append(cd);
         tr.append(pd);
         property_sheet.append(tr);
       }
     }
-  };
+  }
 
   window.updateFilters = function() {
     populateColorByOptions(data);
     colorSelectChanged();
     make_property_sheet(focus.data);
-  };
+  }
 
   window.searchConceptByName = function(e){
     var conc_name = $("#search-concept-name").val();

@@ -40,6 +40,8 @@ IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
 log = open(path.join(BASE, "doc" 'clustering_survey.log'), 'a+')
 
+
+# TODO extract from logging or directly write it somewhere and open from there
 results = {'single': [27, 28, 26, 25], 'rsl': [27, 28, 29, 35], 'hdbscan': [30, 31, 29, 27], 'dbscan': [9, 2, 8, 5],
            'optics': [9, 2, 3, 8], 'affinity_prop': [10, 9, 4, 5], 'spectral': [1, 2, 8, 5], 'kmeans': [5, 5, 8, 5],
            'kmedians': [5, 5, 6, 3], 'kmedoid': [7, 7, 10, 6], 'rock': [0, 2, 7, 5], 'bsas': [1, 5, 7, 6],
@@ -99,8 +101,8 @@ def two_step(vectorized_data, distance_matrix, dataset, n_samples, noise):
 
 
 def one_step(vectorized_data, dataset, noise):
-    rsl = RobustSingleLinkage(metric='l1')
-    hdb = HDBSCAN(metric='l1', memory=CACHE_PATH, core_dist_n_jobs=-1, min_samples=2, min_cluster_size=2)
+    rsl = RobustSingleLinkage(metric='jaccard')
+    hdb = HDBSCAN(metric='jaccard', memory=CACHE_PATH, core_dist_n_jobs=-1, min_samples=2, min_cluster_size=2)
 
     for algo in [rsl, hdb]:
         logger.info("======================== " + type(algo).__name__ + " with Noise? " + str(noise)
@@ -122,6 +124,7 @@ def one_step(vectorized_data, dataset, noise):
 
             compute_ted(children_or_tree=linkage, n_clusters=num_initial_clusters, dataset=dataset)
             visualize(algo, linkage, p, noise)
+            # TODO visualize clusters?
 
         else:
             p = path.join(IMG_BASE, type(algo).__name__)
@@ -132,6 +135,7 @@ def one_step(vectorized_data, dataset, noise):
                          dataset=dataset)
 
             visualize_clusters(algo, vectorized_data, p, noise)
+            # TODO visualize?
 
             plt.figure()
             algo.single_linkage_tree_.plot(cmap='viridis', colorbar=True)
@@ -187,7 +191,7 @@ def cluster_basic_single_linkage(vectorized_data, dataset, noise):
     logger.info("======= Simple Single Linkage ========")
     rsl = None
     start = time.time()
-    linkage = single(pdist(vectorized_data, metric='cityblock'))
+    linkage = single(pdist(vectorized_data, metric='jaccard'))
     total = time.time() - start
     logger.info("Fitting took: " + str(total) + " s!")
     compute_ted(
@@ -198,13 +202,13 @@ def cluster_basic_single_linkage(vectorized_data, dataset, noise):
 
 
 def main(n_samples: int, dataset: Dataset, width=3, depth=2):
-    for noise in [True]:
+    for noise in [False, True]:
         logger.info("############ Noise = " + str(noise) + "#######################################################")
         logger.info("Generating/Sampling, Loading and Vectorizing Data")
         data = load(n_samples, dataset, noise, width, depth)
 
         vectorized_data = np.array(CountVectorizer(binary=True).fit_transform(data).toarray())
-        distance_matrix = metrics.pairwise_distances(vectorized_data.astype(int), metric='l1', n_jobs=-1)
+        distance_matrix = metrics.pairwise_distances(vectorized_data.astype(bool), metric='jaccard', n_jobs=-1)
         
         # TODO Birch, trestle propperly, ...
 
@@ -222,7 +226,7 @@ def main(n_samples: int, dataset: Dataset, width=3, depth=2):
 # ____________________________________Generating & Loading __________________________________________
 
 def generate_synthetic(depth: int, width: int = 2, iteration: int = 10, m_path: str = BASE + "/data/",
-                       rem_labels: int = 1, add_labels: int = 0, alter_labels: int = 1, prob: float = 0.5):
+                       rem_labels: int = 1, add_labels: int = 1, alter_labels: int = 1, prob: float = 0.2):
     command = "java -jar " + BASE + "/lib/synthetic_data_generator.jar -p '" + m_path + "' -d " + str(depth) + " -w " \
               + str(width) + " -i " + str(iteration) + " -n " + str(rem_labels) + " " + str(add_labels) + " " + \
               str(alter_labels) + " -pr " + str(prob)
@@ -495,7 +499,7 @@ def bench_single_estimator(estimator, vectorized_data):
 
 def bench_two_step_estimator(estimator, base_data, precomputed, spectral, simple_linkage: bool):
     if precomputed:
-        data = metrics.pairwise_distances(base_data, metric='l1', n_jobs=-1)
+        data = metrics.pairwise_distances(base_data, metric='jaccard', n_jobs=-1)
         if spectral:
             data = np.exp(- data ** 2 / (2. * 1.0 ** 2))
     else:
@@ -513,11 +517,11 @@ def bench_two_step_estimator(estimator, base_data, precomputed, spectral, simple
         representatives = np.vstack((representatives, attrib_union))
 
     if simple_linkage:
-        repr_dist = pdist(representatives, metric='cityblock')
+        repr_dist = pdist(representatives, metric='jaccard')
         linkage = single(repr_dist)
         rsl = None
     else:
-        rsl = RobustSingleLinkage(metric="l1")
+        rsl = RobustSingleLinkage(metric="jaccard")
         rsl.fit(representatives)
         linkage = rsl.cluster_hierarchy_._linkage
 
@@ -733,7 +737,7 @@ def visualize(estimator, linkage, m_path, noise):
 
 
 def transform_numeric(vectorized_data: np.array) -> np.array:
-    tsne_data = TSNE(metric='l1').fit_transform(vectorized_data)
+    tsne_data = TSNE(metric='jaccard').fit_transform(vectorized_data)
 
     return tsne_data
 
