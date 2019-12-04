@@ -1,14 +1,7 @@
 \chapter{Background}\label{\positionnumber} 
-\section{Definitions}\label{\positionnumber}
-In order to elaborate on the methods and results, some concepts, terms and notations need to be defined in the following.
-\subsection{Graph Database}\label{\positionnumber}
-A database management system is a  software system that assists users to  maintain and utilize large amounts of data ~\cite{Ramakrishnan:2002:DMS:560733}.
-A \textbf{graph database management system}, henceforth graph database, is a database management system which uses a graph structure as model to represent data~\cite{neo4j_book}, e.g. the Resource Description Framework or the Property Graph Model. Fig. \ref{fig:neo4jarch} shows the high level architecture of the graph database Neo4J. \\
-\marginfigure{img/neo4j_arch.png}{neo4jarch}{High level architecture of the Graph database Neo4J. \cite{neo4j_book}}{-6cm}
 
-
-\subsection{Property Graph Model}\label{\positionnumber}
-The \textbf{Property Graph Model} is a 9-Tuple $G = (V, E, \lambda, P, T, L, f_P, f_T, f_L)$ with 
+\section{Property Graph Model}\label{\positionnumber}
+A \textbf{Property Graph} is a 9-Tuple $G = (V, E, \lambda, P, T, L, f_P, f_T, f_L)$ with 
 \begin{itemize}
     \item $V$ the set of vertices of the graph.
     \item $E \subseteq (V \times V)$ the set of edges of the graph.
@@ -24,62 +17,25 @@ The \textbf{Property Graph Model} is a 9-Tuple $G = (V, E, \lambda, P, T, L, f_P
    \item  $f_L: N \rightarrow 2^L$ a function that assigns a node a set of labels.
 \end{itemize} 
 \smallskip
-In words: \\
-The property graph model reflects a directed, node-labeled and relationship-typed multi-graph $G$, where each node and relationship can hold a set of key-value pairs \cite{angles2018property}. An illustration of this model is shown in fig. \ref{fig:propertygraph}\fig{img/property_graph_elements.jpg}{propertygraph}{A visualization of the property graph model}{1}
+The property graph model reflects a directed, node-labeled and relationship-typed multi-graph $G$, where each node and relationship can hold a set of key-value pairs \cite{angles2018property}. An illustration of this model is shown in fig. \ref{fig:propertygraph}\fig{img/property_graph_elements.jpg}{propertygraph}{A visualization of the property graph model}{1}.
+Neo4J is a graph data base employing the property graph model~\cite{neo4j_book}, which is used in the evaluation part of this thesis.
 
 
-%%%%%%% TODO: Maybe set theory here
-
-\subsection{Formal Concept Analysis}\label{\positionnumber}
- 
-Lattice Theory and Formal Concept Analysis, the latter developed by Wille~\cite{wille1982restructuring}, has been applied to solve and analyse a wide range of problems e.g. data retrieval, text mining , functional dependency discovery and association rule mining ~\cite{poelmans2012text, soergel1967mathematical, spoerri1993infocrystal, godin1993experimental, godin1993building, carpineto2004exploiting, carpineto2003mining, ganascia1987charade, oosthuizen1988induction, xie2002concept}. \\
-In order to formalize the description of Objects holding key-value pairs one can use fomral concept analysis. Based on lattice theory, formal concept analysis defines a mathematical framework to exactly describe how objects and attributes may be ordered and visualized by Hasse diagrams. The following terminology is a summary of \cite{ganter2012formal}. \\
-
-Let $O, A$ be sets, $I \subseteq (O \times A)$ a relation. We call \textbf{$O$ the set of objects, $A$ the set of attributes and $I$ the composition relation}, assigning attributes to an object\note{As a pair $(o, a)$ either is or is not in $I$ the relation is binary, i.e. Object has Attribute is the only thing we can express by this. In short: The values of attributes here are one-valued or in other words binary (present or not)}. \\
-
-Then the \textbf{formal context $\mathcal{K}$} is given by the triple $\mathcal{C} = (O, A, I)$. 
-
-Let $O_0 \subseteq O$ be a subset of all objects and $A_0 \subseteq A$ be a subset of all attributes then:
-\[ A' = \{ a \in A | \forall o \in O_0: oIa \}  \]
-the set of attributes, that the objects in $O_0$ have in common and 
-\[ O' = \{ o \in O | \forall a \in A_0: oIa \} \]
-the set objects having all attributes in $A_0$. \\
-
-A \textbf{formal Concept $\mathcal{C}$} of the context $\mathcal{K}$ is a pair $(O_i, A_i)$ with $O_i \subseteq O$,  $A_i \subseteq A$ and $O_i = O'$ with respect to $A_i$ and $A_i = A'$ with respect to $O_i$. $O_i$ is called the extent and $A_i$ is called the Intent of the concept $\mathcal{C}$. \\
-
-Let $\mathcal{C}_0 = (O_0, A_0), \mathcal{C}_1 =(O_1, A_1)$ formal concepts of context $\mathcal{K}$.\\
-$\mathcal{C}_0$ is called \textbf{a sub-concept} of $\mathcal{C}_1$, iff $O_0 \subseteq O_1 \wedge A_0 \subseteq A_1$ and we call $\mathcal{C}_1$ the \textbf{super-concept} of $\mathcal{C}_0$. The relation $\leq$ is called hierarchical order and we write $\mathcal{C}_0 \leq \mathcal{C}_1$.  \\
-The \textbf{concept lattice $\mathfrak{B}(\mathcal{K})$} is the set of all concepts of the context $\mathcal{K} =(O, A, I)$ ordered by the relation $\leq$. \\
-
-A \textbf{multi-valued Context $\mathcal{K_V} = (O, A, V, I)$} is a context with $O, A$ as in the definition of a simple Context $\mathcal{K}$ above, $V$ is the set of all values and $I \subseteq O \times A \times V$. The values $V$ of the multi-valued context $\mathcal{K_V}$ can be partitioned per attribute and interpreted in a meaningful way using a method called conceptual scaling\note{Conceptual scaling creates a context for each attribute and defines a table that map the possible attributes onto themselves in order to add additional ordering semantics to e.g. cover ordinal, nominal and convex-ordinal scales. The latter corresponds to orderings on the expected values of random variables in stochastic processes.}, which is beyond the scope of this thesis. Just notice that one can easily derive a tabular description by replacing each attribute with the pairs $\forall v_a \in V_a: (a, v_a)$ with $V_a$ of possible values of the attribute $a$. \\
-
-\fig{img/table_hasse.png}{tablehasse}{Tabular representation of a formal context \cite{ganter2012formal}}{0.6} 
-
-A context is easily visualizable by a table as in fig. \ref{fig:tablehasse}. Fig. \ref{fig:hasse} shows the Hasse diagram for the example context from the table above. It is the visualization of the concept lattice of the context and maybe intuitively interpreted as a two sided hierarchy (directly following from using Galois connections in the lattice): The top node contains all elements and only attributes that are common to all objects. Descending in the diagram, one gets less objects and larger, more specific attribute sets. If one reads the diagram bottom up, the bottom-most node contains all attributes and either no object or the ones having all attributes Ascending the trees constructs increasingly large clusters of less and less specific objects. Breaking The diagram into two separate that end upon having either just one attribute or one object would yield two hierarchies: 
-\begin{itemize}
-    \item \textbf{Common attributes per object set}\note{Starting from the top-most node the common attribute set is $a$ as all objects have $a$ in common.The rightmost node shows the common attributes for objects $5, 6$.}: Focusing on the Objects and their increasingly larger common attribute sets with decreasing object size. One could formulate this as expected attributes objects have given the concept they're hosted in.
-    \item \textbf{Selectivity per attribute Set}:\note{E.g. The selectivity of all attributes in conjunction is $\frac{0}{8}$, the selectivity of $a$ and $d$ is $\sigma_{a \wedge d} = \frac{4}{8} = 0.5$ and the selectivity of a is $\sigma_a = \frac{8}{8} = 1$.}. Focusing on the attributes, starting with objects that have all attributes and ending with the selectivities of single attributes or the expected number of objects, when querying for a set of attributes
-\end{itemize}
-\fig{img/hasse.png}{hasse}{A Hasse-diagram for the above table \cite{ganter2012formal}}{1}
-
-The definitions in Formal Concept Analysis are too strict in some places, that's why we're going to relax them a bit to fit to the clustering problem.~\cite{ignatov2012concept}
-
-\subsection{Cluster Analysis}\label{\positionnumber}
+\section{Cluster Analysis}\label{\positionnumber}
 Clustering or Cluster Analysis is defined by the automated process of splitting the set of observations into subsets, in order to group them such that objects in different subsets are different from another and objects within a subset are as similar~\cite{han2011data}. \\
 According to Mirkin, "Clustering is a mathematical technique designed for revealing classification structures in the data collected on real-world phenomena"\cite{mirkin2013mathematical}, with the purpose of analyzing structure in the data, relate different aspects and assist in designing classification schemes. 
-Let $\mathcal{K} = (O, A, I)$  be a formal single-valued\note{or multi-valued context projected to be a single-valued one by replacing each attribute by a pair of (attribute, possible value) for all possible values.} context: \\
+Let $O$  be the set of data objects\note{or equivalently data instance, data point, data sample} \\
 Let $O_0, O_1, \dots, O_n \subset O$ with
 \begin{itemize}
     \item $\forall i \in \{0, 1, \dots n\}: \cup_i O_i = O \wedge$
     \item $\forall i \in \{0, 1, \dots n\} \forall j \in \{0, 1, \dots n\}\setminus\{i\}: O_i \cap O_j =\emptyset$
 \end{itemize}
 Then $O_0, O_1, \dots, O_n$ is a clustering of $O$. \\
-Each subset $O_i$ of the subset is called a cluster and clusters may or may not overlap. Thus the goal of a clustering algorithm is to find a set of subsets that optimize an objective function based on the attributes and values $A,V,I$. Note that the term clustering only imposes an order on the objects and not on the attributes. The constraints defined on the set of attributes and values is imposed by the objective function of the respective algorithm. \\
-% TODO maybe bridge to FCA
+Each subset $O_i$ of the subset is called a cluster and clusters may or may not overlap. Thus the goal of a clustering algorithm is to find a set of subsets that optimize an objective function based on the attributes and values $A, V$. Note that the term clustering only imposes an order on the objects and not on the attributes. The constraints defined on the set of attributes and values is imposed by the objective function of the respective algorithm. \\
 
-Depending on the method used and the objective that is optimized for, the clusterings differ between different algorithms. \\
-Thus clustering may be defined as a search for some set of subsets, dividing the input to satisfy some condition or optimizing for a certain metric function e.g. intra-cluster homogeneity and inter-cluster diversity~\cite{Fisher1987}. \\
-In order to compute any metric or find similarities and differences or patterns in the objects, the objects must have some attributes, i.e. $A \neq \emptyset, I \neq \emptyset, V \neq \emptyset$\note{If no object has an attribute the only logic clusterings are the trivial ones: \begin{itemize}
+Depending on the method used and the objective that is optimized for, the clustering differs between different algorithms. \\
+
+In order to compute any metric or to find similarities and differences or patterns in the set of objects, they must have some attributes, i.e. $A \neq \emptyset, V \neq \emptyset$ and a relation $I$ mapping Objects to Atrributes and their respective value\note{If no object has an attribute the only logic clusterings are the trivial ones: \begin{itemize}
     \item $O_0 \equiv O \wedge \forall i \in \{1, \dots n\}: O_i \equiv \emptyset$
     \item $\forall i \in \{0, 1, \dots n\}: |O_i| = 1 \wedge \sum_i |O_i| = |O|$
 \end{itemize}}.
@@ -90,48 +46,39 @@ Thus all algorithms can be defined by the following interface:
     \KwOut{A set of subsets$O: O_0, O_1, \dots, O_n$} 
 \caption{Clustering Algorithm}\label{clustering}
 \end{algorithm}
-Often clustering algorithms only consider feature vectors, i.e. only consider the relation $I$ in the nominal case or $V, I$ in the numeric case. Clustering may thus be seen as a partial form of Formal Concept Analysis, as it's approach may be less strict in terms of attribute restrictions, may have a one-sided focus on objects in terms of connections - contrary to the Galois connections used in Formal Concept Analysis and lattice theory - and partial as many clustering algorithms only split the input once into a set of subsets instead of exploring all sets for a given rule recursively.
+Often clustering algorithms only consider feature vectors, i.e. only consider the relation $I$ in the nominal case or $V, I$ in the numeric case. Clustering may thus be seen as a partial form of Formal Concept Analysis\note{For an introduction to Formal Concept Analysis, see \autoref{7.1}}, as it's approach may be less strict in terms of attribute restrictions, may have a one-sided focus on objects in terms of connections - contrary to the Galois connections used in Formal Concept Analysis and lattice theory - and partial as many clustering algorithms only split the input once into a set of subsets instead of exploring all sets for a given rule recursively.
 There are also algorithms constructing Concept lattices, but those may be too restrictive for noisy applications and exponential in run time\cite{doi:10.1111/j.1467-8640.1995.tb00031.x}. A class of clustering algorithms called hierarchical clustering algorithms is in the latter respect more similar to Formal Concept Analysis as sets of hierarchically ordered clusters are constructed.
-The second class of clustering algorithms is non-hierarchic and produces so called flat clusters, i.e. only one partition level.
+The second class of clustering algorithms is non-hierarchic and produces so called flat clusters, i.e. only one partition level. This distinction between hierarchical and non-hoerarchical approaches is a narrow view on the wide field of clustering algorithms, a brief but broader overview is given in the following.
 
-
-
-\subsection{Taxonomy}\label{\positionnumber}
-Taxonomies\note{sometimes also referred to as concept hierarchy} organize observations into hierarchical classification schemes. A Taxonomy groups a set of objects depending on their properties and are able to represent sub- and super-ordinations as well as inheritance. An example are biological taxonomies, grouping animnals and plants into domains, Kingdoms, Phyla, Classes, and so on~\cite{Krcmar2015, han2011data}. A Taxonomy can also be seen as a hierarchy of labels, associated with certain concepts. \\
-\marginfigure{img/taxonomy_ex.png}{taxonomy}{This graph scetches the main taxonomic ranks in biology \cite{TaxonomicRankGraph}}{-2cm}
-More formally a taxonomy of a formal context $\mathcal{K} = (O, A, I)$ can be defined as sets of well-structured hierarchically ordered clusters. The term well-structured means here well-structured according to the practical application. E.g. a taxonomy of animals where each hierarchically ordered cluster only contains one element less as the above would be hierarchically ordered but not convenient in practice. A dendrogram is such a hierarchy that is not a usable taxonomy.
-
-
-\subsection{Categories of Clustering Methods}\label{\positionnumber}
+\subsection{Approaches}\label{\positionnumber}
 Different surveys list different taxonomies and categories of clustering algorithms. In the following we are going to consider the ones discussed in \cite{han2011data} and \cite{overview_clust}.
+% TODO Redo yourself, applied to used methods
 \fig{img/taxonomy_clustering_han.png}{taxonomy_han}{A taxonomy of clustering algorithms and some examples for each class according to Han et al.~\cite{han2011data}}{1}
-Han et al. compares the different methods by the representations used for data. Emphasizing that the proposed categories overlap, they define the following ones, depicted in fig. \ref{fig:taxonomy_han}:
+Han et al. compares the different methods by the representations used for data. Emphasizing that the proposed categories overlap, they define the following ones, depicted in fig. \ref{fig:taxonomy_han}\note{There are further classes like bi-clustering, evolutionary approaches and grid-based methods. Those are not used in the present work, but a breif description is provided in the appendix}:
 \begin{itemize}
     \item \textbf{Partitioning methods:} Partition the objects into k disjoint groups. The input is partitioned only once producing a flat clustering. The requirement of disjoint groups may be relax for fuzzy clustering and related methods. Many partitioning algorithms use distance-based semantics, comparing the set of attributes of an object $A_{o}$ element-wise, calculating the distance between those values with respect to a certain scale and metric\note{e.g. Minkowski-distance for numeric attributes that may be interpreted geometrically as points in a space~\cite{THEODORIDIS2009701} or Jaccard-distance for a set of binary attributes~\cite{DBLP:journals/corr/Kosub16}}. Often partition-based methods use one or more prototypes to compare to when assigning a cluster to an object and tend to find rather spherically shaped clusters. \\
+    
     \item \textbf{Hierarchical methods:} Merges (agglomerative) or splits (divisive) sets of objects recursively until all objects are assigned once in each level of the tree. Classic linkage-based approaches produce so called dendrograms \marginfigure{img/dendro_ex.png}{exdendro}{An example dendrogram.~\cite{dendroex}}{0cm} For an example see fig. \ref{fig:exdendro}. Hierarcical clustering can also be applied as a post-processing step of other methods in order to construct a hierarchy, which is one of the things that will be applied in the later chapters. \\
+    
     \item \textbf{Density-based methods} use a combination of distance and neighbourhood to identify dense regions which are recognized as clusters, separated by less dense regions. Density-based methods may recognize outliers (single objects in low density regions) and naturally assign a quality measure to each cluster - it's density. Most density based methods produce flat clusters but there are extensions that append hierarchical clustering at the end to provide hierarchies (e.g. OPTICS and HDBSCAN), which will be elaborated on further in the former part of chapter 3. Also these methods are able to find not only spherical but arbitrarily shaped clusters.  \\
     
-    \item \textbf{Grid-based methods} construct a grid on the space to cluster that may be scaled to produce clusters in multiple resolutions. Most grid-based methods have a fast processing time as they are typically independent of the number of data objects but rather on the space the objects span.
-    \item \textbf{Model-based methods} are all approaches that use or construct a model to cluster instances. An example is the Gaussian Mixture Model that is the most common variant used with expectation maximization to estimate the mean and varience or in different terms the center and radius of blob-shaped clusters. In this category are also Self-Organizing Maps and other neural network-based approaches, as all these assume a certain model how the neurons shall learn weights between layers. An Example can be seen in fig. \ref{fig:websom}.\fig{img/websom.png}{websom}{The Websom architecture used in Kohonens highly cited (24543 citations in November 2019) "Exploration of very large databases by self-organizing maps"~\cite{kohonen1997exploration}}{0.5}. \\
+    \item \textbf{Model-based methods} are all approaches that use or construct a model to cluster instances. An example is the Gaussian Mixture Model that is the most common variant used with expectation maximization to estimate the mean and varience or in different terms the center and radius of blob-shaped clusters. In this category are also Self-Organizing Maps and other neural network-based approaches, as all these assume a certain model how the neurons shall learn weights between layers.  \\
     Another class of methods that is model-oriented are the conceptual clustering algorithms, first introduced by Stepp and Michalski~\cite{michalski1983learning}. Conceptual clustering algorithms construct a description along with the clustering of objects. We will focus on this method in the latter part of chapter 3.
-    \item \textbf{Bi-clustering methods} sometimes also referred to as subspace clustering clusters at the same time the objects and one class of attributes (or in the terms of Formal Concept Analysis all attributes of in the same scaling context). It is closely related to formal concept analysis as described by\cite{ignatov2012concept} and may be thought of as grouping both the columns and the rows of a table concurrently. It is a very common technique in clustering gene expression data~\cite{PONTES2015163}. An example of is given in fig. \ref{fig:biclust}. \fig{img/bicluster.jpg}{biclust}{An example of biclustering on gene expression data~\cite{PONTES2015163}.}{0.5}
 \end{itemize}
 
 
-Jain et al. add another important class of algorithms:
-\begin{itemize}
-    \item \textbf{Evolutionary and search-based methods} improve \textit{incrementally} with every iteration on a certain objective function. Search-based methods are generally all methods that optimize a objective function, but emphasize the nature of the problem as being a search for certain solution. This is probably the class with the largest overlap, as many clustering algorithms are also search-based, i.e. try to find an optimal solution. \\
-    Evolutionary or genetic algorithms search the space by 
-    \begin{enumerate}
-        \item applying random alternations (mutation) or combinations of previous clusters to generate new clustering candidates.
-        \item evaluating the so generated clustering candidates against the objective function.
-        \item selecting a subset of the evaluated candidates, possibly introducing randomness and other tools to sample from different regions of the search space in order not to converge into a local minimum.
-        \item iterate until there is convergence or stopping criteria are satisfied.
-    \end{enumerate}
-    All of these steps may be adapted to a certain setting. It is a common approach to combine evolutionary algorithms with other techniques e.g. self-organizing maps with evolutionary algorithms~\cite{leng2006design}\note{generally neural networks and evolutionary algorithms or similar constructed markov decision processes (reinforcement learning) are often combined into neural architecture search systems, using stochastic processes to select and vary the already evaluated networks to generate new ones with faster convergence rates to better AUC-scores\cite{kandasamy2018neural}}. Evolutionary algorithms may be seen as Markov chains, as the Markov property holds (each generation only depends on the last one) and each generative operator creates a new candidate solution with each candidate solution having a certain probability depending on the nature of the operation and the probabilities of all generatable candidate solutions of 1 per operator and generation~\cite{Nix1992}. \\
-\end{itemize}
+\subsection{Clustering as a Search}\label{\positionnumber}
+Clustering may be defined as a search for some set of subsets, dividing the input to satisfy some condition or optimizing for a certain metric function e.g. intra-cluster homogeneity and inter-cluster diversity~\cite{Fisher1987}. \\
+\textbf{Search-based methods} improve \textit{incrementally} with every iteration on a certain objective function. Search-based methods are generally all methods that optimize an objective function, but emphasize the nature of the problem as being a search for certain solution. Many clustering algorithms are also search-based, i.e. try to find an optimal solution. \\
+The search space is defined as the power set $2^O$ of the set of all Objects for flat clustering, and in case of hierarchical clustering the power set of each cluster of the tree besides the bottom-most layer\note{that is the layer that has single data instances as clusters}. An example for the former is K-Means, improving the quality of the chosen centroids of the clusters with each iteration. An example for the latter is Cobweb, where in each iteration the category utility is improved. A more concise description of the algorithms is given in the next chapter.
 
-\subsection{Probability Theory}\label{\positionnumber}
+\section{Taxonomy}\label{\positionnumber}
+Taxonomies\note{sometimes also referred to as concept hierarchy} organize observations into hierarchical classification schemes. A Taxonomy groups a set of objects depending on their properties and are able to represent sub- and super-ordinations as well as inheritance. An example are biological taxonomies, grouping animnals and plants into domains, Kingdoms, Phyla, Classes, and so on~\cite{Krcmar2015, han2011data}. A Taxonomy can also be seen as a hierarchy of labels, associated with certain concepts. \\
+\marginfigure{img/taxonomy_ex.png}{taxonomy}{This graph scetches the main taxonomic ranks in biology \cite{TaxonomicRankGraph}}{-2cm}
+More formally a taxonomy can be defined as sets of well-structured hierarchically ordered clusters. The term well-structured means here well-structured according to the practical application. E.g. a taxonomy of animals where each hierarchically ordered cluster only contains one element less as the above would be hierarchically ordered but not convenient in practice. A dendrogram is such a hierarchy that is not a usable taxonomy.
+
+\section{Probability Theory}\label{\positionnumber}
+Probability theory is essential to understand and implement probabilistic model-based approaches like COBWEB~\cite{Fisher1987} and will be used in chapters 3 to 5. \\
 There are many textbooks extensively defining the notations needed in probability theory~\cite{Baron:2013:PSC:2536837, fahrmeir2016statistik}. The following is a summary of the most important terms used in the latter chapters.\\
 
 A \textbf{sample space $\Omega$} is the set of all possible atomic results or outcomes of an experiment. An \textbf{event E} is a subset of the sample space, i.e. a set of elementary results or outcomes\note{As an example the a match day of a soccer league. Each match day 2n teams compete in n matches. The sample space would be all possible results $\Omega = \{ (i,j)| \forall i,j \in \mathbf{N}\}$. An event would e.g. be the set of results of a match day or a partial result.}.  \\
@@ -153,7 +100,6 @@ A \textbf{probability space $\mathcal{P} = (\Omega, \mathfrak{E}, P)$} is a stru
 \end{enumerate}
 $P$ is called the \textbf{probability measure}.
 \vspace{0.5cm}
-
 A \textbf{discrete probability space} is a probability space $(\Omega, \mathfrak{E}, P)$ where 
 \[ \exists E \subseteq \Omega: \forall e \in E: \{e\} \in \mathfrak{E} \wedge \sum_{e \in E} P(\{e\}) = 1\]
 If the probability space is not discrete, it is called \textbf{continuous}. \\

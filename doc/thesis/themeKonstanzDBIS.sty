@@ -117,6 +117,7 @@ citestyle=numeric]{biblatex}
 % Bilder einbinden
 \usepackage{graphicx}
 
+
 % Farben Definition des CD der Uni Konstanz mit dem HSB Modell
 % Dadurch direkte Repraesentation der Saettigung
 \xdefinecolor{seeblau100}{hsb}{0.5409, 1, 0.8784}
@@ -204,8 +205,8 @@ citestyle=numeric]{biblatex}
 \newcommand{\getfontsize}{\setlength{\currentfontsize}{\f@size pt}\the\currentfontsize}
 
 % Setze die Nummerierungstiefe
-\setcounter{secnumdepth}{4}
-\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
 
 
 
@@ -1863,7 +1864,7 @@ Konstanz, \jahr%
 %%%% Figure command
 
 \newcommand{\fig}[4]{
-\begin{figure}[h]
+\begin{figure}[htp]
     \centering
     \includegraphics[width=#4\textwidth, keepaspectratio]{#1}
     \caption{#3}
@@ -1909,6 +1910,7 @@ Konstanz, \jahr%
     }[#5]
 }
 
+\renewcommand{\thefootnote}{\fnsymbol{footnote}} 
 \newcommand{\note}[1]{\footnote{\noindent\textit{#1}}}
 
 

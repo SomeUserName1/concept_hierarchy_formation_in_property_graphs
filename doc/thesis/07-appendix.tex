@@ -1,0 +1,113 @@
+\chapter{Appendix}
+
+\section{An Introduction to Formal Concept Analysis}\label{\positionnumber}
+Lattice Theory and Formal Concept Analysis, the latter developed by Wille~\cite{wille1982restructuring}, has been applied to solve and analyse a wide range of problems e.g. data retrieval, text mining , functional dependency discovery and association rule mining ~\cite{poelmans2012text, soergel1967mathematical, spoerri1993infocrystal, godin1993experimental, godin1993building, carpineto2004exploiting, carpineto2003mining, ganascia1987charade, oosthuizen1988induction, xie2002concept}. \\
+In order to formalize the description of Objects holding key-value pairs one can use fomral concept analysis. Based on lattice theory, formal concept analysis defines a mathematical framework to exactly describe how objects and attributes may be ordered and visualized by Hasse diagrams. The following terminology is a summary of \cite{ganter2012formal}. \\
+
+Let $O, A$ be sets, $I \subseteq (O \times A)$ a relation. We call \textbf{$O$ the set of objects, $A$ the set of attributes and $I$ the composition relation}, assigning attributes to an object\note{As a pair $(o, a)$ either is or is not in $I$ the relation is binary, i.e. Object has Attribute is the only thing we can express by this. In short: The values of attributes here are one-valued or in other words binary (present or not)}. \\
+
+Then the \textbf{formal context $\mathcal{K}$} is given by the triple $\mathcal{C} = (O, A, I)$. 
+
+Let $O_0 \subseteq O$ be a subset of all objects and $A_0 \subseteq A$ be a subset of all attributes then:
+\[ A' = \{ a \in A | \forall o \in O_0: oIa \}  \]
+the set of attributes, that the objects in $O_0$ have in common and 
+\[ O' = \{ o \in O | \forall a \in A_0: oIa \} \]
+the set objects having all attributes in $A_0$. \\
+
+A \textbf{formal Concept $\mathcal{C}$} of the context $\mathcal{K}$ is a pair $(O_i, A_i)$ with $O_i \subseteq O$,  $A_i \subseteq A$ and $O_i = O'$ with respect to $A_i$ and $A_i = A'$ with respect to $O_i$. $O_i$ is called the extent and $A_i$ is called the Intent of the concept $\mathcal{C}$. \\
+
+Let $\mathcal{C}_0 = (O_0, A_0), \mathcal{C}_1 =(O_1, A_1)$ formal concepts of context $\mathcal{K}$.\\
+$\mathcal{C}_0$ is called \textbf{a sub-concept} of $\mathcal{C}_1$, iff $O_0 \subseteq O_1 \wedge A_0 \subseteq A_1$ and we call $\mathcal{C}_1$ the \textbf{super-concept} of $\mathcal{C}_0$. The relation $\leq$ is called hierarchical order and we write $\mathcal{C}_0 \leq \mathcal{C}_1$.  \\
+The \textbf{concept lattice $\mathfrak{B}(\mathcal{K})$} is the set of all concepts of the context $\mathcal{K} =(O, A, I)$ ordered by the relation $\leq$. \\
+
+\fig{img/table_hasse.png}{tablehasse}{Tabular representation of a formal context \cite{ganter2012formal}}{0.6} 
+
+A \textbf{multi-valued Context $\mathcal{K_V} = (O, A, V, I)$} is a context with $O, A$ as in the definition of a simple Context $\mathcal{K}$ above, $V$ is the set of all values and $I \subseteq O \times A \times V$. The values $V$ of the multi-valued context $\mathcal{K_V}$ can be partitioned per attribute and interpreted in a meaningful way using a method called conceptual scaling\note{Conceptual scaling creates a context for each attribute and defines a table that map the possible attributes onto themselves in order to add additional ordering semantics to e.g. cover ordinal, nominal and convex-ordinal scales. The latter corresponds to orderings on the expected values of random variables in stochastic processes.}, which is beyond the scope of this thesis. Just notice that one can easily derive a tabular description by replacing each attribute with the pairs $\forall v_a \in V_a: (a, v_a)$ with $V_a$ of possible values of the attribute $a$. \\
+
+\fig{img/hasse.png}{hasse}{A Hasse-diagram for the above table \cite{ganter2012formal}}{1}
+A context is easily visualizable by a table as in fig. \ref{fig:tablehasse}. Fig. \ref{fig:hasse} shows the Hasse diagram for the example context from the table above. It is the visualization of the concept lattice of the context and maybe intuitively interpreted as a two sided hierarchy (directly following from using Galois connections in the lattice): The top node contains all elements and only attributes that are common to all objects. Descending in the diagram, one gets less objects and larger, more specific attribute sets. If one reads the diagram bottom up, the bottom-most node contains all attributes and either no object or the ones having all attributes Ascending the trees constructs increasingly large clusters of less and less specific objects. Breaking The diagram into two separate that end upon having either just one attribute or one object would yield two hierarchies: 
+\begin{itemize}
+    \item \textbf{Common attributes per object set}\note{Starting from the top-most node the common attribute set is $a$ as all objects have $a$ in common.The rightmost node shows the common attributes for objects $5, 6$.}: Focusing on the Objects and their increasingly larger common attribute sets with decreasing object size. One could formulate this as expected attributes objects have given the concept they're hosted in.
+    \item \textbf{Selectivity per attribute Set}:\note{E.g. The selectivity of all attributes in conjunction is $\frac{0}{8}$, the selectivity of $a$ and $d$ is $\sigma_{a \wedge d} = \frac{4}{8} = 0.5$ and the selectivity of a is $\sigma_a = \frac{8}{8} = 1$.}. Focusing on the attributes, starting with objects that have all attributes and ending with the selectivities of single attributes or the expected number of objects, when querying for a set of attributes
+\end{itemize}
+
+
+The definitions in Formal Concept Analysis are too strict in some places, that's why we're going to relax them a bit to fit to the clustering problem.~\cite{ignatov2012concept}
+
+\section{Other Approaches to Clustering}
+\begin{itemize}
+    \item \textbf{Grid-based methods} construct a grid on the space to cluster that may be scaled to produce clusters in multiple resolutions. Most grid-based methods have a fast processing time as they are typically independent of the number of data objects but rather on the space the objects span.
+    
+    \item \textbf{Bi-clustering methods} sometimes also referred to as subspace clustering clusters at the same time the objects and one class of attributes (or in the terms of Formal Concept Analysis all attributes of in the same scaling context). It is closely related to formal concept analysis as described by\cite{ignatov2012concept} and may be thought of as grouping both the columns and the rows of a table concurrently. It is a very common technique in clustering gene expression data~\cite{PONTES2015163}. An example of is given in fig. \ref{fig:biclust}. \fig{img/bicluster.jpg}{biclust}{An example of biclustering on gene expression data~\cite{PONTES2015163}.}{0.5}
+
+    \item \textbf{Evolutionary or genetic methods} are search-based, searching the space by 
+        \begin{enumerate}
+            \item applying random alternations (mutation) or combinations of previous clusters to generate new clustering candidates.
+            \item evaluating the so generated clustering candidates against the objective function.
+            \item selecting a subset of the evaluated candidates, possibly introducing randomness and other tools to sample from different regions of the search space in order not to converge into a local minimum.
+            \item iterate until there is convergence or stopping criteria are satisfied.
+        \end{enumerate}
+        All of these steps may be adapted to a certain setting. It is a common approach to combine evolutionary algorithms with other techniques e.g. self-organizing maps with evolutionary algorithms~\cite{leng2006design}\note{generally neural networks and evolutionary algorithms or similar constructed markov decision processes (reinforcement learning) are often combined into neural architecture search systems, using stochastic processes to select and vary the already evaluated networks to generate new ones with faster convergence rates to better AUC-scores\cite{kandasamy2018neural}}. Evolutionary algorithms may be seen as Markov chains, as the Markov property holds (each generation only depends on the last one) and each generative operator creates a new candidate solution with each candidate solution having a certain probability depending on the nature of the operation and the probabilities of all generatable candidate solutions of 1 per operator and generation~\cite{Nix1992}.
+\end{itemize}
+
+
+
+\section{Taxonomy Extraction example}
+\begin{minipage}{0.4\textwidth}
+$C_{14} = C_0 \cup C_2$, with distance 1 \\
+$C_{15} = C_1 \cup C_14$, with distance 1 \\
+$C_{16} = C_3 \cup C_15$, with distance 1 \\
+$C_{17} = C_5 \cup C_7$, with distance 1 \\
+$C_{18} = C_6 \cup C_17$, with distance 1 \\
+$C_{19} = C_4 \cup C_18$, with distance 1 \\
+$C_{20} = C_8 \cup C_19$, with distance 1 \\
+$C_{21} = C_9 \cup C_11$, with distance 1 \\
+$C_{22} = C_12 \cup C_21$, with distance 1 \\
+$C_{23} = C_13 \cup C_22$, with distance 1 \\
+$C_{24} = C_16 \cup C_20$, with distance 2 \\
+$C_{25} = C_23 \cup C_24$, with distance 2 \\
+$C_{26} = C_10 \cup C_25$, with distance 2 \\
+\end{minipage} \hfill
+\begin{minipage}{0.4\textwidth}
+$[[ 0.,  2.,  1.]$ \\
+ $[ 1., 14.,  1.]$\\
+ $[ 3., 15.,  1.]$\\
+ $[ 5.,  7.,  1.]$\\
+ $[ 6., 17.,  1.]$\\
+ $[ 4., 18.,  1.]$\\
+ $[ 8., 19.,  1.]$\\
+ $[ 9., 11.,  1.]$\\
+ $[12., 21.,  1.]$\\
+ $[13., 22.,  1.]$\\
+ $[16., 20.,  2.]$\\
+ $[23., 24.,  2.]$\\
+ $[10., 25.,  2.]]$ \\
+\end{minipage} \\
+
+\begin{minipage}{0.4\textwidth}
+$[$\\
+    $[[ 0.,  2.,  1.,  3.], 1]$\\
+    $[[ 5.,  7.,  6.,  4.,  8.], 1]$\\
+    $[[ 9., 11.,  12.,  13. ], 1]$\\
+    $[[16.,  20.,  23.,  10.], 2]$  \\        
+$]$\\
+\end{minipage}  \hfill
+\begin{minipage}{0.4\textwidth}
+$C_{16} = C_0 \cup C_2 \cup C_1 \cup C_3$, with distance 1 \\  
+$C_{20} = C_5 \cup C_7 \cup C_6 \cup C_4 \cup C_8$, with distance 1 \\ 
+$C_{23} = C_9 \cup C_{11} \cup C_{12} \cup C_{13}$, with distance 1 \\ 
+$C_{26} = C_{16} \cup C_{20} \cup C_{23} \cup C_{19}$, with distance 2 \\         
+\end{minipage} 
+
+
+
+%%%%%%% TODO: Maybe set theory here
+
+%\section{Definitions}\label{\positionnumber}
+%In order to elaborate on the methods and results, some concepts, terms and notations need to be defined in the following.
+%\section{Graph Database}\label{\positionnumber}
+%A database management system is a  software system that assists users to  maintain and utilize large amounts of data ~\cite{Ramakrishnan:2002:DMS:560733}.
+%A \textbf{graph database management system}, henceforth graph database, is a database management system which uses a graph structure as model to represent data~\cite{neo4j_book}, e.g. the Resource Description Framework or the Property Graph Model. Fig. \ref{fig:neo4jarch} shows the high level architecture of the graph database Neo4J. \\
+%\marginfigure{img/neo4j_arch.png}{neo4jarch}{High level architecture of the Graph database Neo4J. \cite{neo4j_book}}{-6cm}
+
+

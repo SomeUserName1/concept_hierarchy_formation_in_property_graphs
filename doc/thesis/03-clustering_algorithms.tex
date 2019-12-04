@@ -1,0 +1,80 @@
+\chapter{Algorithms}\label{\positionnumber}
+% TODO use examples from presentation & yelp dataset
+
+\section{Hierarchical Clustering Algorithms}\label{\positionnumber}
+Model-free hierarchical clustering algorithms may be divided into \textbf{agglomerative and divisive methods}~\cite{han2011data}. Agglomerative methods start with each data instance beeing a cluster and merges in all subsequent steps 2 clusters at a time in a bottom-up fashion. Divisive methods start with all instances beeing in the same cluster and splits them consecutively top-down. We are going to focus on the agglomerative methods as there are computational challenges inherent to divisive clustering that agglomerative clustering does not have\note{There are $2^{n-1}-1$ possible ways to partition a set of n elements into 2 sets and in divisive clustering one needs to heuristically choose a partitioning. Backtracking could improve the performance but this is not scalable and may end up in exponential runtime.\cite{han2011data}}~\cite{han2011data}. \\
+
+\subsection{Hierarchical Agglomerative Clustering}\label{\positionnumber}
+Agglomerative methods need a measure for the distance between two clusters. The most common choices are with $C_i, C_j$ clusters:
+\begin{itemize}
+    \item \textbf{Minimum distance}, also called \textbf{Single Linkage}: 
+    \[d_{\text{min}}(C_i, C_j) = \min_{e_1 \in C_i, e_2 \in C_j} |e_1 - e_2|\]
+    \item \textbf{Maximum distance}, also called \textbf{Complete Linkage}: 
+    \[d_{\text{max}}(C_i, C_j) = \max_{e_1 \in C_i, e_2 \in C_j} |e_1 - e_2|\]
+    \item \textbf{Average distance}, also called \textbf{Average Linkage}: 
+    \[d_{\text{avg}}(C_i, C_j) = \frac{1}{|C_i| \cdot |C_j|} \sum_{e_1 \in C_i, e_2 \in C_j} |e_1 - e_2|\]
+\end{itemize}
+There are also the centroid distance, computing the distance from the mean elements of each cluster and Ward's method but those use the notion of the mean element (or the center of gravity of the cluster) which is not directly applicable for binary attributes\note{One could use fuzzy logic in order to provide a mean with non-crisp attributes in order to apply the other two distances~\cite{kruse2016computational}.} \cite{mirkin2013mathematical, han2011data}. A visualization of the distances is shown in fig. \ref{fig:agglo_dist}.
+\fig{img/agglo_distance.png}{agglo_dist}{The different distance functions visualized}{0.7} \\
+The algorithm proceeds as follows: 
+\begin{enumerate}
+    \item initialize all data objects as own clusters
+    \item compute the cluster distance matrix by computing the chosen distance function pairwise for all clusters
+    \item remove and merge the two clusters with the minimal distance with respect to the chosen distance function. add the new cluster to the list of clusters
+    \item if there are more than 2 elements in the set of clusters continue with step 2\note{Alternatively one can specify the amount of clusters that are desired - as the parameter k in K-Medians as a stopping criterion}. 
+\end{enumerate}
+\begin{algorithm}[htp]
+    \KwIn{A matrix $M$ of shape $|O| \times |A|$ with $m_{o,a} \in \{0, 1\}$}
+    \Parameters{Distance function d}
+    \KwOut{A linkage matrix $lM$}
+    \Begin{
+        List cluster $\rightarrow$ initializeObjectsAsOwnCluster(M)\;
+        \While{cluster.size() > 2)}{
+            dM $\rightarrow$ computePairwiseDistance(cluster)\;
+            m1, m2 $\rightarrow \text{argmin}_{r_1, r_2 \in \text{dM}}(r_1, r_2)$\;
+            cluster $\rightarrow (cluster \setminus m1 \setminus m2) \cup (m_1 \cup m_2)$
+        }
+        return cluster
+    }
+\caption{Hierarchical Agglomerative Clustering}\label{agglo}
+\end{algorithm}
+
+\subsection{Robust Single Linkage}\label{\positionnumber}
+Wishart~\cite{wishart1969256} developed a version of single linkage that is more tolerant to noise, that was generalized by \cite{Chaudhuri2010RatesOC}, called Robust Single Linkage. It considers the local density of the merged points and only merges dense regions at the lower levels. Intuitively it works as follows:
+\begin{itemize}
+    \item For each object in the data set compute $r_k(x_i) $the largest lower bound (infimum) with respect to $r$ such that $k$\note{a given parameter} other data objects have a lower distance than $r$ to the current object, i.e. the smallest ball radius in the distance matrix of radius r which includes k or more data objects
+    \item for $r=0$ to $\infty$ construct $G_r = (\{x_i \in X | r_k(x_i) \leq r\}, \{i \neq j: (x_i, x_j) \in X \times X | ||x_i - x_j|| \leq \alpha r\})$ with $\alpha$ a given parameter
+\end{itemize}
+% TODO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Multi-phase Approaches}\label{\positionnumber}
+% TODO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The two step approaches first use a non-hierarchical algorithm in order to derive basic clusters in order to apply hierarchical clustering atop of the output of the non-hierarchical algorithm. This results not only in a performance gain but also yields a smaller and thus more interpretable dendrogram. In the following a subset of the evaluated algorithms is described. 
+\subsection{Non-Hierarchical Clustering}
+\subsubsection{K-Medians}\label{\positionnumber}
+\subsubsection{TTSAS}\label{\positionnumber}
+\subsubsection{Self-organizing Map}\label{\positionnumber}
+
+\subsection{Subsequent Hierarchical Clustering}
+This also yields problems: When the first clustering procedure was applied, one needs to (re-)construct a feature description of the cluster so that the hierarchical clustering algorithm can calculate the distance of clusters. One option is to take the intersection of the category sets of the elements in the clusters. Another option is to construct a probabilistic description  of the feature sets. 
+
+\subsection{OPTICS}\label{\positionnumber}
+\subsection{HDBSCAN}\label{\positionnumber}
+
+
+
+\section{Conceptual Clustering}
+\subsection{Cobweb}\label{\positionnumber}
+\subsection{Extensions of Cobweb}
+\subsubsection{Cobweb/3}
+\subsubsection{Labyrinth}
+\subsubsection{Trestle}
+
+
+\section{Feature Extraction}
+\subsection{Characteristic Sets}
+\subsection{Recursive Feature Extraction}
+\subsection{Role Extraction}
+\subsection{Label-based Feature Extraction}

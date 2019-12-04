@@ -18,26 +18,11 @@
 
 \begin{document}
 
-% Keep the focus
-% Sell yourself (what was hard,...)
-% dont overdo it 
-
-% Makro für nicht gefundene zitationen mit warning wenn unbedingt nötig
-% sonst todo
-
-% Related work separate
-% Dont overdo it, dont define too much notation
-% KISS, only use notation when needed extensively
-% Related work: project stuff and why not working; onnly competitors that do the same thing
-% bachground 
-% Write about EVERYTHING: Methods include all the bachelor project things
 
 \newgeometry{left=2.5cm, right=2.5cm, bottom=2cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=22pt}
-% Schmutztitel als poster
 \thesistitlepage[language=english]{Bachelor Thesis}
 \newpage
-\cleardoublepage
-% Table of Contents           
+\cleardoublepage       
 \tableofcontents
 
 \restoregeometry
@@ -48,11 +33,12 @@
 
 \include{01-introduction}
 \include{02-background}
-\include{03-algo_selection}
-\include{04-graph-aware-method}
-\include{05-conclusions}
+\include{03-clustering_algorithms}
+\include{04-label_inference}
+\include{05-evaluation}
+\include{06-conclusions}
 
+\include{07-appendix}
 \newgeometry{left=2.5cm, right=2.5cm, bottom=2cm, top=2.5cm,headheight=12pt, headsep=0.8cm, footskip=22pt}
-\include{06-appendix}
 \printbibliography
 \end{document}
