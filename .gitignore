@@ -6,7 +6,7 @@ target/
 /neo4j-concept/src/test/resources/
 /data/
 /doc/img/
-/src_project/main/python/__pycache__/
+/src/main/python/__pycache__/
 *.log
 *.aux
 *.loc
@@ -18,3 +18,10 @@ target/
 *.blg
 *.bbl
 *.synctex.gz
+/gradlew
+/gradlew.bat
+/build/
+/.gradle/
+/gradle/
+/out/
+/target/
