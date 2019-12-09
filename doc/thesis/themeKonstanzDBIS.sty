@@ -105,10 +105,11 @@ citestyle=numeric]{biblatex}
 % Mathe und algos
 \usepackage{amssymb}
 \usepackage{amsmath}
-\usepackage[linesnumbered,algoruled,boxed,lined]{algorithm2e}
+\usepackage[algoruled,boxed,vlined]{algorithm2e}
 \SetKwInOut{Parameters}{Parameters}
 \SetKwFor{For}{for}{do}{}
 \SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{} 
+\newcommand{\hrulealg}[0]{\vspace{1mm} \hrule \vspace{1mm}}
 
 % Randnotizen und Bilder für tufte style
 \usepackage[side]{footmisc}

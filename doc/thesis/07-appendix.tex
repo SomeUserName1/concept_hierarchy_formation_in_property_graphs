@@ -50,8 +50,316 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
         All of these steps may be adapted to a certain setting. It is a common approach to combine evolutionary algorithms with other techniques e.g. self-organizing maps with evolutionary algorithms~\cite{leng2006design}\note{generally neural networks and evolutionary algorithms or similar constructed markov decision processes (reinforcement learning) are often combined into neural architecture search systems, using stochastic processes to select and vary the already evaluated networks to generate new ones with faster convergence rates to better AUC-scores\cite{kandasamy2018neural}}. Evolutionary algorithms may be seen as Markov chains, as the Markov property holds (each generation only depends on the last one) and each generative operator creates a new candidate solution with each candidate solution having a certain probability depending on the nature of the operation and the probabilities of all generatable candidate solutions of 1 per operator and generation~\cite{Nix1992}.
 \end{itemize}
 
+\section{Pseudo-Code for Chapter 3: Algorithms}
+\subsection{Hierarchical Clustering}
+\subsubsection{Hierarchical Agglomerative Clustering}
+\begin{algorithm}[htp]
+    \KwIn{A distance matrix $dM$ of shape $|O| \times |O|$}
+    \Parameters{Distance function d}
+    \KwOut{A linkage matrix $lM$}
+    \hrulealg
+    \Begin{
+        List cluster $\rightarrow$ initializeObjectsAsOwnCluster(M)\;
+        \While{cluster.size() > 2}{
+            m1, m2 $\rightarrow \text{argmin}_{r_1, r_2 \in \text{dM}}d(r_1, r_2)$\;
+            cluster $\rightarrow (cluster \setminus m1 \setminus m2) \cup (m_1 \cup m_2)$
+            dM $\rightarrow$ computePairwiseDistance(cluster)\;
+        }
+        \Return cluster\;
+    }
+\caption{Hierarchical Agglomerative Clustering}\label{agglo}
+\end{algorithm}
+\subsubsection{Robust Single Linkage}
+\begin{algorithm}[htp]
+    \KwIn{A distance matrix $distM$ of shape $|O| \times |O|$}
+    \Parameters{$k$ the number of neighbouring points, $\alpha$ the inverse density}
+    \KwOut{A linkage matrix $lM$}
+    \hrulealg
+    \Begin{
+        Stack Clustering = new Stack\;
+        \For{$o_i \in O$}{
+            $r_k[o_i] = inf(\{r | k \leq |B(o_i, r)| \})$\;
+        }
+        $r \rightarrow 0$\;
+        \While{Clustering.peek().size()$ > 1$}{
+            Construct $G_r = (V_r, E_r)$ with $V_r = \{x_i \in X | r_k(x_i) \leq r\}$ and $E_r = \{i \neq j: (x_i, x_j) \in X \times X | \ ||x_i - x_j|| \leq \alpha r\}$\;
+            Clusterings.push(connectedComponents($G_r$))\;
+            $r++$\;
+        }
+        \Return Clustering\;
+    }
+\caption{Robust Single Linkage Clustering}\label{robust}
+\end{algorithm}
 
+\subsection{Partition-based Methods}
+\subsubsection{K-Means}
+\begin{algorithm}[htp]density based spatial clustering 
+    \KwIn{A Set of data objects $O$}
+    \Parameters{$k$ the number of clusters}
+    \KwOut{A set of $k$ clusters}
+    \hrulealg
+    \Begin{
+        \For{$i = 0, \dots, k-1$}{
+            Centroid $c_k \leftarrow$ Chose $k$ objects at random\;
+        }
+        \While{Objective function did not converge}{
+            \For{$o_i \in O\setminus \{c_1, \dots c_k\}$}{
+                Centroid closestCentroid = $\{c_i \in \{c_1, \dots, c_k\} | \text{argmin}_{c_i \in \{c_1, \dots, c_k\}} d(o_i, c_i)\}$
+                Cluster($o_i$) = Cluster(closestCentroid)\;
+            }
+            \For{C $\in$ Clusters}{
+                Update Centroids to the means of all objects in the cluster per feature\;
+            }
+        }
+        \Return Clusters\;
+    }
+\caption{k-Means Clustering}\label{kmeans}
+\end{algorithm}
+\subsubsection{TTSAS}
+\begin{algorithm}[htp]
+    \KwIn{A Set of data objects $O$}
+    \Parameters{$\Theta_1$ the maximal distance threshold, $\Theta_2$ the minimal distance threshold}
+    \KwOut{A set of $k$ clusters}
+    \hrulealg
+    \Begin{
+        \For{$o_i \in O$}{
+            categorized[$o_i$] = 0\;
+        }
+        k = 0 \tcp*[r]{The number of clusters}
+        prev = 0    \tcp*[r]{previous iteration's change}
+        curr = 0    \tcp*[r]{current iteration's change}
+        exist = 0   \tcp*[r]{overall change}
+        \While{$\exists o_i \in O:$ categorized[$o_i$] == 0}{
+            \For{i = 1 to N}{
+                \uIf{categorized[$o_i$] == 0 $\wedge$ exist$ == 0 \wedge o_i$ is the first element in the new iteration of the while loop }{
+                k $\leftarrow$ k + 1\;
+                $C_m = \{o_i\}$\;
+                categorized[$o_i$] = 1\;
+                curr = curr + 1\;
+                }
+                \uElseIf{categorized[$o_i$] == 0}{
+                    min\_dist, min\_dist\_cluster = $\{d(o_i, C_i), C_i | \text{argmin}_{C_i \in \{C_0, \dots, C_{k- 1}\}} d(o_i, C_i)\}$\;
+                    \uIf{min\_dist $< \Theta_1$}{
+                        min\_dist\_cluster = min\_dist\_cluster $\cup \{o_i\}$\;
+                        categorized[$o_i$] = 1\;
+                        curr = curr + 1\;
+                    }
+                    \ElseIf{min\_dist $> \Theta_2$}{
+                        k $\leftarrow$ k + 1\;
+                        $C_m = \{o_i\}$\;
+                        categorized[$o_i$] = 1\;
+                        curr = curr + 1\;
+                    }
+                }
+                \ElseIf{categorized[$o_i$] == 1}{
+                    curr = curr + 1\;
+                }
+            }
+            exists\_change = |current\_change - previous\_change|\;
+            previous\_change = current\_change\;
+            current\_change = 0\;
+        }
+        \Return clusters\;
+    }
+\caption{Two-Threshold Sequential Algorithmic Scheme Clustering}\label{ttsas}
+\end{algorithm}
 
+\subsection{Density-based Methods}
+\subsubsection{DBSCAN}
+
+\begin{algorithm}[htp]
+    \KwIn{A Set of data objects $O$, $o_i$ the currently expanded point, cluster[] the array storing the object to cluster mapping}
+    \Parameters{$\epsilon$ the radius of the neighbourhood, MinObjects the minimal number of neighbours of a core point, cluster\_id the id of the cluster to be used}
+    \KwOut{A boolean indicating weather a new cluster was formed}
+    \hrulealg
+    \Begin{
+    seeds $\leftarrow \{o_j \in O\setminus \{o_i\} | d(o_i, o_j) \leq \epsilon \}$\;
+       \uIf{seeds.size < MinObjects}{
+            \Return False\;
+       }
+       \Else{
+            \For{seed in seeds}{
+                cluster[seed] = cluster\_id\;
+            }
+            \While{seeds $\neq \emptyset$}{
+                currentSeed $\leftarrow$ seeds.pop()\;
+                currentSeedNeigh = $\leftarrow \{o_j \in O\setminus \{\text{currentSeed}\}| d(o_i, o_j) \leq \epsilon \}$\;
+                
+                \If{currentSeedNeigh.size $\geq$ MinObjects}{
+                    \For{$i = 1, \dots, $ currentSeedNeigh.size}{
+                        currentResult = currentSeedNeigh[i]\;
+                        \If{cluster[currentResult] == -1 $\vee$ cluster[currentResult] == 0 \tcp*[r]{i.e. currentResult is unclassified or noise}}{
+                            cluster[currentResult] = cluster\_id\;
+                            \If{cluster[currentResult] == -1 \tcp*[r]{unclassified}} {
+                                seeds.append(currentResult)\;
+                            }
+                        }
+                    }
+                }
+            }
+            \Return True\;
+       }
+    }
+\caption{Expand Cluster method}\label{expand_cluster}
+\end{algorithm} 
+
+\begin{algorithm}[htp]
+    \KwIn{A Set of data objects $O$}
+    \Parameters{$\epsilon$ the radius of the neighbourhood, MinObjects the minimal number of neighbours of a core point}
+    \KwOut{A set of $k$ clusters}
+    \hrulealg
+    \Begin{
+        \For{$o_i \in O$ }{
+            cluster[$o_i$] $\leftarrow$ -1 \tcp*[r]{All objects are unclassified at the start}
+        }
+       cluster\_id = nextId(NOISE)\;
+       \For{$o_i \in O$}{
+            \If{cluster[$o_i$] == -1}{
+                \If{expand\_cluster($O$, $o_i$, cluster, cluster\_id, $\epsilon$, MinObjects)}{
+                    cluster\_id = nextInt(cluster\_id)\;
+                }
+            }
+       }
+    }
+\caption{Density-based Spatial Clustering of Applications with Noise}\label{dbscan}
+\end{algorithm}
+\subsubsection{OPTICS}
+
+\begin{algorithm}[htp]
+    \KwIn{A Set of data objects $O$, $o_i$ the currently expanded point}
+    \Parameters{$\epsilon$ the radius of the neighbourhood, MinObjects the minimal number of neighbours of a core point, OrderedFile the file to write the cluster ordering to}
+    \KwOut{None}
+    \hrulealg
+    \Begin{
+    seeds $\leftarrow \{o_j \in O\setminus \{o_i\} | d(o_i, o_j) \leq \epsilon \}$\;
+    $o_i$.processed $\leftarrow$ 1\;
+    $o_i$.reachability\_distance = UNDEFINED\;
+    $o_i$.setCoreDistance(seeds, $\epsilon$, MinObjects)\;
+    OrderedFile.write($o_i$)\;
+       \If{$o_i$.core\_distance $\neq$ UNDEFINED}{
+       OrderSeeds.update(seeds, $o_i$)\;
+            \While{OrderSeed $\neq \emptyset$}{
+                currentSeed $\leftarrow$ seeds.next()\;
+                seeds = $\leftarrow \{o_j \in O\setminus \{\text{currentSeed}\}| d(o_i, o_j) \leq \epsilon \}$\;
+                currentSeed.preprocessed = 1\;
+                currentSeed.setCoreDistance(seeds, $\epsilon$, MinObjects)\;
+                OrderedFile.write(currentSeed)\;
+
+                \If{currentSeed.core\_distance $\neq$ UNDEFINED}{
+                    OrderSeeds.update(seeds, currentSeed)\;
+                }
+            }
+       }
+    }
+\caption{Expand Cluster Order method}\label{expand_cluster_order}
+\end{algorithm}
+
+\begin{algorithm}[htp]
+    \KwIn{neighbours a set of neighbour objects, $o_i$ the current center object}
+    \Parameters{None}
+    \KwOut{None}
+    \hrulealg
+    \Begin{
+        c\_dist = $o_i$.core\_distance\;
+        \For{$o_j \in$ neighbours}{
+            \If{$o_j$.processed == 0}{
+                new\_r\_dist = max(c\_dist, $o_i$.dist($o_j$))\;
+                \uIf{ $o_j$.reachability\_distance == UNDEFINED}{
+                    $o_j$.reachability\_distance = new\_r\_dist\;
+                    insert($o_j$, new\_r\_dist)\;
+                    }
+                \Else{
+                    \If{ new\_r\_dist $< o_j$.reachability\_distance}{
+                        $o_j$.reachability\_distance = new\_r\_dist\;
+                        decrease($o_j$, new\_r\_dist)\;
+                    }
+                }
+            }
+        }
+    }
+\caption{OrderSeeds.update method}\label{order_seeds_update}
+\end{algorithm}
+
+\begin{algorithm}[htp]
+    \KwIn{A Set of data objects $O$}
+    \Parameters{$\epsilon$ the radius of the neighbourhood, MinObjects the minimal number of neighbours of a core point, OrderedFile a file to write to}
+    \KwOut{An Ordering of the clusters in the database with different densities} 
+    \hrulealg
+    \Begin{
+        OrderedFile.open()\;
+        \For{$o_i \in O$ }{
+            $o_i$.processed $\leftarrow$ 0\;
+        }
+        \For{$o_i \in O$}{
+            \If{processed[$o_i$] == 0}{
+                expand\_cluster\_order($O$, $o_i$, $\epsilon$, MinObjects, OrderedFile)\;
+            }
+       }
+       OrderedFile.close()\;
+    }
+\caption{Ordering Points To Identify Cluster Structure}\label{optics}
+\end{algorithm}
+\subsubsection{HDBSCAN}
+\begin{algorithm}[htp]
+    \KwIn{A Set of data objects $O$}
+    \Parameters{MinObjects the minimal number of neighbours of a core point}
+    \KwOut{A dendrogram}
+    \hrulealg
+    \Begin{
+        \For{$o_i \in O$ }{
+            copute the core distance wrt. MinObjects\;
+        }
+        Build the mutual reachability graph $G_{\text{MinObjects}}$\;
+        Build the minimum spanning tree of $G_{\text{MinObjects}}$\;
+        Add a self-edge for each vertex $v_{o_i}$ in the minimal spanning tree with weight $d_{\text{core}}(o_i)$\;
+        
+        Assign all objects the same label \tcp*[r]{this forms the root of the dendrogram}
+        \While{$G_{\text{MinObjects}}$ has edges}{
+            Set the dendrogram scale value of the current level in the hierarchy to the largest edge weight which is to be removed\;
+            Remove the largest edge(s)\;
+            Assign a label to the connected component, that contained the end vertices of the removed edge(s)\;
+            If the end vertices are not in a connected component assign the noise label to those\;
+        }
+    }
+\caption{Hierarchical Density-based Spatial Clustering of Applications with Noise}\label{hdbscan}
+\end{algorithm}
+
+\subsection{Conceptual Clustering}
+\subsubsection{Cobweb}
+\begin{algorithm}[htp]
+    \KwIn{An object $o_i \in O$}
+    \Parameters{node the node currently visiting}
+    \KwOut{A hierarchy of clusters with concept descriptions}
+    \hrulealg
+    \Begin{
+        updateCounts(node, $o_i$)\;
+        \uIf{node is a leaf}{
+            node.add\_child($o_i$)\;
+        }
+        \Else{
+            host, host\_cu = find the child of node, that best hosts $o_i$\;
+            new\_class\_cu = probeCreateNewClass($o_i$)\;
+            merge\_cu = probeMerge(host, $o_i$)\;
+            split\_cu = probeSplit(host)\;
+            max\_cu = $\max(\text{new\_class\_cu}, \text{merge\_cu}, \text{split\_cu}, \text{host\_cu})$\;
+            \uIf{max\_cu $==$ new\_class\_cu}{
+                createNewClass($o_i$)\;
+            }
+            \uElseIf{max\_cu $==$ merge\_cu}{
+                merged\_node = merge(host, $o_i$)\;
+                COBWEB($o_i$, merged\_node)\;
+            }
+            \uElseIf{max\_cu == split\_cu}{
+                split(host)\;
+                COBWEB($o_i$, node)\;
+            }
+            \Else{
+            COBWEB($o_i$, host)
+            }
+        }
+    }
+\caption{COBWEB}\label{cobweb}
+\end{algorithm}
 \section{Taxonomy Extraction example}
 \begin{minipage}{0.4\textwidth}
 $C_{14} = C_0 \cup C_2$, with distance 1 \\
