@@ -9,7 +9,6 @@ import seaborn as sns
 from concept_formation.cluster import cluster
 from concept_formation.trestle import TrestleTree
 from concept_formation.visualize import visualize as visualize_trestle
-from concept_formation.visualize import visualize_clusters as visualize_trestle_clusters
 # When you want to run this you need to recompile hdbscan: go to lib/hdbscan folder & run python3 setup.py install
 from hdbscan import HDBSCAN, RobustSingleLinkage
 from scipy.cluster.hierarchy import single
@@ -18,9 +17,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 from algorithm_search_wrapper import *
 from data_loader import load, preprocess_trestle_yelp, preprocess_trestle_synthetic
-from src_project.main.python import IMG_BASE, Dataset, logger, CACHE_PATH
+from src.main.python import IMG_BASE, Dataset, logger, CACHE_PATH, result_summary
 from tree_edit_distance import compute_ted
-from visualization import visualize, visualize_clusters
+from visualization import visualize, visualize_clusters, plot_results
 
 
 def two_step(vectorized_data, distance_matrix, dataset, n_samples, noise):
@@ -95,7 +94,7 @@ def one_step(vectorized_data, dataset, noise, n_samples):
             p = path.join(IMG_BASE, type(algo).__name__)
             if not path.exists(p):
                 makedirs(p)
-
+            # TODO fixme
             compute_ted(children_or_tree=algo.single_linkage_tree_._linkage,
                         name=type(algo).__name__, noise=noise, seconds=str(total), samples=n_samples,
                         n_clusters=num_initial_clusters, dataset=dataset)
@@ -149,8 +148,6 @@ def cluster_trestle(dataset, noise, n_samples):
     clustering = cluster(tree, data, mod=False)
     logger.info("inferred clusters by Trestle: ")
     logger.info(clustering[0])
-
-    visualize_trestle_clusters(tree, clustering[0], dst=p)
 
 
 def cluster_basic_single_linkage(vectorized_data, dataset, noise, n_samples):
@@ -237,4 +234,6 @@ def bench_two_step_estimator(estimator, base_data, precomputed, spectral, simple
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    plot_results()
+    result_summary.close()

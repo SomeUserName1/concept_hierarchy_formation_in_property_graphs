@@ -4,7 +4,7 @@ import random
 import json
 from shlex import split
 
-from src_project.main.python import BASE, Dataset
+from src.main.python import BASE, Dataset
 
 
 def generate_synthetic(depth: int, width: int = 2, iteration: int = 10, m_path: str = BASE + "/data/",

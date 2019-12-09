@@ -9,7 +9,7 @@ import seaborn as sns
 from hdbscan import condense_tree
 from hdbscan.plots import CondensedTree
 
-from src_project.main.python import logger, IMG_BASE, result_summary, Dataset
+from src.main.python import logger, result_summary, Dataset, IMG_BASE
 
 
 def visualize_clusters(estimator, data, p_path, noise):
@@ -94,30 +94,32 @@ def transform_numeric(vectorized_data: np.array) -> np.array:
 def parse_results():
     # for timing [0] is the name, [1] is the amount of noise and [2] is the runtime in s
     # for the teds [0] and [1] as above, [2] is the rted
+    result_summary.seek(0)
     line = result_summary.readline()
     yelp = []
     synth = []
     while line:
-        atom = line.split(", ")
-        if Dataset.YELP == atom[0]:
+        atom = line.rstrip().split(", ")
+        if str(Dataset.YELP) == atom[0]:
             yelp.append(atom[1:])
         else:
-            synth.append(atom)
+            synth.append(atom[1:])
         line = result_summary.readline()
-
     for result in [yelp, synth]:
-        result_algos = []
+        result_algos = {}
         for entry in result:
-            if result_algos[entry[0]] is not None:
-                result_algos[entry[0]]['ted'][entry[1]] = entry[2]
-                result_algos[entry[0]]['time'][entry[3]] = entry[4]
+            if result_algos.get(entry[0]) is not None:
+                result_algos[entry[0]]['ted'][entry[3]][entry[1]].append(entry[2])
+                result_algos[entry[0]]['time'][entry[1]][entry[3]].append(entry[4])
             else:
-                result_algos[entry[0]] = {'ted': {entry[1]: entry[2]}, 'time': {entry[3]: entry[4]}}
+                result_algos[entry[0]] = {'ted': {entry[1]: list(entry[2])}, 'time': {entry[3]: list(entry[4])}}
         if result is yelp:
             yelp = result_algos
         elif result is synth:
             synth = result_algos
     return synth, yelp
+
+# TODO
 
 
 def plot_results():
@@ -127,13 +129,13 @@ def plot_results():
 
     synth, yelp = parse_results()
 
-    for dataset in [synth, yelp]:
+    for dataset in [synth]:#, yelp]:
         safe_str = "synth_" if dataset is synth else "yelp_"
         plt.figure()
         for name, algo in dataset:
             plt.plot(algo['ted'].keys(), algo['ted'].values, label=name)
 
-        plt.locator_params(axis='x', nbins=len(dataset[0]['ted']))
+        plt.locator_params(axis='x', nbins=len(dataset[0]['ted'].keys()))
         plt.ylabel('Tree Edit Distance')
         plt.xlabel('% noise')
         plt.title("Tree Edit Distance per Noise and Algorithm")

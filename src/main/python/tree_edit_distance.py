@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 import logging
 import numpy as np
 
-from src_project.main.python import Dataset, BASE, result_summary, logger
+from src.main.python import Dataset, BASE, result_summary, logger
 
 
 # FIXME got error here recently, something broken maybe?
