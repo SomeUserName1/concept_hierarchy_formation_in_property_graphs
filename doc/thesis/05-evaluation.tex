@@ -1,22 +1,18 @@
- \chapter{Evaluation}
+ \chapter{Evaluation}\label{\positionnumber}
  
 
-\section{Label-based clustering}
-    \subsection{Setup}
-        \subsubsection{Datasets}
-        \subsubsection{Ground Truth}
+\section{Label-based clustering}\label{\positionnumber}
+The selection of a fitting algorithm has three main requirements:
+\begin{itemize}
+    \item Memory usage: data bases need a certain amount of memory to work and memory is always the main performance bottleneck for databases
+    \item Adaptive to nominal and numeric data: Most databases support a couple of data types, that may be summarized as either nominal (string, characters, booleans, $\dots$) or numeric (integer, long, floats, $\dots$), i.e. the clustering algorithm needs to be able to support both kinds of data.
+    \item Noise detection and tolerance: As there are frequently missing fields in data records the clustering algorithm should be tolerant to noise and detect noisy instances. E.g. in the yelp data set the maintenance of the business categories and other data is dependent on the support of the community around yelp and the owner of the business.
+\end{itemize}
+    \subsection{Setup}\label{\positionnumber}
 
-    \subsection{Results}
-        \subsubsection{Yelp}
-        \subsubsection{synthetic}
+    \subsection{Results}\label{\positionnumber}
         
-\section{Graph-aware clustering of Nodes}
-    \subsection{Setup}
-        \subsubsection{Datasets}
-        \subsubsection{Ground Truth}
+\section{Graph-aware clustering of Nodes}\label{\positionnumber}
+    \subsection{Setup}\label{\positionnumber}
    
-    \subsection{Results}
-        \subsubsection{Yelp}
-            \paragraph{Object-based}
-            \paragraph{Graph-based}
-        \subsubsection{LDBC SNB}
+    \subsection{Results}\label{\positionnumber}

@@ -3,7 +3,7 @@ The algorithms in the following are by far no comprehensive list of all methods 
 
 
 \section{Hierarchical Clustering Algorithms}\label{\positionnumber}
-Model-free hierarchical clustering algorithms may be divided into \textbf{agglomerative and divisive methods}~\cite{han2011data}. Agglomerative methods start with each data instance being a cluster and merges in all subsequent steps 2 clusters at a time in a bottom-up fashion. Divisive methods start with all instances being in the same cluster and splits them consecutively top-down. We are going to focus on the agglomerative methods as there are computational challenges inherent to divisive clustering that agglomerative clustering does not have\note{There are $2^{n-1}-1$ possible ways to partition a set of n elements into 2 sets and in divisive clustering one needs to heuristically choose a partitioning. Backtracking could improve the performance but this is not scaleable and may end up in exponential run time.\cite{han2011data}}~\cite{han2011data}. \\
+Model-free hierarchical clustering algorithms may be divided into \textbf{agglomerative and divisive methods}~\cite{han2011data}. Agglomerative methods start with each data instance being a cluster and merges in all subsequent steps 2 clusters at a time in a bottom-up fashion. Divisive methods start with all instances being in the same cluster and splits them consecutively top-down. We are going to focus on the agglomerative methods as there are computational challenges inherent to divisive clustering that agglomerative clustering does not have. There are $2^{n-1}-1$ possible ways to partition a set of n elements into 2 sets and in divisive clustering one needs to heuristically choose a partitioning. Backtracking could improve the performance but this is not scaleable and may end up in exponential run time~\cite{han2011data}. \\
 
 \subsection{Hierarchical Agglomerative Clustering}\label{\positionnumber}
 Agglomerative methods need a measure for the distance between two clusters. The most common choices are with $C_i, C_j$ clusters:
@@ -15,36 +15,33 @@ Agglomerative methods need a measure for the distance between two clusters. The 
     \item \textbf{Average distance}, also called \textbf{Average Linkage}: 
     \[d_{\text{avg}}(C_i, C_j) = \frac{1}{|C_i| \cdot |C_j|} \sum_{e_1 \in C_i, e_2 \in C_j} |e_1 - e_2|\]
 \end{itemize}
-There are also the centroid distance, computing the distance from the mean elements of each cluster and Ward's method but those use the notion of the mean element (or the center of gravity of the cluster) which is not directly applicable for binary attributes\note{One could use fuzzy logic in order to provide a mean with non-crisp attributes in order to apply the other two distances~\cite{kruse2016computational}.} \cite{mirkin2013mathematical, han2011data}. A visualization of the distances is shown in fig. \ref{fig:agglo_dist}.
+There are also the centroid distance, computing the distance from the mean elements of each cluster and Ward's method but those use the notion of the mean element (or the center of gravity of the cluster) which is not directly applicable for binary attributes~\cite{mirkin2013mathematical, han2011data}. One could use fuzzy logic in order to provide a mean with non-crisp attributes in order to apply the other two distances~\cite{kruse2016computational}. A visualization of the distances is shown in fig. \ref{fig:agglo_dist}.
 \fig{img/agglo_distance.png}{agglo_dist}{The different distance functions visualized}{0.7} \\
 The algorithm proceeds as follows: 
 \begin{enumerate}
     \item initialize all data objects as own clusters
     \item compute the cluster distance matrix by computing the chosen distance function pairwise for all clusters
     \item remove and merge the two clusters with the minimal distance with respect to the chosen distance function. add the new cluster to the list of clusters
-    \item if there are more than 2 elements in the set of clusters continue with step 2\note{Alternatively one can specify the amount of clusters that are desired - as the parameter k in K-Medians as a stopping criterion}. 
+    \item if there are more than 2 elements in the set of clusters continue with step 2. Alternatively one can specify the amount of clusters that are desired - as the parameter k in K-Medians as a stopping criterion. 
 \end{enumerate}
 
-As we need to compute the pairwise (symmetric) distance matrix which is a square matrix the space complexity of this algorithm is in $\frac{1}{2} n^2 \in \mathcal{O}(n^2)$. The time complexity is $\mathcal{O}(n^3)$ for a naive implementation as in the pseudo-code above. In each iteration we need to scan the distance matrix for the minimum and update it after merging resulting in  $2 \cdot \frac{1}{2} n^2$ steps per iteration. As in each step exactly 2 objects are merged, there are $n-1$ merges in total, resulting in a time complexity of $n - 1 \cdot n^2 \in \mathcal{O}(n^3)$.
 
 \subsection{Robust Single Linkage}\label{\positionnumber}
 Wishart~\cite{wishart1969256} developed a version of single linkage that is more tolerant to noise, that was generalized by \cite{Chaudhuri2010RatesOC}, called Robust Single Linkage. It considers the local density of the merged points and only merges dense regions at the lower levels. Intuitively it works as follows:
 \begin{itemize}
-    \item For each object in the data set compute $r_k(x_i) $the largest lower bound (infimum) with respect to $r$ such that $k$\note{a given parameter} other data objects have a lower distance than $r$ to the current object, i.e. the smallest ball radius in the distance matrix of radius r which includes k or more data objects.
+    \item For each object in the data set compute $r_k(x_i) $the largest lower bound (infimum) with respect to $r$ such that $k$ other data objects have a lower distance than $r$ to the current object, i.e. the smallest ball radius in the distance matrix of radius r which includes k or more data objects.
     \item for $r=0$ to $\infty$ construct $G_r = (V_r, E_r)$ with $\alpha$ a given parameter, $V_r = \{x_i \in X | r_k(x_i) \leq r\}$ and $E_r = \{i \neq j: (x_i, x_j) \in X \times X | ||x_i - x_j|| \leq \alpha r\}$, i.e. all data objects $o \in O$ which have more than $k$ objects in a radius smaller than $r$ are a vertex of the graph and all vertices whose distance is less than $\alpha \cdot r$ are connected by an edge. 
-    \item The connected components of $G_r$ form the clusters of $O$ at level $r_{\text{max}} - r$ in the hierarchy where $r_{\text{max}}$ is the first value where there is only one connected component\note{in other words, the supremum or lowest upper bound for $r$ of the clusters that have only one connected component}.
+    \item The connected components of $G_r$ form the clusters of $O$ at level $r_{\text{max}} - r$ in the hierarchy where $r_{\text{max}}$ is the first value where there is only one connected component or in other words, the supremum or lowest upper bound for $r$ of the clusters that have only one connected component.
     \item Go to step 2 until there is only one connected component.
 \end{itemize}
  The \textbf{Ball- or $\epsilon$-neighbourhood $B(o_i, \epsilon)$ or $N_\epsilon$} of an object $o_i \in O$ is defined as $N_\epsilon(o_i) = \{o_j \in O \wedge i \neq j | d(o_i, o_j) \leq \epsilon \}$.
 $\alpha$ scales weather an edge is added to the graph or not. Thus it may be regarded as the inverse density: High values for $\alpha$ yield sparse graphs (connecting less vertices by edges), while a low value means connecting all edges. Thus convergence of the procedure can be easily controlled by varying $\alpha$. \\
 Agglomerative Clustering with single linkage distance uses $\alpha = 1$ and $k = 2$, which was generalized by Wishart to use $\alpha = 1$ and $k \geq 2$. \\
 
-The space complexity is again the space needed to store the symmetric pairwise distance matrix $\frac{1}{2}n^2 \in \mathcal{O}(n^2)$. The time complexity here is a bit different: Computing the smallest radius for which the sphere around the object contains at least k points is $n \cdot (n - 1)$ as for every object, the distance to all other points needs to be compared to $r$ - in the most naive implementation against $0, 1 \dots$ until a $r$ is found that leads to $\{o_j | \ |B(o_i, r)| \geq k$. Thus the first for loop has a complexity of $n \cdot r \cdot (n-1) \in \mathcal{O}(n^2)$. The While loop constructs a graph that needs to traverse only the list of infimum $r$ values for the vertices (i.e. $n$ elements). Regarding the edges, the distance matrix needs to be traversed i.e. $\frac{1}{2}n^2$ elements. As $\alpha$ is user defined, the number of iterations is variable but is less than $(n-1)$ for $\alpha = 1, k = 2$ (compare with Agglomerative clustering). To conclude, for $\alpha \geq 1$ and $k \geq 2$ convergence is faster than single linkage as many points are merged in one step. For a more comprehensive discussion of the rates of convergence, see~\cite{Chaudhuri2010RatesOC}
-
 
 
 \section{Partition-based Clustering}\label{\positionnumber}
-Partitional methods produce a flat clustering, i.e. a single partitioning of the input set $O$\note{in contrast to hierarchical methods, that produce nested partitionings}. Partition-based approaches have thus the advantage of reduced run time, especially on data sets where computing a dendrogram would be prohibitive, but come with the disadvantage of an additional parameter: $k$ the number of partitions or desired output clusters. 
+Partitional methods produce a flat clustering, i.e. a single partitioning of the input set $O$ - in contrast to hierarchical methods, that produce nested partitionings. Partition-based approaches have thus the advantage of reduced run time, especially on data sets where computing a dendrogram would be prohibitive, but come with the disadvantage of an additional parameter: $k$ the number of partitions or desired output clusters. 
 \subsection{K-Means}\label{\positionnumber}
 The k-Means algorithm~\cite{lloyd1982least, macqueen1967some} is one of the most commonly used algorithms for clustering~\cite{Jin2010}. K-Means chooses random initial cluster centroids, assigns the other objects to the cluster of the closest centers and then updates the centers iteratively until convergence. The intuitive idea behind k-Means is the following procedure: 
 \begin{enumerate}
@@ -56,17 +53,26 @@ The k-Means algorithm~\cite{lloyd1982least, macqueen1967some} is one of the most
 
 Most k-Means implementations use euclidean space (including the respective metric function) to define the objective as the squared error of the cluster members to the centroid $E = \sum_{i=0}^{k-1}\sum_{o \in C_i} d(c_i,o)^2$. Another objective function is centroid convergence: repeat until the centroids don't change anymore. There are several different variants of this procedure, e.g. ISODATA~\cite{ball1967clustering} or fuzzy c-Means~\cite{fuzzy-c-means}, which employ subsequent merging or splitting of small or large clusters respectively and a notion of fuzzy membership to a cluster. Other improvements and variations of k-Means focus on the centroid initialization procedure. An example here fore is k-Means++~\cite{arthur2007k}. \\
 
-The space complexity is simply the number of data objects $n \cdot k \in \mathcal{O}(n)$ for small $k$ as the distance for each object to the cluster centroid must be stored instead of the full distance matrix. The time complexity is with $I$ the number of iterations, $k$ the number of clusters and $n$ the number of objects $n \cdot k \cdot I \in \mathcal{O}(n)$ for small $k$ and $I$, as in each iteration we need to find the closest centroid to the object for each object, thus $n \cdot k$.
 
-\subsubsection{TTSAS}\label{\positionnumber}
+\subsection{TTSAS}\label{\positionnumber}
 The two-threshold sequential algorithmic scheme is an extension of the basic sequential algorithmic scheme, which is a generalization of ISODATA~\cite{ball1967clustering, THEODORIDIS2009627}. \\
 To avoid specifying the number of clusters explicitly the two-threshold sequential algorithmic schema introduces two threshold parameters: $\Theta_1$ the maximal difference of an object to a cluster so that the object is part of the cluster and $\Theta_2$ the minimal difference of an object from all other clusters so that the object forms a new cluster. All objects with distances between $\Theta_1$ and $\Theta_2$ are considered to be in a "grey region", i.e. there is currently not enough information to decide cluster membership. Those objects' cluster assignment is postponed until a later point in time. \\
+Intuitively TTSAS works as follows:
+\begin{enumerate}
+    \item while there are uncategorized objects in the data set, iterate over all objects $O$
+    \item in the inner loop, if there is no change so far, if the current object $o_i$ is unclassified and if it's the first element that is examined in the current outer loop create a new cluster consisting of this element only
+    \item in the inner loop else if the current object $o_i$ is unclassified then find the minimal distance from the object $o_i$ to a cluster $C_k$
+    \begin{enumerate}
+        \item if the distance is below $\Theta_1$ then add the object $o_i$ to the cluster $C_k$
+        \item if the distance is above threshold $\Theta_2$, i.e. it's farther away from all clusters than $\Theta_2$ then create a new cluster consisting of $o_i$ only
+    \end{enumerate}
+\end{enumerate}
+The algorithm guarantees convergence by the first if statement: If the current object is the first that is examined in the while loop, there has been no change in this while loop so far and it is unclassified create a new cluster. I.e. if all objects are very far from each other but not too far i.e. with k the current number of clusters $\forall o_i \in O: \Theta_1 \leq \min_{j \in \{0, \dots, k-1\}}(d(o_i, C_j) \leq \Theta_2$, then there will only be one cluster created per outer (while) loop and it will take $n$ outer loops to terminate, in each of which all $n$ elements are assessed.
 
-In algorithm\ref{ttsas} the first condition guarantees that the algorithm terminates. If the current object is uncategorized and there was no change in the last iteration and the current object is the first that is inspected in this iteration of the while loop, make it a new cluster. This results in a worst-case complexity of $n \cdot 2nk$ with $|O| = n$ and $k$ the final number of clusters after algorithm execution. in this case every object's minimal distance is between the thresholds for all clusters that are created and every point ends up in an own cluster, taking two iterations per element: The first where no change happens and a second where only one point is assigned as a new cluster and no further changes happen. For each element ($n$) do 2 complete iterations ($n \cdot 2n$), where for each element the distance to all so far existing clusters is queried ($n \cdot 2nk$), resulting in a worst-case run time of $2n^2k \in \mathcal{O}(n^3)$ as in this case $k = n$. In the best case $k << n$ and only two passes~\cite{THEODORIDIS2009627} resulting in $2 \cdot n \cdot k \in \mathcal{O}(n)$ iterations. The space complexity is as in k-Means plus $n$ to store the categorized vector\note{in the most efficient implementation, the costs for this are equivalent to n bits}.
 
 
 \section{Density-based Clustering}
-The main strategy of most density-based approaches to clustering is to find dense regions in the space of input data objects, that is separated by sparser regions. As standard hierarchical agglomerative clustering\ref{3.1.1} and partitional clustering methods do not use the notion of density and regions they are only able to discover relatively spherical clusters: Only considering the distance between certain points prohibits the algorithms from discovering structures that consist of many points that are not close in terms of distance but connected to each other by dense regions. Thus density-based algorithms are superior to the previous ones when data shows non-spherical patterns. \\
+The main strategy of most density-based approaches to clustering is to find dense regions in the space of input data objects, that is separated by sparser regions. As standard hierarchical agglomerative clustering (see \ref{3.1.1}) and partitional clustering (see \ref{3.2}) methods do not use the notion of density and regions they are only able to discover relatively spherical clusters: Only considering the distance between certain points prohibits the algorithms from discovering structures that consist of many points that are not close in terms of distance but connected to each other by dense regions. Thus density-based algorithms are superior to the previous ones when data shows non-spherical patterns. \\
 
 \subsection{DBSCAN}\label{\positionnumber}
 DBSCAN\cite{dbscan} stands for Density-based Spatial Clustering of Applications with Noise. It was developed to meet the needs of class identification in large-scale spatial databases:
@@ -82,7 +88,7 @@ The \textbf{Ball- or $\epsilon$-neighbourhood $B(o_i, \epsilon)$ or $N_\epsilon$
 An object $o_i \in O$ is \textbf{directly density-reachable} from another object $o_j \in O\setminus \{o_i\}$ if with $\epsilon$ the neighbourhood radius and MinObjects the density threshold
 \begin{enumerate}
     \item $o_i \in N_\epsilon (o_j)$
-    \item $|N_\epsilon(o_j)| \geq $MinObjects\note{i.e. $o_j$ is a core point and $o_i$ is in the neighbourhood of $o_j$}
+    \item $|N_\epsilon(o_j)| \geq $MinObjects i.e. $o_j$ is a core point and $o_i$ is in the neighbourhood of $o_j$
 \end{enumerate}
 
 An object $o_i \in O$ is \textbf{density-reachable} from another object $o_j \in O\setminus \{o_i\}$ if, with $\epsilon$ the neighbourhood radius and MinObjects the density threshold, there is a chain of directly density-reachable objects such that the chain starts at $o_j$ and ends in $o_i$. \\
@@ -103,10 +109,9 @@ The intuitive idea of DBSCAN is the following:
 \begin{enumerate}
     \item Select an arbitrary object $o_i \in O$ and . If there are more than 
     \item find all objects that are density-reachable from $o_i$
-    \item if there are more than MinObjects that are density reachable from $o_i$\note{i.e. $o_i$ is a core point}, a new cluster is created including all density-reachable objects. If there are no density-reachable objects, then $o_i$ is either noise or a boarder object. In both cases, continue with the next element
+    \item if there are more than MinObjects that are density reachable from $o_i$ i.e. $o_i$ is a core point, a new cluster is created including all density-reachable objects. If there are no density-reachable objects, then $o_i$ is either noise or a boarder object. In both cases, continue with the next element
 \end{enumerate}
 
-The space complexity of DBSCAN is $\frac{1}{2}n^2$ as the pairwise distance matrix needs to be computed for neighbourhood queries. The run time complexity is $n$ for the outer loop in the DBSCAN algorithm and $\log(n)$ for a neighbourhood query if the neighbourhood information is stored in an efficient data structure e.g. a R*-tree according to the authors~\cite{dbscan}. In total this induces a run time complexity of $n \log(n) \in \mathcal{O}(n \log(n))$. If no such structure is used, a neighbourhood query needs to scan a row (or column) of the matrix which takes $n$ elements to visit, resulting in $n \cdot n \in \mathcal{O}(n^2)$~\cite{han2011data}. \\
 
 \subsection{OPTICS}\label{\positionnumber}
 OPTICS is an extension of the DBSCAN algorithm. The acronym stands for Ordering Points To Identify the Clusterin Structure. Intuitively OPTICS works like DBSCAN, with different values for $\epsilon$ and stores the results using two values: The core-distance and the reachability-distance.
@@ -122,9 +127,6 @@ The differences to DBSCAN are
     \item Clusterings have to be extracted from the ordered file in an extra step.
     \item the different clusters are written to the file in order with their subset relationship, i.e. the clusters with the smallerst $\epsilon$ values are written out first and are contained in certain other clusters with larger $\epsilon$ values.
 \end{enumerate}
-
-As the algorithm proceeds very similar to DBSCAN a lot of the complexity analysis also applies here: The space complexity is $\frac{1}{2}n^2$ for the pairwise distance matrix plus additionally the file that is written to, which size depends on the number of clusters but is generally bound by $3n$\note{The object plus two distances per object} what yields $\frac{1}{2}n^2 + 3n \in \mathcal{O}(n^2)$. Regarding the computational complexity, the authors provide $\mathcal{O}(n^2)$ as run time without a special data structure and $\mathcal{O}(n \log(n))$ with a specialised data structure\cite{optics}. The additional overhead for finding the appropriate core distance may be solved with a one time pass over the respective row or column using dynamic programming, i.e. besides querying the neighbour hood to find the seeding neighbours another pass is needed to find the core distance. \\
-
 
 \subsection{HDBSCAN}\label{\positionnumber}
 HDBSCAN\cite{hdbscan} stands for Hierarchical DBSCAN is an extension of the OPTICS algorithm. It relies on a so called mutual reachability graph in order to construct a hierarchy.\\
@@ -142,22 +144,19 @@ Intuitively the method
     \item remove iteratively the edges from the highest weight to the lowest. The resulting graph at each iteration is the clustering at hierarchy level i with i the loop variable.
 \end{enumerate}
 
-The space requirements are the same as for DBSCAN: The pairwise distance matrix needs $\frac{1}{2}n^2 \in \mathcal{O}n^2$ space complexity. regarding the run time, one needs to compute the core-distance for each object which takes $n \cdot n \in \mathcal{O}(n^2)$. Constructing the minimum spanning tree using Prim's algorithm or Boruvka's algorithm is in $\mathcal{O}(n^2)$ worst-case run time complexity. Removing all edges iteratively requires maximally $\frac{1}{2}n^2$ iterations for a fully connected graph and when sorting the matrix before starting the removal procedure which takes $\mathcal{O}(n \log n)$ steps retreiving the maximum is a constant time operation. Overall we get $n^2 + n^2 + n \log n +\frac{1}{2}n^2 \in \mathcal{O}(n^2)$ steps as run time complexity.
-
-
 
 \section{Model-based Clustering - Conceptual Clustering}
 Model-based approaches rely on a infer parameters for a pre-defined or build up a model of the data. An example here for is gaussian mixture model and the expectation maximization algorithm: It models numerical data fitting a user-specified number of gaussian distributions to the data. This has a couple of advantages:
 \begin{enumerate}
     \item for most model-based methods, probabilities of either cluster membership or uncertainty of the assignment are naturally provided 
-    \item there is some notion of concept description: In gaussian mixture modelling, the description are the mean and the standard deviation, in self organizing maps, feature maps are constructed that directly map from the feature space into the class labels when aggregating them~\cite{yosinski-2015-ICML-DL-understanding-neural-networks}, conceptual clustering methods provide concept descriptions in terms of feature occurrences\note{or from a bayesian point of view beliefs about the underlying value distribution per feature}~\cite{Fisher1987}.
+    \item there is some notion of concept description: In gaussian mixture modelling, the description are the mean and the standard deviation, in self organizing maps, feature maps are constructed that directly map from the feature space into the class labels when aggregating them~\cite{yosinski-2015-ICML-DL-understanding-neural-networks}, conceptual clustering methods provide concept descriptions in terms of feature occurrences or from a bayesian point of view beliefs about the underlying value distribution per feature~\cite{Fisher1987}.
 \end{enumerate}
-We are only going to look at one model-based approach - namely conceptual clustering - as the other methods are out of the scope due to some limitations. Note however that there are many model-based approaches like mixture modeling, self-organizing maps and others\note{E.g. the limitations of SOMs are that they are not directly interpretable and gaussian mixture modelling as it is produces non-sense for categorical values that have been vectorized as the mean is always between 0 and 1}. \\
+We are only going to look at one model-based approach - namely conceptual clustering - as the other methods are out of the scope due to some limitations. Note however that there are many model-based approaches like mixture modeling, self-organizing maps and others. E.g. the limitations of SOMs are that they are not directly interpretable. \\
 
 Conceptual Clustering was first defined by Michalski~\cite{michalski1980knowledge} as "an algorithm [...] in which entities are assembled into classes described by single conjunctive concepts. Thus the approach produces clusters with their descriptions."~\cite{michalski1980knowledge}. A conceptual clustering method takes a set of objects - consisting of describing features - and returns a scheme for classification of those without the need for supervision. The most popular extension of this framework is the Cobweb framework, developed by Fisher in 1987~\cite{Fisher1987}.
 
 \subsection{Cobweb}\label{\positionnumber}
-Fisher describes COBWEB as a conceptual clustering algorithm that is designed to maximize inference ability, is incremental\note{Sometimes referred to as an online algorithm} and computationally economical~\cite{Fisher1987}. To achieve this, Fisher takes the viewpoint of clustering as a learning task for concepts~\cite{mitchell1982generalization} and applies the search paradigm to the task. He describes incremental learning along two dimension: search direction and search control. \\
+Fisher describes COBWEB as a conceptual clustering algorithm that is designed to maximize inference ability, is incremental (sometimes also referred to as an online algorithm) and computationally economical~\cite{Fisher1987}. To achieve this, Fisher takes the viewpoint of clustering as a learning task for concepts~\cite{mitchell1982generalization} and applies the search paradigm to the task. He describes incremental learning along two dimension: search direction and search control. \\
 The control strategy of the search is in the search space that ranges from an exhaustive search e.g. breadth-first search over heuristics like hill-climbing or beam-search to narrow approaches only considering certain limited sub-spaces. \\
 
 The direction of the search in this case is weather to model more specific or more general concept classes. The direction of search is governed by the search operators. \\
@@ -173,7 +172,8 @@ In the three-fold description above all of the three search problems have someth
 Cobweb uses a heuristic evaluation measure called Category Utility introduced by Gluck and Corter~\cite{gluck1985information}. According to the authors "We propose that a category is useful to the extent that it can be expected to improve our ability to (a) accurately predict the values of features for members of that category and (b) efficiently communicate information to others about the features of instances of that category."~\cite{gluck1985information}. 
 The \textbf{category utility} is defined with P a probability measure as defined in \fullref{2.4} as
 \[ \frac{1}{n} \sum_{k = 1}^n P(C_k) ( \sum_i \sum_j P(A_i = V_{ij}| C_k)^2 - \sum_i \sum_j P(A_i = V_{ij})^2) \]
-Gluck and Corter prove that the category utility may be understood as the increase in the expected number of correctly guessed attribute values given the partition over a guess with no information about the partition. In terms of information theory the category utility is a measure for the expected reduction of unceratinty given access to the information that the instance $o_i$ is in category $C_k$~\cite{corter1992explaining}. Fisher also shows that the category utility may be reformulated to emphasize the optimization of the intra-class similarity, inter-class dissimilarity tradeoff with $P(A_i = V_{ij} | C_k)$ the measure for intra-class similarity\note{The more shared attribute-value pairs in a class, the higher this probability} and $P(C_k | A_i = V_{ij})$\note{The less classes share the same attribute value pairs, the higher is this probability} as measure for inter-class dissimilarity: \[ \sum_{k = 1}^n \sum_i \sum_j P(A_i = V_{ij} P(C_k| A_i = V_{ij})P(A_i = V_{ij}| C_k) = \sum_{k = 1}^n P(C_k) \sum_i \sum_j P(A_i = V_{ij}| C_k)^2 \]
+Gluck and Corter prove that the category utility may be understood as the increase in the expected number of correctly guessed attribute values given the partition over a guess with no information about the partition. In terms of information theory the category utility is a measure for the expected reduction of unceratinty given access to the information that the instance $o_i$ is in category $C_k$~\cite{corter1992explaining}. Fisher also shows that the category utility may be reformulated to emphasize the optimization of the intra-class similarity, inter-class dissimilarity tradeoff with $P(A_i = V_{ij} | C_k)$ the measure for intra-class similarity and $P(C_k | A_i = V_{ij})$\note{The less classes share the same attribute value pairs, the higher is this probability} as measure for inter-class dissimilarity: \[ \sum_{k = 1}^n \sum_i \sum_j P(A_i = V_{ij} P(C_k| A_i = V_{ij})P(A_i = V_{ij}| C_k) = \sum_{k = 1}^n P(C_k) \sum_i \sum_j P(A_i = V_{ij}| C_k)^2 \]
+This means the more common attribute-value pairs in a class or cluster or concept, the higher is $P(A_i = V_{ij} | C_k)$ for a certain class and the most common attribute value pair and the less classes share the same attribute value pairs, the higher is $P(C_k | A_i = V_{ij})$ for a certain attribute and the class having $A_i = V_{ij}$.
 This equals the first part of the CU and may be interpreted as expected number of attribute values that can be correctly guessed for class $C_k$. \\
 
 The characterization of concepts in Cobweb is simple: For each concept, store the number of data objects that are member of the concept, with the attribute and value counts in order to compute the probabilities. \\
@@ -188,6 +188,41 @@ The search operators are
 \end{itemize}
 The former two operators end the current iteration: The iteration stops when an object is added to an existing concept or a new concept is created where it's added to. The latter two operators enable the algorithm to search the space of hierarchies, clusters and characterisations in both ways, i.e. to apply the version space strategy.
 
+\begin{algorithm}[htp]
+    \KwIn{An object $o_i \in O$}
+    \Parameters{node the node currently visiting}
+    \KwOut{A hierarchy of clusters with concept descriptions}
+    \hrulealg
+    \Begin{
+        updateCounts(node, $o_i$)\;
+        \uIf{node is a leaf}{
+            node.add\_child($o_i$)\;
+        }
+        \Else{
+            host, host\_cu = find the child of node, that best hosts $o_i$\;
+            new\_class\_cu = probeCreateNewClass($o_i$)\;
+            merge\_cu = probeMerge(host, $o_i$)\;
+            split\_cu = probeSplit(host)\;
+            max\_cu = $\max(\text{new\_class\_cu}, \text{merge\_cu}, \text{split\_cu}, \text{host\_cu})$\;
+            \uIf{max\_cu $==$ new\_class\_cu}{
+                createNewClass($o_i$)\;
+            }
+            \uElseIf{max\_cu $==$ merge\_cu}{
+                merged\_node = merge(host, $o_i$)\;
+                COBWEB($o_i$, merged\_node)\;
+            }
+            \uElseIf{max\_cu == split\_cu}{
+                split(host)\;
+                COBWEB($o_i$, node)\;
+            }
+            \Else{
+            COBWEB($o_i$, host)
+            }
+        }
+    }
+\caption{COBWEB}\label{cobweb}
+\end{algorithm}
+
 The control strategy is thus hill climbing, optimizing the category utility. The convergence is guaranteed, as if a split occurred a merge will always create the previous state which had a smaller category utility (as else the split wouldn't have happened) and the other way around. Subsequent splits have to end at the root and subsequent merges stop improving when a too dissimilar concept is merged which is guaranteed to be the case as the root is reached after merging all previous nodes. \\
 
 The algorithm is incremental, i.e. one instance is processed at a time as opposed with all other algorithms so far, that assumed that all data is available at once and thus do not support subsequent updates when objects are added to the database. This also introduces a positional bias: The result of the algorithm is sensitive to input ordering~\cite{classit}. \\
@@ -195,21 +230,18 @@ The algorithm is incremental, i.e. one instance is processed at a time as oppose
 \subsection{Extensions of Cobweb}\label{\positionnumber}
 The above algorithms provides support for only attribute sets of the same size, only categorical values and is sensitive to input orderings. There are several extensions of the presented algorithm that overcome those weaknesses. \\
 
-\subsubsection{Cobweb/3}\label{\positionnumber}
 Cobweb/3 introduces a version of the category utility that is able to also deal with numeric values by modelling them with a Gaussian distribution, thus replacing the innermost summation of the category utility with the integral of the equation for a Gaussian distribution. This introduces another bias (assuming Gaussian distribution) but may be easily avoided using more general solutions. What is also added is a divisor for the number of attributes present in the set to account for differences in the number of attributes, e.g. missing values or inhomogeneous data sets. \\
 The revised category utility is defined as   \[ \frac{1}{n} \sum_{k = 1}^n P(C_k) ( \sum_i^I \sum_j \frac{1}{I} P(A_i = V_{ij}| C_k)^2 - \sum_i^I \sum_j \frac{1}{I} P(A_i = V_{ij})^2) \] for discrete values 
 \[ \frac{1}{n} \sum_{k = 1}^n P(C_k) ( \sum_i^I \frac{\frac{1}{\sigma_ik}}{I} - \sum_i \frac{\frac{1}{\sigma_ip}}{I}) \] 
 for continuous values.
 
-
-\subsubsection{Trestle}\label{\positionnumber}
-Trestle is another extension by MacLellan et al., that is motivated by human learning. It especially uses an unbiased estimator and an altered version of the A*-algorithm to rename non-matching attribute names~\cite{maclellan2016trestle}.
+Trestle is another extension by MacLellan et al., that is motivated by human learning. It especially uses an unbiased estimator and an altered version of the A*-algorithm to rename non-matching attribute names to the best matching with respect to the catagory utility~\cite{maclellan2016trestle}.
 
 \section{Feature Extraction}\label{\positionnumber}
 In order to make a clustering algorithm graph-aware the easiest way is to introduce new features based on the graph strucutres. The methods below are a brief summary of graph structure-related feature extraction and selection methods. \\
 
 \subsection{Characteristic Sets}\label{\positionnumber}
-Neumann \& Moerkotte estimate cardinalities in RDF\note{RDF stands for Ressource Description format and is used in the ontology web language (OWL) to describe ressources on websites. RDF basically defines triplets in the subject predicate object format.} data bases. Standard histograms do often not capture the implicit structure of a data base including correlations between predicates. As many triplets are used to describe the same objects, correlation is often visible between triplet predicates as the same predicate sets often describe similar objects. Neumann and Moerkotte show that the use of such predicate sets - called characteristic sets increase cardinality estimation significantly for triplet stores~\cite{neumann2011characteristic}.
+Neumann \& Moerkotte estimate cardinalities in RDF data bases. RDF stands for Resource Description Format and is used in the ontology web language (OWL) to describe resources on websites. RDF basically defines triplets in the subject predicate object format. Standard histograms do often not capture the implicit structure of a data base including correlations between predicates. As many triplets are used to describe the same objects, correlation is often visible between triplet predicates as the same predicate sets often describe similar objects. Neumann and Moerkotte show that the use of such predicate sets - called characteristic sets increase cardinality estimation significantly for triplet stores~\cite{neumann2011characteristic}.
 
 
 \subsection{Recursive Feature Extraction}\label{\positionnumber}

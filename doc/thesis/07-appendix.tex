@@ -4,7 +4,7 @@
 Lattice Theory and Formal Concept Analysis, the latter developed by Wille~\cite{wille1982restructuring}, has been applied to solve and analyse a wide range of problems e.g. data retrieval, text mining , functional dependency discovery and association rule mining ~\cite{poelmans2012text, soergel1967mathematical, spoerri1993infocrystal, godin1993experimental, godin1993building, carpineto2004exploiting, carpineto2003mining, ganascia1987charade, oosthuizen1988induction, xie2002concept}. \\
 In order to formalize the description of Objects holding key-value pairs one can use fomral concept analysis. Based on lattice theory, formal concept analysis defines a mathematical framework to exactly describe how objects and attributes may be ordered and visualized by Hasse diagrams. The following terminology is a summary of \cite{ganter2012formal}. \\
 
-Let $O, A$ be sets, $I \subseteq (O \times A)$ a relation. We call \textbf{$O$ the set of objects, $A$ the set of attributes and $I$ the composition relation}, assigning attributes to an object\note{As a pair $(o, a)$ either is or is not in $I$ the relation is binary, i.e. Object has Attribute is the only thing we can express by this. In short: The values of attributes here are one-valued or in other words binary (present or not)}. \\
+Let $O, A$ be sets, $I \subseteq (O \times A)$ a relation. We call \textbf{$O$ the set of objects, $A$ the set of attributes and $I$ the composition relation}, assigning attributes to an object. As a pair $(o, a)$ either is or is not in $I$ the relation is binary, i.e. Object has Attribute is the only thing we can express by this. In short: The values of attributes here are one-valued or in other words binary (present or not). \\
 
 Then the \textbf{formal context $\mathcal{K}$} is given by the triple $\mathcal{C} = (O, A, I)$. 
 
@@ -22,13 +22,13 @@ The \textbf{concept lattice $\mathfrak{B}(\mathcal{K})$} is the set of all conce
 
 \fig{img/table_hasse.png}{tablehasse}{Tabular representation of a formal context \cite{ganter2012formal}}{0.6} 
 
-A \textbf{multi-valued Context $\mathcal{K_V} = (O, A, V, I)$} is a context with $O, A$ as in the definition of a simple Context $\mathcal{K}$ above, $V$ is the set of all values and $I \subseteq O \times A \times V$. The values $V$ of the multi-valued context $\mathcal{K_V}$ can be partitioned per attribute and interpreted in a meaningful way using a method called conceptual scaling\note{Conceptual scaling creates a context for each attribute and defines a table that map the possible attributes onto themselves in order to add additional ordering semantics to e.g. cover ordinal, nominal and convex-ordinal scales. The latter corresponds to orderings on the expected values of random variables in stochastic processes.}, which is beyond the scope of this thesis. Just notice that one can easily derive a tabular description by replacing each attribute with the pairs $\forall v_a \in V_a: (a, v_a)$ with $V_a$ of possible values of the attribute $a$. \\
+A \textbf{multi-valued Context $\mathcal{K_V} = (O, A, V, I)$} is a context with $O, A$ as in the definition of a simple Context $\mathcal{K}$ above, $V$ is the set of all values and $I \subseteq O \times A \times V$. The values $V$ of the multi-valued context $\mathcal{K_V}$ can be partitioned per attribute and interpreted in a meaningful way using a method called conceptual scaling, which is beyond the scope of this thesis. Conceptual scaling creates a context for each attribute and defines a table that map the possible attributes onto themselves in order to add additional ordering semantics to e.g. cover ordinal, nominal and convex-ordinal scales. The latter corresponds to orderings on the expected values of random variables in stochastic processes. Just notice that one can easily derive a tabular description by replacing each attribute with the pairs $\forall v_a \in V_a: (a, v_a)$ with $V_a$ of possible values of the attribute $a$. \\
 
 \fig{img/hasse.png}{hasse}{A Hasse-diagram for the above table \cite{ganter2012formal}}{1}
 A context is easily visualizable by a table as in fig. \ref{fig:tablehasse}. Fig. \ref{fig:hasse} shows the Hasse diagram for the example context from the table above. It is the visualization of the concept lattice of the context and maybe intuitively interpreted as a two sided hierarchy (directly following from using Galois connections in the lattice): The top node contains all elements and only attributes that are common to all objects. Descending in the diagram, one gets less objects and larger, more specific attribute sets. If one reads the diagram bottom up, the bottom-most node contains all attributes and either no object or the ones having all attributes Ascending the trees constructs increasingly large clusters of less and less specific objects. Breaking The diagram into two separate that end upon having either just one attribute or one object would yield two hierarchies: 
 \begin{itemize}
-    \item \textbf{Common attributes per object set}\note{Starting from the top-most node the common attribute set is $a$ as all objects have $a$ in common.The rightmost node shows the common attributes for objects $5, 6$.}: Focusing on the Objects and their increasingly larger common attribute sets with decreasing object size. One could formulate this as expected attributes objects have given the concept they're hosted in.
-    \item \textbf{Selectivity per attribute Set}:\note{E.g. The selectivity of all attributes in conjunction is $\frac{0}{8}$, the selectivity of $a$ and $d$ is $\sigma_{a \wedge d} = \frac{4}{8} = 0.5$ and the selectivity of a is $\sigma_a = \frac{8}{8} = 1$.}. Focusing on the attributes, starting with objects that have all attributes and ending with the selectivities of single attributes or the expected number of objects, when querying for a set of attributes
+    \item \textbf{Common attributes per object set}, starting from the top-most node the common attribute set is $a$ as all objects have $a$ in common. : Focusing on the Objects and their increasingly larger common attribute sets with decreasing object size. One could formulate this as expected attributes objects have given the concept they're hosted in. The rightmost node shows the common attributes for objects $5, 6$
+    \item \textbf{Selectivity per attribute Set}: Focusing on the attributes, starting with objects that have all attributes and ending with the selectivities of single attributes or the expected number of objects, when querying for a set of attributes.  E.g. The selectivity of all attributes in conjunction is $\frac{0}{8}$, the selectivity of $a$ and $d$ is $\sigma_{a \wedge d} = \frac{4}{8} = 0.5$ and the selectivity of a is $\sigma_a = \frac{8}{8} = 1$.
 \end{itemize}
 
 
@@ -47,8 +47,48 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
             \item selecting a subset of the evaluated candidates, possibly introducing randomness and other tools to sample from different regions of the search space in order not to converge into a local minimum.
             \item iterate until there is convergence or stopping criteria are satisfied.
         \end{enumerate}
-        All of these steps may be adapted to a certain setting. It is a common approach to combine evolutionary algorithms with other techniques e.g. self-organizing maps with evolutionary algorithms~\cite{leng2006design}\note{generally neural networks and evolutionary algorithms or similar constructed markov decision processes (reinforcement learning) are often combined into neural architecture search systems, using stochastic processes to select and vary the already evaluated networks to generate new ones with faster convergence rates to better AUC-scores\cite{kandasamy2018neural}}. Evolutionary algorithms may be seen as Markov chains, as the Markov property holds (each generation only depends on the last one) and each generative operator creates a new candidate solution with each candidate solution having a certain probability depending on the nature of the operation and the probabilities of all generatable candidate solutions of 1 per operator and generation~\cite{Nix1992}.
+        All of these steps may be adapted to a certain setting. It is a common approach to combine evolutionary algorithms with other techniques e.g. self-organizing maps with evolutionary algorithms~\cite{leng2006design}. 
+        Generally neural networks and evolutionary algorithms or similar constructed Markov decision processes (reinforcement learning) are often combined into neural architecture search systems, using stochastic processes to select and vary the already evaluated networks to generate new ones with faster convergence rates to better AUC-scores\cite{kandasamy2018neural}. \\
+        Evolutionary algorithms may be seen as Markov chains, as the Markov property holds (each generation only depends on the last one) and each generative operator creates a new candidate solution with each candidate solution having a certain probability depending on the nature of the operation and the probabilities of all generateable candidate solutions of 1 per operator and generation~\cite{Nix1992}.
 \end{itemize}
+
+\section{An Introduction to Probability Theory}
+Probability theory is essential to understand and implement probabilistic model-based approaches like COBWEB~\cite{Fisher1987} and will be used in chapters 3 to 5. \\
+There are many textbooks extensively defining the notations needed in probability theory~\cite{Baron:2013:PSC:2536837, fahrmeir2016statistik}. The following is a summary of the most important terms used in the latter chapters.\\
+
+A \textbf{sample space $\Omega$} is the set of all possible atomic results or outcomes of an experiment. An \textbf{event E} is a subset of the sample space, i.e. a set of elementary results or outcomes. As an example the a match day of a soccer league. Each match day 2n teams compete in n matches. The sample space would be all possible results $\Omega = \{ (i,j)| \forall i,j \in \mathbf{N}\}$. An event would e.g. be the set of results of a match day or a partial result. \\
+
+A \textbf{$\sigma$-algebra} on sample space $\Omega$ is a collection of events $\mathfrak{E} \subseteq 2^{\Omega}$ is a pair $(\Omega, \mathfrak{E})$ with
+\begin{enumerate}
+    \item $\Omega \in \mathfrak{E}$
+    \item $E \in \Omega: E \in \mathfrak{E} \Rightarrow \Omega \setminus E \in \mathfrak{E}$
+    \item $E_0, E_1, \dots \in \mathfrak{E} \Rightarrow E_0 \cup E_1 \cup \dots \in \mathfrak{E}$
+\end{enumerate}
+The pair $(\Omega, \mathfrak{E})$ is then called measurable space. \\
+
+A \textbf{probability space $\mathcal{P} = (\Omega, \mathfrak{E}, P)$} is a structure with
+\begin{enumerate}
+    \item $(\Omega, \mathfrak{E})$ is a $\sigma$-Algebra
+    \item $\forall x \in \Omega: 0 \leq P(x) \leq 1$
+    \item $P(\Omega) = 1$
+    \item $\forall i \geq 0 \wedge i \neq j: E_i \cap E_j = \emptyset: P(\cup_i E_i) = \sum_i P(E_i)$ 
+\end{enumerate}
+$P$ is called the \textbf{probability measure}.
+\vspace{0.5cm}
+A \textbf{discrete probability space} is a probability space $(\Omega, \mathfrak{E}, P)$ where 
+\[ \exists E \subseteq \Omega: \forall e \in E: \{e\} \in \mathfrak{E} \wedge \sum_{e \in E} P(\{e\}) = 1\]
+If the probability space is not discrete, it is called \textbf{continuous}. \\
+
+A \textbf{measurable function $f:\Omega_0 \rightarrow \Omega_1$} is a function that maps a sample space of a measurable space $(\Omega_0, \mathfrak{E}_0)$ to another sample space of another measurable space $(\Omega_1, \mathfrak{E}_1)$ with:
+\[ \forall E \in \mathfrak{E}: f^{-1}(E) = \{ e | f(e) \in E \} \in \mathfrak{E} \]
+
+A \textbf{random variable $X: \Omega \rightarrow \mathbf{R}$} is a measurable function that maps a sample space to the real numbers. \\
+The \textbf{Probability distribution $P_X$} of X is given by \[ P_X = P \circ X^{-1} \]
+
+A \textbf{distribution function $F_X$}, also called probability mass function for discrete probability space or cumulative density function for continuous probability spaces of a random variable X is given by \[ x \in \mathbf{R}: F_X(x) = P(\{e \in \Omega | X(e) \leq x\}) \]
+For the discrete case it can be formulated as: \[ x \in \mathbf{R}: F_X(x) = \sum_{x_i \leq x} P_x (X = x_i) \]
+In the continuous case with $f$ the probability density function: \[ x \in \mathbf{R}: F_X(x) = \int^d f_X(x) dx \]
+
 
 \section{Pseudo-Code for Chapter 3: Algorithms}
 \subsection{Hierarchical Clustering}
@@ -69,6 +109,9 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
     }
 \caption{Hierarchical Agglomerative Clustering}\label{agglo}
 \end{algorithm}
+As we need to compute the pairwise (symmetric) distance matrix which is a square matrix the space complexity of this algorithm is in $\frac{1}{2} n^2 \in \mathcal{O}(n^2)$. The time complexity is $\mathcal{O}(n^3)$ for a naive implementation as in the pseudo-code above. In each iteration we need to scan the distance matrix for the minimum and update it after merging resulting in  $2 \cdot \frac{1}{2} n^2$ steps per iteration. As in each step exactly 2 objects are merged, there are $n-1$ merges in total, resulting in a time complexity of $n - 1 \cdot n^2 \in \mathcal{O}(n^3)$.
+
+
 \subsubsection{Robust Single Linkage}
 \begin{algorithm}[htp]
     \KwIn{A distance matrix $distM$ of shape $|O| \times |O|$}
@@ -90,6 +133,9 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
     }
 \caption{Robust Single Linkage Clustering}\label{robust}
 \end{algorithm}
+The space complexity is again the space needed to store the symmetric pairwise distance matrix $\frac{1}{2}n^2 \in \mathcal{O}(n^2)$. The time complexity here is a bit different: Computing the smallest radius for which the sphere around the object contains at least k points is $n \cdot (n - 1)$ as for every object, the distance to all other points needs to be compared to $r$ - in the most naive implementation against $0, 1 \dots$ until a $r$ is found that leads to $\{o_j | \ |B(o_i, r)| \geq k$. Thus the first for loop has a complexity of $n \cdot r \cdot (n-1) \in \mathcal{O}(n^2)$. The While loop constructs a graph that needs to traverse only the list of infimum $r$ values for the vertices (i.e. $n$ elements). Regarding the edges, the distance matrix needs to be traversed i.e. $\frac{1}{2}n^2$ elements. As $\alpha$ is user defined, the number of iterations is variable but is less than $(n-1)$ for $\alpha = 1, k = 2$ (compare with Agglomerative clustering). To conclude, for $\alpha \geq 1$ and $k \geq 2$ convergence is faster than single linkage as many points are merged in one step. For a more comprehensive discussion of the rates of convergence, see~\cite{Chaudhuri2010RatesOC}
+
+
 
 \subsection{Partition-based Methods}
 \subsubsection{K-Means}
@@ -115,6 +161,9 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
     }
 \caption{k-Means Clustering}\label{kmeans}
 \end{algorithm}
+The space complexity is simply the number of data objects $n \cdot k \in \mathcal{O}(n)$ for small $k$ as the distance for each object to the cluster centroid must be stored instead of the full distance matrix. The time complexity is with $I$ the number of iterations, $k$ the number of clusters and $n$ the number of objects $n \cdot k \cdot I \in \mathcal{O}(n)$ for small $k$ and $I$, as in each iteration we need to find the closest centroid to the object for each object, thus $n \cdot k$.
+
+
 \subsubsection{TTSAS}
 \begin{algorithm}[htp]
     \KwIn{A Set of data objects $O$}
@@ -163,10 +212,10 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
     }
 \caption{Two-Threshold Sequential Algorithmic Scheme Clustering}\label{ttsas}
 \end{algorithm}
+In algorithm\ref{ttsas} the first condition guarantees that the algorithm terminates. If the current object is uncategorized and there was no change in the last iteration and the current object is the first that is inspected in this iteration of the while loop, make it a new cluster. This results in a worst-case complexity of $n \cdot 2nk$ with $|O| = n$ and $k$ the final number of clusters after algorithm execution. in this case every object's minimal distance is between the thresholds for all clusters that are created and every point ends up in an own cluster, taking two iterations per element: The first where no change happens and a second where only one point is assigned as a new cluster and no further changes happen. For each element ($n$) do 2 complete iterations ($n \cdot 2n$), where for each element the distance to all so far existing clusters is queried ($n \cdot 2nk$), resulting in a worst-case run time of $2n^2k \in \mathcal{O}(n^3)$ as in this case $k = n$. In the best case $k << n$ and only two passes~\cite{THEODORIDIS2009627} resulting in $2 \cdot n \cdot k \in \mathcal{O}(n)$ iterations. The space complexity is as in k-Means plus $n$ to store the categorized vector.
 
 \subsection{Density-based Methods}
 \subsubsection{DBSCAN}
-
 \begin{algorithm}[htp]
     \KwIn{A Set of data objects $O$, $o_i$ the currently expanded point, cluster[] the array storing the object to cluster mapping}
     \Parameters{$\epsilon$ the radius of the neighbourhood, MinObjects the minimal number of neighbours of a core point, cluster\_id the id of the cluster to be used}
@@ -223,8 +272,10 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
     }
 \caption{Density-based Spatial Clustering of Applications with Noise}\label{dbscan}
 \end{algorithm}
-\subsubsection{OPTICS}
+The space complexity of DBSCAN is $\frac{1}{2}n^2$ as the pairwise distance matrix needs to be computed for neighbourhood queries. The run time complexity is $n$ for the outer loop in the DBSCAN algorithm and $\log(n)$ for a neighbourhood query if the neighbourhood information is stored in an efficient data structure e.g. a R*-tree according to the authors~\cite{dbscan}. In total this induces a run time complexity of $n \log(n) \in \mathcal{O}(n \log(n))$. If no such structure is used, a neighbourhood query needs to scan a row (or column) of the matrix which takes $n$ elements to visit, resulting in $n \cdot n \in \mathcal{O}(n^2)$~\cite{han2011data}. \\
 
+
+\subsubsection{OPTICS}
 \begin{algorithm}[htp]
     \KwIn{A Set of data objects $O$, $o_i$ the currently expanded point}
     \Parameters{$\epsilon$ the radius of the neighbourhood, MinObjects the minimal number of neighbours of a core point, OrderedFile the file to write the cluster ordering to}
@@ -299,6 +350,9 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
     }
 \caption{Ordering Points To Identify Cluster Structure}\label{optics}
 \end{algorithm}
+As the algorithm proceeds very similar to DBSCAN a lot of the complexity analysis also applies here: The space complexity is $\frac{1}{2}n^2$ for the pairwise distance matrix plus additionally the file that is written to, which size depends on the number of clusters but is generally bound by $3n$ (the object plus two distances per object) what yields $\frac{1}{2}n^2 + 3n \in \mathcal{O}(n^2)$. Regarding the computational complexity, the authors provide $\mathcal{O}(n^2)$ as run time without a special data structure and $\mathcal{O}(n \log(n))$ with a specialised data structure\cite{optics}. The additional overhead for finding the appropriate core distance may be solved with a one time pass over the respective row or column using dynamic programming, i.e. besides querying the neighbour hood to find the seeding neighbours another pass is needed to find the core distance. \\
+
+
 \subsubsection{HDBSCAN}
 \begin{algorithm}[htp]
     \KwIn{A Set of data objects $O$}
@@ -323,9 +377,11 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
     }
 \caption{Hierarchical Density-based Spatial Clustering of Applications with Noise}\label{hdbscan}
 \end{algorithm}
+The space requirements are the same as for DBSCAN: The pairwise distance matrix needs $\frac{1}{2}n^2 \in \mathcal{O}n^2$ space complexity. regarding the run time, one needs to compute the core-distance for each object which takes $n \cdot n \in \mathcal{O}(n^2)$. Constructing the minimum spanning tree using Prim's algorithm or Boruvka's algorithm is in $\mathcal{O}(n^2)$ worst-case run time complexity. Removing all edges iteratively requires maximally $\frac{1}{2}n^2$ iterations for a fully connected graph and when sorting the matrix before starting the removal procedure which takes $\mathcal{O}(n \log n)$ steps retreiving the maximum is a constant time operation. Overall we get $n^2 + n^2 + n \log n +\frac{1}{2}n^2 \in \mathcal{O}(n^2)$ steps as run time complexity.
 
 \subsection{Conceptual Clustering}
 \subsubsection{Cobweb}
+With $b$ the average branching factor, $n$ the number of objects classified so far, $A$ the number of all distinct attributes, $V$ the average number of distinct values per attribute for categorical values. When incorporating a new object, at each level the node counts must be updated, the category utility must be computed for each child to find the host, split merge and creation must be probed. That is when computing the category utility takes $\mathcal{O}(bAV)$ steps, finding the host is $b \cdot bav$, adding the probes for merging (finding another host and computing the category utility for the operation means b+1 computations of the category utility, splitting and class creation is one time computing the category utility resulting in $(b + b + 1 + 1 + 1) \cdot bAV = (2b + 3) \cdot bAV = 2b^2AV + 3bAV \in \mathcal{O}(b^2AV)$. As the depth of the tree is $\log_B(n)$ we get $\log_B(n) \mathcal{O}(b^2AV) \in \mathcal{O}(\log (n)b^2 AV)$.
 \begin{algorithm}[htp]
     \KwIn{An object $o_i \in O$}
     \Parameters{node the node currently visiting}
@@ -358,25 +414,26 @@ The definitions in Formal Concept Analysis are too strict in some places, that's
             }
         }
     }
-\caption{COBWEB}\label{cobweb}
+\caption{COBWEB}\label{cobweb_}
 \end{algorithm}
+
 \section{Taxonomy Extraction example}
-\begin{minipage}{0.4\textwidth}
+\begin{minipage}{0.48\textwidth}
 $C_{14} = C_0 \cup C_2$, with distance 1 \\
-$C_{15} = C_1 \cup C_14$, with distance 1 \\
-$C_{16} = C_3 \cup C_15$, with distance 1 \\
+$C_{15} = C_1 \cup C_{14}$, with distance 1 \\
+$C_{16} = C_3 \cup C_{15}$, with distance 1 \\
 $C_{17} = C_5 \cup C_7$, with distance 1 \\
-$C_{18} = C_6 \cup C_17$, with distance 1 \\
-$C_{19} = C_4 \cup C_18$, with distance 1 \\
-$C_{20} = C_8 \cup C_19$, with distance 1 \\
-$C_{21} = C_9 \cup C_11$, with distance 1 \\
-$C_{22} = C_12 \cup C_21$, with distance 1 \\
-$C_{23} = C_13 \cup C_22$, with distance 1 \\
-$C_{24} = C_16 \cup C_20$, with distance 2 \\
-$C_{25} = C_23 \cup C_24$, with distance 2 \\
-$C_{26} = C_10 \cup C_25$, with distance 2 \\
+$C_{18} = C_6 \cup C_{17}$, with distance 1 \\
+$C_{19} = C_4 \cup C_{18}$, with distance 1 \\
+$C_{20} = C_8 \cup C_{19}$, with distance 1 \\
+$C_{21} = C_9 \cup C_{11}$, with distance 1 \\
+$C_{22} = C_{12} \cup C_{21}$, with distance 1 \\
+$C_{23} = C_{13} \cup C_{22}$, with distance 1 \\
+$C_{24} = C_{16} \cup C_{20}$, with distance 2 \\
+$C_{25} = C_{23} \cup C_{24}$, with distance 2 \\
+$C_{26} = C_{10} \cup C_{25}$, with distance 2 \\
 \end{minipage} \hfill
-\begin{minipage}{0.4\textwidth}
+\begin{minipage}{0.48\textwidth}
 $[[ 0.,  2.,  1.]$ \\
  $[ 1., 14.,  1.]$\\
  $[ 3., 15.,  1.]$\\
@@ -391,8 +448,8 @@ $[[ 0.,  2.,  1.]$ \\
  $[23., 24.,  2.]$\\
  $[10., 25.,  2.]]$ \\
 \end{minipage} \\
-
-\begin{minipage}{0.4\textwidth}
+is transformed to
+\begin{minipage}{0.48\textwidth}
 $[$\\
     $[[ 0.,  2.,  1.,  3.], 1]$\\
     $[[ 5.,  7.,  6.,  4.,  8.], 1]$\\
@@ -400,7 +457,7 @@ $[$\\
     $[[16.,  20.,  23.,  10.], 2]$  \\        
 $]$\\
 \end{minipage}  \hfill
-\begin{minipage}{0.4\textwidth}
+\begin{minipage}{0.48\textwidth}
 $C_{16} = C_0 \cup C_2 \cup C_1 \cup C_3$, with distance 1 \\  
 $C_{20} = C_5 \cup C_7 \cup C_6 \cup C_4 \cup C_8$, with distance 1 \\ 
 $C_{23} = C_9 \cup C_{11} \cup C_{12} \cup C_{13}$, with distance 1 \\ 
