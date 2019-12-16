@@ -6,8 +6,7 @@ import logging
 BASE = "/home/someusername/Nextcloud/workspace/uni/bachelor/klopfer-bachelor"
 IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
-result_summary = open(path.join(BASE, "doc", "thesis", 'clustering_survey_results.log'), 'a+')
-
+result_summary = open(path.join(BASE, "doc", "thesis", 'clustering_survey_results.log'), 'w')
 
 
 class Dataset(Enum):

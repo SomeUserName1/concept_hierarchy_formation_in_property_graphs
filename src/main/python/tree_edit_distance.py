@@ -6,7 +6,6 @@ import numpy as np
 from src.main.python import Dataset, BASE, result_summary, logger
 
 
-# FIXME got error here recently, something broken maybe?
 def compute_ted(children_or_tree, name, noise, seconds, samples, dataset: Dataset, trestle: bool = False, n_clusters=0):
     with open(dataset.value[1], "r") as read_file:
         ground_truth = read_file.read()

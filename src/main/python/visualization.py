@@ -49,7 +49,7 @@ def visualize_clusters(estimator, data, p_path, noise):
     plt.close('all')
 
 
-def visualize(estimator, linkage, m_path, noise):
+def visualize(linkage, m_path, noise):
     if not path.exists(m_path):
         makedirs(m_path)
 
@@ -65,15 +65,12 @@ def visualize(estimator, linkage, m_path, noise):
     plt.clf()
 
     plt.figure()
-    if estimator is not None:
-        estimator.cluster_hierarchy_.plot()
-    else:
-        dendrogram(linkage)
+    dendrogram(linkage)
     plt.savefig(p_path + "_dendro.pdf")
     plt.clf()
 
     plt.figure()
-    ct = CondensedTree(condense_tree(linkage, 2), cluster_selection_method='leaf',
+    ct = CondensedTree(condense_tree(linkage, 2), cluster_selection_method='eom',
                        allow_single_cluster=True)
     ct.plot()
     plt.savefig(p_path + "_condensed.pdf")
@@ -91,6 +88,16 @@ def transform_numeric(vectorized_data: np.array) -> np.array:
     return tsne_data
 
 
+def average_list(lst):
+    if len(lst) is 0:
+        return 0
+
+    cum = 0
+    for entry in lst:
+        cum += entry
+    return cum/len(lst)
+
+
 def parse_results():
     # for timing [0] is the name, [1] is the amount of noise and [2] is the runtime in s
     # for the teds [0] and [1] as above, [2] is the rted
@@ -105,21 +112,30 @@ def parse_results():
         else:
             synth.append(atom[1:])
         line = result_summary.readline()
+        
     for result in [yelp, synth]:
         result_algos = {}
         for entry in result:
             if result_algos.get(entry[0]) is not None:
-                result_algos[entry[0]]['ted'][entry[3]][entry[1]].append(entry[2])
-                result_algos[entry[0]]['time'][entry[1]][entry[3]].append(entry[4])
+                # result_algos[ALGO_NAME][samples]['time'][times]
+                # result_algos[ALGO_NAME][samples]['ted'][noise][ted]
+                result_algos[entry[0]][entry[3]]['time'].append(entry[4])
+                result_algos[entry[0]][entry[3]]['ted'][entry[1]] = entry[2]
             else:
-                result_algos[entry[0]] = {'ted': {entry[1]: list(entry[2])}, 'time': {entry[3]: list(entry[4])}}
+                result_algos[entry[0]] = {entry[3]: {'time': list(entry[4]), 'ted': {entry[1]: entry[2]}}}
         if result is yelp:
             yelp = result_algos
         elif result is synth:
             synth = result_algos
+
+    for result in [synth, yelp]:
+        for algo in result:
+            for sample in algo:
+                sample['time'] = average_list(sample['time'])
     return synth, yelp
 
-# TODO
+# TODO extract n_samples, runtime        (easy, take average over noise)
+#     and      noise, rted               (more difficult, tree size correlates w rted) => one for each sample size
 
 
 def plot_results():
@@ -129,35 +145,36 @@ def plot_results():
 
     synth, yelp = parse_results()
 
-    for dataset in [synth]:#, yelp]:
+    plt.figure()
+    for algo in synth:
+        print(algo)
+        plt.plot(algo.keys(), algo, label=algo)
+
+    plt.locator_params(axis='x', nbins=len(dataset[0]['ted'].keys()))
+    plt.ylabel('Tree Edit Distance')
+    plt.xlabel('% noise')
+    plt.title("Tree Edit Distance per Noise and Algorithm")
+
+    plt.legend(loc='upper left')
+    plt.savefig(path.join(p, "synth_ted_results.pdf"))
+    plt.clf()
+
+    # plt.figure()
+    # for elem in results:
+    #     if elem in ['trestle', 'optics', 'single', 'ttsas']:
+    #         plt.plot([0.0, 0.1, 0.33, 0.5], results[elem], label=elem)
+    #
+    # plt.locator_params(axis='x', nbins=4)
+    # plt.ylabel('Tree Edit Distance')
+    # plt.xlabel('% noise')
+    # plt.title("Tree Edit Distance per Noise and Algorithm")
+    #
+    # plt.legend(loc='upper right')
+    # plt.savefig(p + "ted_results_reduced.pdf")
+    # plt.clf()
+
+    for dataset in [synth, yelp]:
         safe_str = "synth_" if dataset is synth else "yelp_"
-        plt.figure()
-        for name, algo in dataset:
-            plt.plot(algo['ted'].keys(), algo['ted'].values, label=name)
-
-        plt.locator_params(axis='x', nbins=len(dataset[0]['ted'].keys()))
-        plt.ylabel('Tree Edit Distance')
-        plt.xlabel('% noise')
-        plt.title("Tree Edit Distance per Noise and Algorithm")
-
-        plt.legend(loc='upper left')
-        plt.savefig(path.join(p, safe_str + "ted_results.pdf"))
-        plt.clf()
-
-        # plt.figure()
-        # for elem in results:
-        #     if elem in ['trestle', 'optics', 'single', 'ttsas']:
-        #         plt.plot([0.0, 0.1, 0.33, 0.5], results[elem], label=elem)
-        #
-        # plt.locator_params(axis='x', nbins=4)
-        # plt.ylabel('Tree Edit Distance')
-        # plt.xlabel('% noise')
-        # plt.title("Tree Edit Distance per Noise and Algorithm")
-        #
-        # plt.legend(loc='upper right')
-        # plt.savefig(p + "ted_results_reduced.pdf")
-        # plt.clf()
-
         plt.figure()
         for name, algo in dataset:
             plt.plot(algo['time'].keys(), algo['time'].values, label=name)
