@@ -23,7 +23,7 @@ from visualization import visualize, visualize_clusters, plot_results
 # cluster_rock(n_samples), cluster_kmedians(n_samples),  cluster_bsas(n_samples), cluster_mbsas(n_samples),
 # , cluster_som(n_samples)
 def two_step(vectorized_data, dataset, n_samples, noise):
-    for searcher in [cluster_dbscan(n_samples), cluster_optics(n_samples), cluster_kmeans(n_samples),
+    for searcher in [cluster_optics(n_samples), cluster_kmeans(n_samples), cluster_dbscan(n_samples),
                      cluster_rsl(n_samples), cluster_hdbscan(n_samples), cluster_ttsas()]:
 
         logger.info("======================" + type(searcher.estimator).__name__ +
@@ -119,10 +119,11 @@ def start_clustering(dataset, n_samples, noise, width, depth):
 
 def main():
     for dataset in [Dataset.SYNTHETIC, Dataset.YELP]:
-        for width, depth in [[3, 5], [4, 5], [5, 6], [5, 8]]:
+        # 243, 1024, 32768, 262144
+        for width, depth in [[3, 5], [4, 5], [8, 5], [4, 9]]:
             n_samples = width ** depth
             if dataset == Dataset.SYNTHETIC:
-                for noise in [0, 0.05, 0.10, 0.20, 0.33, 0.50]:
+                for noise in [0, 0.05, 0.10, 0.20, 0.33]:
                     start_clustering(dataset, n_samples, noise, width, depth)
             else:
                 start_clustering(dataset, n_samples, 0, width, depth)

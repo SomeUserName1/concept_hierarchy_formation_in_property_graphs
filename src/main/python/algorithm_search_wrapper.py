@@ -6,22 +6,20 @@ from pyclustering_wrapper import KMeansWrapper, KMediansWrapper, KMedoidsWrapper
 from sklearn.cluster import DBSCAN, AffinityPropagation, OPTICS, Birch, SpectralClustering
 from sklearn import metrics
 from scipy.stats import randint, uniform
-from joblib import Memory
-import six
 
 
 def pyclust_params(n_samples):
     return {
-            "n_clusters": randint(2, (n_samples / 2) + 2),
+            "n_clusters": randint(2, (n_samples / 100) + 8),
             "tolerance": uniform(0.00001, 0.1)
     }
 
 
 def cluster_rsl(n_samples):
     grid_params = {
-        "k": randint(2, (n_samples / 100) + 5),
+        "k": randint(2, (n_samples / 100) + 8),
         "alpha": uniform(1, 1),
-        "gamma": randint(2, (n_samples / 100) + 5),
+        "gamma": randint(2, (n_samples / 100) + 8),
         "cut": uniform(0, 0.5)
     }
     clust = RobustSingleLinkage(metric='jaccard', algorithm='boruvka_balltree')
@@ -32,13 +30,38 @@ def cluster_rsl(n_samples):
 
 def cluster_hdbscan(n_samples):
     grid_params = {
-        "min_cluster_size": randint(2, (n_samples / 100) + 5),
+        "min_cluster_size": randint(2, (n_samples / 100) + 8),
         "alpha": uniform(1, 1),
-        "min_samples": randint(2, (n_samples / 100) + 5)
+        "min_samples": randint(2, (n_samples / 100) + 8)
     }
     clust = HDBSCAN(metric='jaccard', core_dist_n_jobs=-1, algorithm='boruvka_balltree')
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                   n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=20)
+    return searcher
+
+
+def cluster_dbscan(n_samples):
+    grid_params = {
+        "eps": uniform(loc=0.001, scale=0.999),
+        "min_samples":  randint(2, round(0.01 * n_samples) + 5),
+        "leaf_size": randint(2, round(0.01 * n_samples) + 5)
+    }
+    clust = DBSCAN(metric='jaccard', n_jobs=-1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
+                                  n_jobs=-1, scoring=cv_scorer, error_score='raise', refit=True, n_iter=20)
+    return searcher
+
+
+def cluster_optics(n_samples):
+    grid_params = {
+        "min_samples": randint(2, round(0.1 * n_samples) + 2),
+        "leaf_size": randint(20, n_samples/4 + 20),
+        "min_cluster_size": uniform(0, 0.1),
+    }
+    clust = OPTICS(metric='jaccard', algorithm='ball_tree', n_jobs=-4, max_eps=1)
+    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
+                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=10)
+
     return searcher
 
 
@@ -59,31 +82,6 @@ def cluster_spectral(n_samples):
     clust = SpectralClustering(affinity='precomputed', eigen_solver='arpack', n_jobs=-1)
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
                                n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=20)
-    return searcher
-
-
-def cluster_dbscan(n_samples):
-    grid_params = {
-        "eps": uniform(loc=0.001, scale=0.999),
-        "min_samples":  randint(2, round(0.01 * n_samples) + 5),
-        "leaf_size": randint(2, round(0.01 * n_samples) + 5)
-    }
-    clust = DBSCAN(metric='jaccard', n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
-                                  n_jobs=-1, scoring=cv_scorer, error_score='raise', refit=True, n_iter=20)
-    return searcher
-
-
-def cluster_optics(n_samples):
-    grid_params = {
-        "min_samples": randint(2, round(0.01 * n_samples) + 5),
-        "leaf_size": randint(2, round(0.01 * n_samples) + 5),
-        "min_cluster_size": randint(2, round(0.01 * n_samples) + 5)
-    }
-    clust = OPTICS(metric='jaccard', n_jobs=-1)
-    searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
-                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=20)
-
     return searcher
 
 
@@ -138,7 +136,7 @@ def cluster_mbsas(n_samples):
 def cluster_ttsas():
     grid_params = {
         "threshold_1": uniform(loc=0, scale=0.5),
-        "threshold_2": uniform(0.5, 0.5)
+        "threshold_2": uniform(0.5, 1)
     }
     clust = TTSASWrapper()
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
