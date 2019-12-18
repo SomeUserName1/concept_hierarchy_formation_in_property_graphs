@@ -14,8 +14,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 from algorithm_search_wrapper import *
 from data_loader import load, preprocess_trestle_yelp, preprocess_trestle_synthetic
-from src.main.python import IMG_BASE, Dataset, logger, result_summary
-from tree_edit_distance import compute_ted
+from constants import IMG_BASE, Dataset, logger, result_summary
+from tree_edit_distance import compute_ted, create_bracket_tree_rsl
 from visualization import visualize, visualize_clusters, plot_results
 
 
@@ -25,9 +25,8 @@ from visualization import visualize, visualize_clusters, plot_results
 def two_step(vectorized_data, dataset, n_samples, noise):
     for searcher in [cluster_optics(n_samples), cluster_kmeans(n_samples), cluster_dbscan(n_samples),
                      cluster_rsl(n_samples), cluster_hdbscan(n_samples), cluster_ttsas()]:
-
         logger.info("======================" + type(searcher.estimator).__name__ +
-                    " RobustSingleLinkage with Noise? " + str(noise) + "====================================")
+                    " SingleLinkage with Noise? " + str(noise) + "====================================")
 
         vectorized_data = np.array(vectorized_data).astype(bool)
         searcher.fit(vectorized_data)
@@ -42,6 +41,7 @@ def two_step(vectorized_data, dataset, n_samples, noise):
         total = time.time() - start
         logger.info("Fitting took: " + str(total) + " s")
 
+        print(len(set(estimator.labels_)))
         compute_ted(
             children_or_tree=linkage,
             name=type(searcher.estimator).__name__, noise=noise, seconds=str(total), samples=n_samples,
@@ -79,8 +79,6 @@ def cluster_trestle(dataset, noise, n_samples):
                 dataset=dataset, trestle=True)
 
     clustering = cluster(tree, data, mod=False)
-    logger.info("inferred clusters by Trestle: ")
-    logger.info(clustering[0])
 
 
 def cluster_basic_single_linkage(diatance_matrix, dataset, noise, n_samples):
