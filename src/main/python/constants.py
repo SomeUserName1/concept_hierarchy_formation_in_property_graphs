@@ -1,9 +1,10 @@
 from enum import Enum
 from os import path
+import os
 import logging
 
 
-BASE = "/home/someusername/Nextcloud/workspace/uni/bachelor/klopfer-bachelor"
+BASE = os.getcwd()
 IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
 result_summary = open(path.join(BASE, "doc", "thesis", 'clustering_survey_results.log'), 'w')
