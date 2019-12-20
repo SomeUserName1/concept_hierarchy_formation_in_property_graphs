@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -285,6 +286,9 @@ public class ConceptNode {
    * @return the label of a super-concept of the current node
    */
   String getCutoffLabel(final int cutoffLevel) {
+    if (this.label.length() < cutoffLevel + 1) {
+      return this.label;
+    }
     return this.label.substring(0, cutoffLevel + 1);
   }
 

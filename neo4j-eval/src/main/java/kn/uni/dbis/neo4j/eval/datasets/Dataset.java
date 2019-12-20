@@ -112,7 +112,23 @@ public enum Dataset {
       + "(n5)-[:WAY { weight:2 }]->(n6),\n"
       + "(n6)-[:WAY { weight:6 }]->(n1),\n"
       + "(n6)-[:WAY { weight:2 }]->(n4),\n"
-      + "(n6)-[:WAY { weight:2 }]->(n5)", true, true, SourceType.CypherQuery, 7, 24);
+      + "(n6)-[:WAY { weight:2 }]->(n5)", true, true, SourceType.CypherQuery, 7, 24),
+
+  /**
+   * LDBC.
+   */
+  LDBC_SNB(DefaultPaths.PERSISTENT_STORES_PATH.resolve("ldbc_snb.db")),
+
+  /**
+   * YELP_OO.
+   */
+  YELP_OO(DefaultPaths.PERSISTENT_STORES_PATH.resolve("yelp_oo.db")),
+
+  /**
+   * YELP_GRAPH.
+   */
+  YELP_GRAPH(DefaultPaths.PERSISTENT_STORES_PATH.resolve("yelp_graph.db"));
+
 
   /**
    * Flag indicating wether the Dataset is based on a query.

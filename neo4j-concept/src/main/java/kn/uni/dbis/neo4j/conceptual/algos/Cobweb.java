@@ -264,7 +264,6 @@ public class Cobweb {
    */
   private static double computeCU(final ConceptNode parent) {
     if (parent.getChildren().size() == 0) {
-      // FIXME this ?
       return Integer.MIN_VALUE;
     }
     final double parentEAP = getExpectedAttributePrediction(parent);
@@ -281,7 +280,6 @@ public class Cobweb {
   private static double computeCU(final ConceptNode parent, final double parentEAP) {
     final double parentChildCount = parent.getChildren().size();
     if (parentChildCount == 0) {
-      // FIXME this ?
       return Integer.MIN_VALUE;
     }
     double cu = 0.0;

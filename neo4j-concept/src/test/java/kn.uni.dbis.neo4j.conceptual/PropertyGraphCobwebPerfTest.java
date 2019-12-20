@@ -79,8 +79,8 @@ public final class PropertyGraphCobwebPerfTest {
     try (Transaction ignored = db.beginTx()) {
       final Stream<Node> nodes = db.getAllNodes().stream().limit(100);
       System.out.println(nodes.count());
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream(),
-          db.getAllRelationships().stream()).findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream())
+          .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       TreeUtils.prettyPrint(tree.getNodeSummaryTree());
     }
   }

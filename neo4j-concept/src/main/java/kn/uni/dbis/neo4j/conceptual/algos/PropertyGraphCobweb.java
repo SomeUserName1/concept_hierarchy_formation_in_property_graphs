@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
@@ -23,6 +24,8 @@ public class PropertyGraphCobweb {
   private final ConceptNode nodePropertiesTree = new ConceptNode().root();
   /** Cobweb tree for the relationship properties. */
   private final ConceptNode relationshipPropertiesTree = new ConceptNode().root();
+  /** structural features tree. */
+  private final ConceptNode structuralFeaturesTree = new ConceptNode().root();
   /** Cobweb tree for the node summary. */
   private final ConceptNode nodeSummaryTree = new ConceptNode().root();
 
@@ -34,16 +37,21 @@ public class PropertyGraphCobweb {
    *
    * @param nodes the list of nodes to be incorporated
    */
-  public void integrate(final List<Node> nodes, final List<Relationship> relationships) {
+  public void integrate(final List<Node> nodes) {
     // Static categorization according to properties, labels and relationship type
-
+    List<Relationship> rels = new ArrayList<>();
     ConceptNode properties;
+    ConceptNode structuralFeatures;
     for (Node node : nodes) {
+      node.getRelationships().forEach(rels::add);
       properties = new ConceptNode(node);
+      structuralFeatures = new ConceptNode();
+      extractStructuralFeatures(node, structuralFeatures);
       Cobweb.cobweb(properties, this.nodePropertiesTree);
+      Cobweb.cobweb(structuralFeatures, this.structuralFeaturesTree);
     }
 
-    for (Relationship rel : relationships) {
+    for (Relationship rel : rels) {
       properties = new ConceptNode(rel);
       Cobweb.cobweb(properties, this.relationshipPropertiesTree);
     }
@@ -52,23 +60,32 @@ public class PropertyGraphCobweb {
 
     int cutoffLevelNodes = MathUtils.log2(TreeUtils.deepestLevel(this.nodePropertiesTree));
     int cutoffLevelRelationships = MathUtils.log2(TreeUtils.deepestLevel(this.relationshipPropertiesTree));
+    int cutoffLevelStructuralFeatures = MathUtils.log2(TreeUtils.deepestLevel(this.structuralFeaturesTree));
 
     TreeUtils.labelTree(this.nodePropertiesTree, "", "n");
     TreeUtils.labelTree(this.relationshipPropertiesTree, "", "r");
+    TreeUtils.labelTree(this.structuralFeaturesTree, "", "s");
 
     String label;
     for (Node node : nodes) {
       summarizedNode = new ConceptNode();
-      co = new ArrayList<>();
-
       summarizedNode.setId(Long.toString(node.getId()));
+
+      co = new ArrayList<>();
       properties = TreeUtils.findById(Long.toString(node.getId()), this.nodePropertiesTree);
       assert properties != null;
       label = properties.getCutoffLabel(cutoffLevelNodes);
       co.add(new NominalValue(label));
       summarizedNode.getAttributes().put("NodePropertiesConcept", co);
 
-      co.clear();
+      co = new ArrayList<>();
+      properties = TreeUtils.findById(Long.toString(node.getId()), this.structuralFeaturesTree);
+      assert properties != null;
+      label = properties.getCutoffLabel(cutoffLevelStructuralFeatures);
+      co.add(new NominalValue(label));
+      summarizedNode.getAttributes().put("StructuralFeaturesConcept", co);
+
+      co = new ArrayList<>();
       NominalValue check;
       for (Relationship rel : node.getRelationships()) {
         properties = TreeUtils.findById(Long.toString(rel.getId()), this.relationshipPropertiesTree);
@@ -83,7 +100,6 @@ public class PropertyGraphCobweb {
       }
       summarizedNode.getAttributes().put("RelationshipConcepts", co);
 
-      extractStructuralFeatures(node, summarizedNode);
       Cobweb.cobweb(summarizedNode, this.nodeSummaryTree);
     }
   }
@@ -148,7 +164,11 @@ public class PropertyGraphCobweb {
     conceptNode.getAttributes().put("EgoDegree", temp);
 
     temp = new ArrayList<>();
-    temp.add(new NumericValue(totalNeighbourDegree / egoDegree));
+    if (egoDegree == 0) {
+      temp.add(new NumericValue(0));
+    } else {
+      temp.add(new NumericValue(totalNeighbourDegree / egoDegree));
+    }
     conceptNode.getAttributes().put("AverageNeighbourDegree", temp);
 
     for (Map.Entry<RelationshipType, Integer> egodegpt : egoDegPerType.entrySet()) {
@@ -169,6 +189,8 @@ public class PropertyGraphCobweb {
     temp = new ArrayList<>();
     temp.add(new NumericValue(noInArcs));
     conceptNode.getAttributes().put("EgoNetIncomingEdges", temp);
+
+    conceptNode.setId(Long.toString(node.getId()));
   }
 
   /**
@@ -185,6 +207,14 @@ public class PropertyGraphCobweb {
    */
   public ConceptNode getRelationshipPropertiesTree() {
     return this.relationshipPropertiesTree;
+  }
+
+  /**
+   * Getter for the relationship properties Cobweb tree.
+   * @return the cobweb instance for relationship properties
+   */
+  public ConceptNode getStructuralFeaturesTree() {
+    return this.structuralFeaturesTree;
   }
 
   /**

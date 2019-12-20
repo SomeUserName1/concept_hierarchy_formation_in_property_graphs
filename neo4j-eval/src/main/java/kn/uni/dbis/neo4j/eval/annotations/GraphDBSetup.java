@@ -144,7 +144,7 @@ public class GraphDBSetup implements BeforeAllCallback, AfterEachCallback, Befor
         throw new IOException("The specified directory does not contain a neostore!");
       }
       System.out.println("Loading from a previously altered and persisted store!");
-      return this.cloneAndOpenGraphDB(ctx, src, datasetName);
+      return this.cloneAndOpenGraphDB(ctx, src);
     }
 
     // Case 2 : use cached neostore for the given dataset
@@ -155,7 +155,7 @@ public class GraphDBSetup implements BeforeAllCallback, AfterEachCallback, Befor
       // found an existing neo store to copy
       if (store.toString().contains(datasetName)) {
         System.out.println("USING CACHED NEOSTORE " + store.toString() + " FOR DATASET " + datasetName);
-        return this.cloneAndOpenGraphDB(ctx, store, datasetName);
+        return this.cloneAndOpenGraphDB(ctx, store);
       }
     }
     
@@ -167,7 +167,7 @@ public class GraphDBSetup implements BeforeAllCallback, AfterEachCallback, Befor
     dataset.fetchAndImport();
 
     System.out.println("Finished Caching");
-    return this.cloneAndOpenGraphDB(ctx, plainPath, datasetName);
+    return this.cloneAndOpenGraphDB(ctx, plainPath);
   }
 
   /**
@@ -219,12 +219,10 @@ public class GraphDBSetup implements BeforeAllCallback, AfterEachCallback, Befor
    *
    * @param ctx         Extention context to get the configuration from.
    * @param src         template database to clone
-   * @param datasetName name of the database
    * @return a {@link GraphDatabaseService} instance to run the test on
    * @throws IOException if cloning fails
    */
-  private GraphDatabaseService cloneAndOpenGraphDB(final ExtensionContext ctx, final Path src,
-                                                          final String datasetName) throws IOException {
+  private GraphDatabaseService cloneAndOpenGraphDB(final ExtensionContext ctx, final Path src) throws IOException {
     final GraphDBConfig config = this.getRecursiveAnnotation(ctx, GraphDBConfig.class).orElse(DEFAULT_CONFIG);
 
     final TestDatabaseFactory tdf = new TestDatabaseFactory();
@@ -234,11 +232,11 @@ public class GraphDBSetup implements BeforeAllCallback, AfterEachCallback, Befor
       final Path dst = DefaultPaths.TEMP_STORES_PATH;
       System.out.println("Destination: " + dst);
       fu.clone(src, dst);
-      return tdf.openEmbedded(dst.resolve(datasetName + ".db"), config.log(), config.readOnly());
+      return tdf.openEmbedded(dst.resolve(src.getFileName()), config.log(), config.readOnly());
     } else {
-      final Path dst = DefaultPaths.PERSISTENT_STORES_PATH.resolve(datasetName + ".db");
+      final Path dst = DefaultPaths.PERSISTENT_STORES_PATH.resolve(src.getFileName());
       fu.clone(src, dst);
-      return tdf.openEmbedded(dst.resolve(datasetName + ".db"), config.log(), config.readOnly());
+      return tdf.openEmbedded(dst.resolve(src.getFileName()), config.log(), config.readOnly());
     }
   }
 
