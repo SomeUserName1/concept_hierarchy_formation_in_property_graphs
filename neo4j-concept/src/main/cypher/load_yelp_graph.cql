@@ -3,7 +3,7 @@ CALL apoc.load.json('business_preproc.json') YIELD value RETURN value
 ","
 MERGE (b:Business{id:value.business_id, name:value.name, address:value.address, postal_code:value.postal_code, latitude:value.latitude, longitude:value.longitude, review_count:value.review_count})
 
-FOREACH( ignore IN CASE WHEN value.RestaurantsAttire IS NULL THEN [] ELSE [1] END |
+FOREACH( ignore IN CASE WHEN value.categories IS NULL THEN [] ELSE [1] END |
     FOREACH(category IN value.categories |
         MERGE (c:Category{name:category})
         MERGE (b)-[:IN_CATEGORY]->(c)

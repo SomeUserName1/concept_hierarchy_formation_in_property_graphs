@@ -66,8 +66,13 @@ def preprocess_trestle_yelp(n_samples):
         data = []
         for entry in sample:
             data_entry = {}
+
+            if "categories" not in entry or entry['categories'] is None:
+                del entry
+                continue
+
             for i, label in enumerate(entry["categories"].split(',')):
-                data_entry["?label_" + str(i)] = label
+                data_entry["?category_" + str(i)] = label
 
             data.append(data_entry)
             del entry

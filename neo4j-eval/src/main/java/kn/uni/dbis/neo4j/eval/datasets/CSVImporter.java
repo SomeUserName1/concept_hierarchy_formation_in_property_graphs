@@ -43,9 +43,8 @@ final class CSVImporter {
    */
   void csvImport(final Dataset dataset) throws IOException {
     final String conf = "dbms.active_database=" + dataset.name() + ".db\n"
-        + "dbms.directories.data=" + DefaultPaths.PLAIN_STORES_PATH.getParent().toAbsolutePath().toString()
-        + "\n"
-        + "dbms.directories.logs=" + DefaultPaths.PLAIN_STORES_PATH.resolve("logs").toAbsolutePath().toString()
+        + "dbms.directories.data=" + DefaultPaths.PLAIN_STORES_PATH.getParent().toAbsolutePath().toString() + "\n"
+        + "dbms.directories.logs=" + DefaultPaths.PLAIN_STORES_PATH.resolve("logs").toAbsolutePath().toString()+ "\n"
         + "dbms.memory.heap.initial_size=2048m\n"
         + "dbms.memory.heap.max_size=2048\n";
 
@@ -114,7 +113,6 @@ final class CSVImporter {
    * prints the content of a buffered reader.
    *
    * @param br bufferedreader to print
-   * @throws IOException if br throws
    */
   private void printBuffer(final BufferedReader br) {
     String readLine;

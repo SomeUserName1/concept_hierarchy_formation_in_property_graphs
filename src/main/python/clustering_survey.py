@@ -41,10 +41,11 @@ def two_step(vectorized_data, dataset, n_samples, noise):
         total = time.time() - start
         logger.info("Fitting took: " + str(total) + " s")
 
-        compute_ted(
-            children_or_tree=linkage,
-            name=type(searcher.estimator).__name__, noise=noise, seconds=str(total), samples=n_samples,
-            n_clusters=len(set(estimator.labels_)), dataset=dataset)
+        if dataset is not dataset.YELP:
+            compute_ted(
+                children_or_tree=linkage,
+                name=type(searcher.estimator).__name__, noise=noise, seconds=str(total), samples=n_samples,
+                n_clusters=len(set(estimator.labels_)), dataset=dataset)
 
         visualize(linkage, path.join(IMG_BASE + type(estimator).__name__), noise)
 
@@ -74,8 +75,9 @@ def cluster_trestle(dataset, noise, n_samples):
     logger.info("Took " + str(total) + " s! Trestle tree: ")
     logger.info(tree)
     visualize_trestle(tree, dst=p1)
-    compute_ted(children_or_tree=tree, name="Trestle", noise=noise, seconds=str(total), samples=n_samples,
-                dataset=dataset, trestle=True)
+    if dataset is not dataset.YELP:
+        compute_ted(children_or_tree=tree, name="Trestle", noise=noise, seconds=str(total), samples=n_samples,
+                    dataset=dataset, trestle=True)
 
 
 def cluster_basic_single_linkage(diatance_matrix, dataset, noise, n_samples):
@@ -85,11 +87,12 @@ def cluster_basic_single_linkage(diatance_matrix, dataset, noise, n_samples):
     total = time.time() - start
     logger.info("Fitting took: " + str(total) + " s!")
 
-    compute_ted(
-        children_or_tree=linkage,
-        name="SingleLinkage",
-        noise=noise, seconds=str(total), samples=n_samples,
-        n_clusters=diatance_matrix.shape[0], dataset=dataset)
+    if dataset is not dataset.YELP:
+        compute_ted(
+            children_or_tree=linkage,
+            name="SingleLinkage",
+            noise=noise, seconds=str(total), samples=n_samples,
+            n_clusters=diatance_matrix.shape[0], dataset=dataset)
 
     visualize(linkage, path.join(IMG_BASE + "Single linkage"), noise)
 
@@ -112,9 +115,10 @@ def start_clustering(dataset, n_samples, noise, width, depth):
 
 def main():
     for dataset in [Dataset.SYNTHETIC, Dataset.YELP]:
-        # 243, 1024, 32768, 262144
-        for width, depth in [[3, 5], [4, 5], [8, 5], [4, 9]]:
+        for width, depth in [[3, 5], [8, 3], [4, 5], [2, 11], [5, 5], [4, 6]]:
             n_samples = width ** depth
+            logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + str(n_samples) +
+                        "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             if dataset == Dataset.SYNTHETIC:
                 for noise in [0, 0.05, 0.10, 0.20, 0.33]:
                     start_clustering(dataset, n_samples, noise, width, depth)

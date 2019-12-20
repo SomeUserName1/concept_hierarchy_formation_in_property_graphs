@@ -24,7 +24,7 @@ def cluster_rsl(n_samples):
     }
     clust = RobustSingleLinkage(metric='jaccard', algorithm='boruvka_balltree')
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
-                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=3)
+                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=32)
     return searcher
 
 
@@ -35,7 +35,7 @@ def cluster_hdbscan(n_samples):
     }
     clust = HDBSCAN(metric='jaccard', core_dist_n_jobs=-1, algorithm='boruvka_balltree')
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
-                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=3)
+                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=32)
     return searcher
 
 
@@ -46,7 +46,7 @@ def cluster_dbscan(n_samples):
     }
     clust = DBSCAN(metric='jaccard', n_jobs=-1, algorithm='ball_tree')
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(),
-                                  n_jobs=-1, scoring=cv_scorer, error_score='raise', refit=True, n_iter=3)
+                                  n_jobs=-1, scoring=cv_scorer, error_score='raise', refit=True, n_iter=32)
     return searcher
 
 
@@ -56,7 +56,7 @@ def cluster_optics(n_samples):
     }
     clust = OPTICS(metric='jaccard', algorithm='ball_tree', max_eps=0.5)
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
-                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=3)
+                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=32)
 
     return searcher
 
@@ -68,7 +68,7 @@ def cluster_ttsas():
     }
     clust = TTSASWrapper()
     searcher = RandomizedSearchCV(clust, param_distributions=grid_params, cv=DisabledCV(), error_score='raise',
-                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=20)
+                                  n_jobs=-1, scoring=cv_scorer, refit=True, n_iter=32)
 
     return searcher
 
@@ -176,8 +176,7 @@ def cv_scorer(estimator, x):
     if num_labels == 1 or num_labels == num_samples:
         return -1
     else:
-        return metrics.silhouette_score(x, cluster_labels, metric='jaccard') \
-               * metrics.calinski_harabasz_score(x, cluster_labels)
+        return metrics.silhouette_score(x, cluster_labels, metric='jaccard')
 
 
 class DisabledCV:
