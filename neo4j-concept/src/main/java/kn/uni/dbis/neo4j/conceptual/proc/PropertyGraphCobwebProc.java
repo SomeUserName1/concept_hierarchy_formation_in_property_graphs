@@ -1,12 +1,11 @@
 package kn.uni.dbis.neo4j.conceptual.proc;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
@@ -36,9 +35,9 @@ public class PropertyGraphCobwebProc {
   )
   public static Stream<PropertyGraphCobweb> integrate(@Name("nodes") final Stream<Node> nodes) {
     final PropertyGraphCobweb tree = new PropertyGraphCobweb();
-    List<Node> nodesList = nodes.collect(Collectors.toList());
-    System.out.println("Number of nodes " + nodesList.size());
-    tree.integrate(nodesList);
+    Set<Node> nodesSet = nodes.collect(Collectors.toSet());
+    System.out.println("Number of nodes " + nodesSet.size());
+    tree.integrate(nodesSet);
     return Stream.of(tree);
   }
 }

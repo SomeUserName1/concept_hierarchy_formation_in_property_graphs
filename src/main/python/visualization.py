@@ -9,7 +9,7 @@ import seaborn as sns
 from hdbscan import condense_tree
 from hdbscan.plots import CondensedTree
 
-from constants import logger, result_summary, Dataset, IMG_BASE
+from constants import logger, result_summary, Dataset, IMG_BASE, BASE
 
 
 def visualize_clusters(estimator, data, p_path, noise):
@@ -94,15 +94,15 @@ def average_list(lst):
 
     cum = 0
     for entry in lst:
-        cum += entry
+        cum += float(entry)
     return cum/len(lst)
 
 
-def parse_results():
+def parse_results(file_path):
     # for timing [0] is the name, [1] is the amount of noise and [2] is the runtime in s
     # for the teds [0] and [1] as above, [2] is the rted
-    result_summary.seek(0)
-    line = result_summary.readline()
+    file = open(file_path, "r")
+    line = file.readline()
     yelp = []
     synth = []
     while line:
@@ -111,53 +111,72 @@ def parse_results():
             yelp.append(atom[1:])
         else:
             synth.append(atom[1:])
-        line = result_summary.readline()
+        line = file.readline()
         
     for result in [yelp, synth]:
         result_algos = {}
         for entry in result:
-            if result_algos.get(entry[0]) is not None:
-                # result_algos[ALGO_NAME][samples]['time'][times]
-                # result_algos[ALGO_NAME][samples]['ted'][noise][ted]
+            if result_algos.get(entry[0]) is None:
+                result_algos[entry[0]] = {entry[3]: {'time': [entry[4]], 'ted': {entry[1]: entry[2]}}}
+            elif result_algos.get(entry[0]).get(entry[3]) is None:
+                result_algos[entry[0]][entry[3]] = {'time': [entry[4]], 'ted': {entry[1]: entry[2]}}
+            else:
+                # result_algos[ALGO_NAME][samples]['time'](times)
+                # result_algos[ALGO_NAME][samples]['ted'][noise](ted)
                 result_algos[entry[0]][entry[3]]['time'].append(entry[4])
                 result_algos[entry[0]][entry[3]]['ted'][entry[1]] = entry[2]
-            else:
-                result_algos[entry[0]] = {entry[3]: {'time': list(entry[4]), 'ted': {entry[1]: entry[2]}}}
         if result is yelp:
             yelp = result_algos
         elif result is synth:
             synth = result_algos
+    file.close()
 
     for result in [synth, yelp]:
+        dataset_str = "synth" if result is synth else "yelp"
         for algo in result:
-            for sample in algo:
-                sample['time'] = average_list(sample['time'])
+            out_file = open(path.join(BASE, "doc", dataset_str + "_" + algo + "_rt.dat"), "w+")
+            for sample in result[algo]:
+                result[algo][sample]['time'] = average_list(result[algo][sample]['time'])
+                out_file.write(sample + "    " + str(result[algo][sample]['time']) + "\n")
+            out_file.close()
+
+    ted_to_files(synth)
+
     return synth, yelp
+
+
+def ted_to_files(result_dict):
+    for algo in result_dict:
+        for sample in result_dict[algo]:
+            out_file = open(path.join(BASE, "doc", algo + "_ted" + "_" + str(result_dict[algo][sample]) + ".dat"), "w+")
+            for noise_step in result_dict[algo][sample]:
+                out_file.write(noise_step + "    " + result_dict[algo][sample]['ted'][noise_step])
+            out_file.close()
 
 # TODO extract n_samples, runtime        (easy, take average over noise)
 #     and      noise, rted               (more difficult, tree size correlates w rted) => one for each sample size
-
-
-def plot_results():
-    p = path.join(IMG_BASE)
-    if not path.exists(p):
-        makedirs(p)
-
-    synth, yelp = parse_results()
-
-    plt.figure()
-    for algo in synth:
-        print(algo)
-        plt.plot(algo.keys(), algo, label=algo)
-
-    plt.locator_params(axis='x', nbins=len(dataset[0]['ted'].keys()))
-    plt.ylabel('Tree Edit Distance')
-    plt.xlabel('% noise')
-    plt.title("Tree Edit Distance per Noise and Algorithm")
-
-    plt.legend(loc='upper left')
-    plt.savefig(path.join(p, "synth_ted_results.pdf"))
-    plt.clf()
+#
+#
+# def plot_results():
+#     p = path.join(IMG_BASE)
+#     if not path.exists(p):
+#         makedirs(p)
+#
+#     synth, yelp = parse_results()
+#
+#     plt.figure()
+#     for algo in synth:
+#         print(algo)
+#         plt.plot(algo.keys(), algo, label=algo)
+#
+#     plt.locator_params(axis='x', nbins=len(dataset[0]['ted'].keys()))
+#     plt.ylabel('Tree Edit Distance')
+#     plt.xlabel('% noise')
+#     plt.title("Tree Edit Distance per Noise and Algorithm")
+#
+#     plt.legend(loc='upper left')
+#     plt.savefig(path.join(p, "synth_ted_results.pdf"))
+#     plt.clf()
 
     # plt.figure()
     # for elem in results:
@@ -173,20 +192,20 @@ def plot_results():
     # plt.savefig(p + "ted_results_reduced.pdf")
     # plt.clf()
 
-    for dataset in [synth, yelp]:
-        safe_str = "synth_" if dataset is synth else "yelp_"
-        plt.figure()
-        for name, algo in dataset:
-            plt.plot(algo['time'].keys(), algo['time'].values, label=name)
-        plt.locator_params(axis='x', nbins=len(dataset[0]['time']))
-        plt.ylabel('runime in s')
-        plt.xlabel('No samples')
-        plt.title("Runtime per Samples and Algorithm")
-
-        plt.legend()
-        plt.savefig(path.join(p, safe_str + "time_bench.pdf"))
-        plt.clf()
-    plt.close('all')
+    # for dataset in [synth, yelp]:
+    #     safe_str = "synth_" if dataset is synth else "yelp_"
+    #     plt.figure()
+    #     for name, algo in dataset:
+    #         plt.plot(algo['time'].keys(), algo['time'].values, label=name)
+    #     plt.locator_params(axis='x', nbins=len(dataset[0]['time']))
+    #     plt.ylabel('runime in s')
+    #     plt.xlabel('No samples')
+    #     plt.title("Runtime per Samples and Algorithm")
+    #
+    #     plt.legend()
+    #     plt.savefig(path.join(p, safe_str + "time_bench.pdf"))
+    #     plt.clf()
+    # plt.close('all')
 
     # plt.figure()
     # for elem in times:

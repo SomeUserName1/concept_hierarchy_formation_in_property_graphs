@@ -7,7 +7,7 @@ import logging
 BASE = os.getcwd()
 IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
-result_summary = open(path.join(BASE, "doc", "thesis", 'clustering_survey_results.log'), 'w')
+result_summary = open(path.join(BASE, "doc", "thesis", 'clustering_survey_results.log'), 'w+')
 
 
 class Dataset(Enum):
@@ -32,7 +32,7 @@ logger = logging.getLogger("clustering_survey")
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler(path.join(BASE, "doc", "clustering_survey.log"), mode='w')
+fh = logging.FileHandler(path.join(BASE, "doc", "clustering_survey.log"), mode='w+')
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level

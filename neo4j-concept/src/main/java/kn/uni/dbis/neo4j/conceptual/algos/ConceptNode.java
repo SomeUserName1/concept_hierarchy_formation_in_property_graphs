@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -102,6 +103,7 @@ public class ConceptNode {
     // loop over the properties of a N4J node and cast them to a Value
     Object o;
     Object[] arr;
+    try {
     for (Map.Entry<String, Object> property : propertyContainer.getAllProperties().entrySet()) {
       values = new ArrayList<>();
       o = property.getValue();
@@ -116,6 +118,7 @@ public class ConceptNode {
       }
       this.attributes.put(property.getKey(), values);
     }
+    } catch (final Exception ignored) {}
   }
 
   public ConceptNode root() {

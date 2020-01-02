@@ -2,9 +2,10 @@ package kn.uni.dbis.neo4j.conceptual.algos;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+import java.util.Set;
 
 import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
@@ -37,9 +38,9 @@ public class PropertyGraphCobweb {
    *
    * @param nodes the list of nodes to be incorporated
    */
-  public void integrate(final List<Node> nodes) {
+  public void integrate(final Set<Node> nodes) {
     // Static categorization according to properties, labels and relationship type
-    List<Relationship> rels = new ArrayList<>();
+    Set<Relationship> rels = new HashSet<>();
     ConceptNode properties;
     ConceptNode structuralFeatures;
     for (Node node : nodes) {
@@ -102,6 +103,7 @@ public class PropertyGraphCobweb {
 
       Cobweb.cobweb(summarizedNode, this.nodeSummaryTree);
     }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
   }
 
   /**

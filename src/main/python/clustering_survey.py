@@ -2,9 +2,8 @@ from __future__ import absolute_import
 
 import time
 from os import path, makedirs
+import numpy as np
 
-from memory_profiler import profile
-from concept_formation.cluster import cluster
 from concept_formation.trestle import TrestleTree
 from concept_formation.visualize import visualize as visualize_trestle
 # When you want to run this you need to recompile hdbscan: go to lib/hdbscan folder & run python3 setup.py install
@@ -16,7 +15,7 @@ from algorithm_search_wrapper import *
 from data_loader import load, preprocess_trestle_yelp, preprocess_trestle_synthetic
 from constants import IMG_BASE, Dataset, logger, result_summary
 from tree_edit_distance import compute_ted
-from visualization import visualize, visualize_clusters, plot_results
+from visualization import visualize, visualize_clusters, parse_results
 
 
 # cluster_kmedoids(n_samples), cluster_spectral(n_samples), cluster_affinity_prop(), cluster_birch(),
@@ -146,6 +145,6 @@ def bench_two_step_estimator(estimator, data):
 
 
 if __name__ == '__main__':
-    main()
-    # plot_results()
+    # main()
+    parse_results(path.join("doc", "clustering_results_save_full.log"))
     result_summary.close()
