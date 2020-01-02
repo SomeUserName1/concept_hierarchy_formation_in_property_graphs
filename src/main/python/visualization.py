@@ -141,6 +141,7 @@ def parse_results(file_path):
             out_file.close()
 
     ted_to_files(synth)
+    avg_ted_to_files(synth)
 
     return synth, yelp
 
@@ -148,13 +149,24 @@ def parse_results(file_path):
 def ted_to_files(result_dict):
     for algo in result_dict:
         for sample in result_dict[algo]:
-            out_file = open(path.join(BASE, "doc", algo + "_ted" + "_" + str(result_dict[algo][sample]) + ".dat"), "w+")
-            for noise_step in result_dict[algo][sample]:
-                out_file.write(noise_step + "    " + result_dict[algo][sample]['ted'][noise_step])
+            out_file = open(path.join(BASE, "doc", algo + "_ted" + "_" + str(sample) + ".dat"), "w+")
+            for noise_step in result_dict[algo][sample]['ted']:
+                out_file.write(noise_step + "    " + result_dict[algo][sample]['ted'][noise_step] + "\n")
             out_file.close()
 
-# TODO extract n_samples, runtime        (easy, take average over noise)
-#     and      noise, rted               (more difficult, tree size correlates w rted) => one for each sample size
+
+def avg_ted_to_files(result_dict):
+    for algo in result_dict:
+        vals = {str(0): [], str(0.05): [], str(0.1): [], str(0.2): [], str(0.33): []}
+        for sample in result_dict[algo]:
+            for noise_step in result_dict[algo][sample]['ted']:
+                vals[noise_step].append(float(result_dict[algo][sample]['ted'][noise_step]) / float(sample))
+
+        out_file = open(path.join(BASE, "doc", algo + "_ted_norm.dat"), "w+")
+        for k, v in vals.items():
+            out_file.write(k + "    " + str(average_list(v)) + "\n")
+        out_file.close()
+
 #
 #
 # def plot_results():
