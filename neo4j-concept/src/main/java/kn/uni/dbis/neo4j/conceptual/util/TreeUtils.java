@@ -3,6 +3,13 @@ package kn.uni.dbis.neo4j.conceptual.util;
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptNode;
 import kn.uni.dbis.neo4j.conceptual.algos.Value;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
@@ -170,7 +177,7 @@ public final class TreeUtils {
    * @param maxDepth the maximal depth to be visualized
    * @return a String containing a tkizpicture
    */
-  private static String getTexTree(final ConceptNode root, final int maxDepth) {
+  public static String getTexTree(final ConceptNode root, final int maxDepth) {
     TreeUtils.labelTree(root, "", "l");
     final StringBuilder sb = new StringBuilder();
     sb.append("\\begin{tikzpicture}[sibling distance=10em, "
@@ -212,5 +219,38 @@ public final class TreeUtils {
     final int cut = MathUtils.log2(TreeUtils.deepestLevel(root));
     LOG.info(TreeUtils.printRec(root, new StringBuilder(), 0, cut));
     LOG.info(getTexTree(root, cut));
+  }
+
+  public static void treesToTexFile(ConceptNode[] nodes, String dir) throws IOException {
+    if (nodes.length != 4) {
+      throw new RuntimeException("Need exactly 4 Trees");
+    }
+
+    final File[] files = {getOutPath(dir, "NodePropertiesConcepts.tex"),
+        getOutPath(dir, "RelationPropertiesConcepts.tex"),
+        getOutPath(dir, "NodeStructuralFeaturesConcepts.tex"),
+        getOutPath(dir, "NodeSummaryConcepts.tex")};
+
+    if (!files[0].getParentFile().exists()) {
+      Files.createDirectory(files[0].getParentFile().toPath());
+    }
+
+    for (int i = 0; i < nodes.length; ++i) {
+      if (!files[i].exists()) {
+        Files.createFile(files[i].toPath());
+      }
+      try (FileOutputStream fos = new FileOutputStream(files[i]);
+           OutputStreamWriter osw = new OutputStreamWriter(fos);
+           BufferedWriter bw = new BufferedWriter(osw)) {
+        bw.write(TreeUtils.getTexTree(nodes[i], MathUtils.log2(TreeUtils.deepestLevel(nodes[3]))));
+        bw.flush();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private static File getOutPath(String dir, String fileName) {
+    return Paths.get(Paths.get("").toString(), dir, fileName).toFile();
   }
 }

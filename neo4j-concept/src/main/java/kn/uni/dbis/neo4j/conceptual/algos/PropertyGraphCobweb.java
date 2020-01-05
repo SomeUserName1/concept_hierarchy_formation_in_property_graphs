@@ -48,6 +48,9 @@ public class PropertyGraphCobweb {
     List<Node> nodeList = new ArrayList<>(nodes);
     Collections.shuffle(nodeList);
 
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
     for (Node node : nodeList) {
       node.getRelationships().forEach(rels::add);
       properties = new ConceptNode(node);
@@ -55,11 +58,25 @@ public class PropertyGraphCobweb {
       extractStructuralFeatures(node, structuralFeatures);
       Cobweb.cobweb(properties, this.nodePropertiesTree);
       Cobweb.cobweb(structuralFeatures, this.structuralFeaturesTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node features processed");
+      }
     }
 
+    progress = 0;
+    i = 0;
+    tenPercent = rels.size() / 10;
+    System.out.println("Number of Relationships " + rels.size());
     for (Relationship rel : rels) {
       properties = new ConceptNode(rel);
       Cobweb.cobweb(properties, this.relationshipPropertiesTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the relation features processed");
+      }
     }
     ConceptNode summarizedNode;
     List<Value> co;
@@ -74,6 +91,10 @@ public class PropertyGraphCobweb {
 
     String label;
     Collections.shuffle(nodeList);
+
+    progress = 0;
+    i = 0;
+    tenPercent = nodeList.size() / 10;
     for (Node node : nodeList) {
       summarizedNode = new ConceptNode();
       summarizedNode.setId(Long.toString(node.getId()));
@@ -108,6 +129,11 @@ public class PropertyGraphCobweb {
       summarizedNode.getAttributes().put("RelationshipConcepts", co);
 
       Cobweb.cobweb(summarizedNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
     }
     TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
   }

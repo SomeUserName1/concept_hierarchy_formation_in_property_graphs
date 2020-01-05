@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -46,7 +43,10 @@ public class ConceptNode {
    * The super-concept of this concept.
    */
   private ConceptNode parent = null;
-
+  /** previously calculated expected attribute prediction probability. */
+  private float eap;
+  /** flag indicating changes since the last expected attribute prediction accuracy computation. */
+  private boolean altered = true;
   /**
    * Constructor.
    */
@@ -180,6 +180,40 @@ public class ConceptNode {
         this.attributes.put(otherAttributes.getKey(), copies);
       }
     }
+    this.altered = true;
+  }
+
+  /**
+   * Computes the Expected Attribute Prediction Probability for the current concept node.
+   *
+   * @return the EAP
+   */
+  float getExpectedAttributePrediction() {
+    if (!this.altered) {
+      return this.eap;
+    }
+    final float noAttributes = this.getAttributes().size();
+    if (noAttributes == 0) {
+      return 0;
+    }
+    float exp = 0;
+    final float total = this.getCount();
+    float intermediate;
+    NumericValue num;
+
+    for (Map.Entry<String, List<Value>> attrib : this.getAttributes().entrySet()) {
+      for (Value val : attrib.getValue()) {
+        if (val instanceof NumericValue) {
+          num = (NumericValue) val;
+          exp += 1.0 / (num.getStd()/num.getMean() + 1) - 1;
+        } else {
+          intermediate = (float) val.getCount() / total;
+          exp += intermediate * intermediate;
+        }
+      }
+    }
+    this.eap = exp / noAttributes;
+    return this.eap;
   }
 
   /**
@@ -232,6 +266,7 @@ public class ConceptNode {
    */
   void addChild(final ConceptNode node) {
     this.children.add(node);
+    this.altered = true;
   }
 
   /**
@@ -250,6 +285,7 @@ public class ConceptNode {
    */
   void setParent(final ConceptNode parent) {
     this.parent = parent;
+    this.altered = true;
   }
 
   @Override
@@ -306,6 +342,7 @@ public class ConceptNode {
    */
   void setChild(final int idx, final ConceptNode child) {
     this.children.set(idx, child);
+    this.altered = true;
   }
 
   /**
@@ -315,6 +352,7 @@ public class ConceptNode {
    */
   void removeChild(final ConceptNode child) {
     this.children.remove(child);
+    this.altered = true;
   }
 
   /**
@@ -322,6 +360,7 @@ public class ConceptNode {
    */
   void clearChildren() {
     this.children.clear();
+    this.altered = true;
   }
 
   /**

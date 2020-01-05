@@ -1,9 +1,16 @@
 package kn.uni.dbis.neo4j.conceptual;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -46,6 +53,7 @@ class PropertyGraphCobwebProcTest {
    * @param dataset the dataset specified in the class scope, used to access it's node and relationship count
    */
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.name RETURN n")
+  @Disabled
   @Test
   void testCobwebSmall(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction ignored = db.beginTx()) {
@@ -79,6 +87,7 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    */
   @Test
+  @Disabled
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.Rome99)
   void testCobwebMedium(final GraphDatabaseService db) {
@@ -97,7 +106,6 @@ class PropertyGraphCobwebProcTest {
         this.checkPartitionCounts(root);
         this.checkParent(root);
         this.checkLeafType(root);
-        System.out.println("Tree " + root.getLabel() + " clear");
       }
       Assertions.assertEquals(this.leafCount(subtrees[0]), 1000);
       Assertions.assertEquals(this.leafCount(subtrees[2]), 1000);
@@ -112,11 +120,11 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    */
   @Test
-  //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
+  @Disabled
   @GraphSource(getDataset = Dataset.LDBC_SNB)
   void testCobwebLDBC(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(1000))
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(50))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
@@ -131,9 +139,13 @@ class PropertyGraphCobwebProcTest {
         this.checkParent(root);
         this.checkLeafType(root);
       }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 1000);
+      Assertions.assertEquals(this.leafCount(subtrees[0]), 50);
+      Assertions.assertEquals(this.leafCount(subtrees[2]), 50);
+      Assertions.assertEquals(this.leafCount(subtrees[3]), 50);
+
+      TreeUtils.treesToTexFile(subtrees, "ldbc");
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -143,11 +155,11 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    */
   @Test
-  @Preprocessing(preprocessing = "MATCH (n) REMOVE n.id RETURN n")
+  @Disabled
   @GraphSource(getDataset = Dataset.YELP_OO)
   void testCobwebYelpOO(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(1000))
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(50))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
@@ -161,12 +173,16 @@ class PropertyGraphCobwebProcTest {
         this.checkPartitionCounts(root);
         this.checkParent(root);
         this.checkLeafType(root);
-        System.out.println("Tree " + root.getLabel() + " clear");
+
       }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 1000);
+      Assertions.assertEquals(this.leafCount(subtrees[0]), 50);
       Assertions.assertEquals(this.leafCount(subtrees[1]), 0);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 1000);
+      Assertions.assertEquals(this.leafCount(subtrees[2]), 50);
+      Assertions.assertEquals(this.leafCount(subtrees[3]), 50);
+
+      TreeUtils.treesToTexFile(subtrees, "yelp_oo");
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -176,11 +192,10 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    */
   @Test
-  @Preprocessing(preprocessing = "MATCH (n) REMOVE n.id RETURN n")
   @GraphSource(getDataset = Dataset.YELP_GRAPH)
   void testCobwebYelpGraph(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(300))
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(2000))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
@@ -195,9 +210,13 @@ class PropertyGraphCobwebProcTest {
         this.checkParent(root);
         this.checkLeafType(root);
       }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 300);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 300);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 300);
+      Assertions.assertEquals(this.leafCount(subtrees[0]), 2000);
+      Assertions.assertEquals(this.leafCount(subtrees[2]), 2000);
+      Assertions.assertEquals(this.leafCount(subtrees[3]), 2000);
+
+      TreeUtils.treesToTexFile(subtrees, "yelp_graph");
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -205,6 +224,7 @@ class PropertyGraphCobwebProcTest {
    * stupid.
    * @param db stupid
    */
+  @Disabled
   // @Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.RoadNetNY)
   @Test
@@ -235,6 +255,7 @@ class PropertyGraphCobwebProcTest {
    * stupid.
    * @param db stupid
    */
+  @Disabled
   //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.InternetTopology)
   @Test
@@ -359,6 +380,7 @@ class PropertyGraphCobwebProcTest {
    * test the counts after updating values.
    */
   @Test
+  @Disabled
   void testUpdateCounts() {
     final ArrayList<Value> nomList = new ArrayList<>();
     final ArrayList<Value> numList = new ArrayList<>();
@@ -395,6 +417,7 @@ class PropertyGraphCobwebProcTest {
    * Test if nodes are created correctly.
    */
   @Test
+  @Disabled
   void testCreate() {
     final ConceptNode root = new ConceptNode().root();
     final ConceptNode conceptNode = new ConceptNode();
@@ -419,6 +442,7 @@ class PropertyGraphCobwebProcTest {
    * Comment.
    */
   @Test
+  @Disabled
   void testMerge() {
     final ConceptNode root = new ConceptNode().root();
     final ConceptNode conceptNode = new ConceptNode();
