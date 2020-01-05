@@ -1,6 +1,6 @@
 #!/bin/bash
 
-which docker
+command -v docker;
 if [ $? == 1 ]; then
 	# Setup docker
 	sudo apt-get remove docker docker-engine docker.io containerd runc
@@ -20,11 +20,11 @@ if [ $? == 1 ]; then
 	sudo apt-get install docker-ce docker-ce-cli containerd.io
 
 	sudo groupadd docker
-	sudo usermod -aG docker $USER
+	sudo usermod -aG docker "$USER"
 	newgrp docker 
 fi
 
-which neo4j
+command -v neo4j
 if [ $? == 1 ]; then
 	# install neo4j 
 	sudo add-apt-repository -y ppa:openjdk-r/ppa
@@ -42,7 +42,7 @@ fi
 if [ ! -d "ldbc_snb_datagen" ]; then
     git clone git@github.com:ldbc/ldbc_snb_datagen.git
 fi
-cd ldbc_snb_datagen
+cd ldbc_snb_datagen || exit
 
 if [ ! -d "out/social_network" ]; then
     echo "ldbc.snb.datagen.generator.scaleFactor:snb.interactive.1
@@ -54,7 +54,7 @@ if [ ! -d "out/social_network" ]; then
     mkdir out
     docker run --rm --mount type=bind,source="$(pwd)/out",target="/opt/ldbc_snb_datagen/out" --mount type=bind,source="$(pwd)/params.ini",target="/opt/ldbc_snb_datagen/params.ini" ldbc/datagen 
 fi
-cd out
+cd out || exit
 sudo chown -R $USER:$USER social_network/ substitution_parameters/
 
 # convert dataset and import

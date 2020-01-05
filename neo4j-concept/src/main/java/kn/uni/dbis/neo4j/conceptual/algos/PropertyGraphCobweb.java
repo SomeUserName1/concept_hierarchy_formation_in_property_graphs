@@ -1,12 +1,14 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import apoc.coll.Coll;
 import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
 import org.neo4j.graphdb.Direction;
@@ -43,7 +45,10 @@ public class PropertyGraphCobweb {
     Set<Relationship> rels = new HashSet<>();
     ConceptNode properties;
     ConceptNode structuralFeatures;
-    for (Node node : nodes) {
+    List<Node> nodeList = new ArrayList<>(nodes);
+    Collections.shuffle(nodeList);
+
+    for (Node node : nodeList) {
       node.getRelationships().forEach(rels::add);
       properties = new ConceptNode(node);
       structuralFeatures = new ConceptNode();
@@ -68,7 +73,8 @@ public class PropertyGraphCobweb {
     TreeUtils.labelTree(this.structuralFeaturesTree, "", "s");
 
     String label;
-    for (Node node : nodes) {
+    Collections.shuffle(nodeList);
+    for (Node node : nodeList) {
       summarizedNode = new ConceptNode();
       summarizedNode.setId(Long.toString(node.getId()));
 

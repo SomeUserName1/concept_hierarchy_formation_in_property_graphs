@@ -14,8 +14,6 @@ public class Cobweb {
     // NOOP
   }
 
-
-
   /**
    * run the actual cobweb algorithm.
    *
@@ -31,7 +29,7 @@ public class Cobweb {
 
     results[1] = createNewNodeCU(currentNode, newNode);
     results[2] = mergeNodesCU(currentNode, host, newNode);
-    results[3] = splitNodesCU(host, newNode);
+    results[3] = splitNodesCU(host, currentNode);
 
     // By default take create new as standard action if no other is better
     double best = results[1];
@@ -196,6 +194,7 @@ public class Cobweb {
     current.removeChild(host);
     if (setParent) {
       host.setParent(null);
+      host.getChildren().clear();
     }
   }
 
@@ -228,7 +227,7 @@ public class Cobweb {
     if (host == null) {
       return null;
     }
-    current.getChildren().remove(host);
+    current.removeChild(host);
 
     final Result secondHost = findHost(current, newNode);
     if (secondHost.node == null) {

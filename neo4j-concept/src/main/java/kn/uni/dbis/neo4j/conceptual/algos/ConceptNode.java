@@ -253,21 +253,6 @@ public class ConceptNode {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (o instanceof ConceptNode) {
-      final ConceptNode node = (ConceptNode) o;
-        return node.getCount() == this.getCount() && node.getAttributes().equals(this.getAttributes());
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.getCount(), this.getAttributes());
-  }
-
-  @Override
   public String toString() {
     String id = this.id != null ? " ID: " + this.id : "";
     return "ConceptNode __" + this.label + "__ " + id + " Count: " + this.count + " Attributes: "
