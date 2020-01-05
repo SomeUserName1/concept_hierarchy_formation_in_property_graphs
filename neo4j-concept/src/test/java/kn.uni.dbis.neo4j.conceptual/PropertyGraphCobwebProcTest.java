@@ -1,5 +1,6 @@
 package kn.uni.dbis.neo4j.conceptual;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -45,6 +46,7 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    * @param dataset the dataset specified in the class scope, used to access it's node and relationship count
    */
+  @Disabled
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.name RETURN n")
   @Test
   void testCobwebSmall(final GraphDatabaseService db, final Dataset dataset) {
@@ -78,6 +80,7 @@ class PropertyGraphCobwebProcTest {
    *
    * @param db database to execute the procedure call against
    */
+  @Disabled
   @Test
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.Rome99)
@@ -111,6 +114,7 @@ class PropertyGraphCobwebProcTest {
    *
    * @param db database to execute the procedure call against
    */
+  @Disabled
   @Test
   //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.LDBC_SNB)
@@ -142,6 +146,7 @@ class PropertyGraphCobwebProcTest {
    *
    * @param db database to execute the procedure call against
    */
+  @Disabled
   @Test
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.id RETURN n")
   @GraphSource(getDataset = Dataset.YELP_OO)
@@ -176,11 +181,10 @@ class PropertyGraphCobwebProcTest {
    * @param db database to execute the procedure call against
    */
   @Test
-  @Preprocessing(preprocessing = "MATCH (n) REMOVE n.id RETURN n")
   @GraphSource(getDataset = Dataset.YELP_GRAPH)
   void testCobwebYelpGraph(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(300))
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(500))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
@@ -195,9 +199,13 @@ class PropertyGraphCobwebProcTest {
         this.checkParent(root);
         this.checkLeafType(root);
       }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 300);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 300);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 300);
+      Assertions.assertEquals(this.leafCount(subtrees[0]), 500);
+      Assertions.assertEquals(this.leafCount(subtrees[2]), 500);
+      Assertions.assertEquals(this.leafCount(subtrees[3]), 500);
+
+      TreeUtils.treesToTexFile(subtrees, "yelp_graph");
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -205,7 +213,7 @@ class PropertyGraphCobwebProcTest {
    * stupid.
    * @param db stupid
    */
-  // @Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
+  @Disabled
   @GraphSource(getDataset = Dataset.RoadNetNY)
   @Test
   void testCobwebMediumLarge(final GraphDatabaseService db) {
@@ -235,7 +243,7 @@ class PropertyGraphCobwebProcTest {
    * stupid.
    * @param db stupid
    */
-  //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
+  @Disabled
   @GraphSource(getDataset = Dataset.InternetTopology)
   @Test
   void testCobwebLarge(final GraphDatabaseService db) {
@@ -358,6 +366,7 @@ class PropertyGraphCobwebProcTest {
   /**
    * test the counts after updating values.
    */
+  @Disabled
   @Test
   void testUpdateCounts() {
     final ArrayList<Value> nomList = new ArrayList<>();
@@ -394,6 +403,7 @@ class PropertyGraphCobwebProcTest {
   /**
    * Test if nodes are created correctly.
    */
+  @Disabled
   @Test
   void testCreate() {
     final ConceptNode root = new ConceptNode().root();
@@ -418,6 +428,7 @@ class PropertyGraphCobwebProcTest {
   /**
    * Comment.
    */
+  @Disabled
   @Test
   void testMerge() {
     final ConceptNode root = new ConceptNode().root();
