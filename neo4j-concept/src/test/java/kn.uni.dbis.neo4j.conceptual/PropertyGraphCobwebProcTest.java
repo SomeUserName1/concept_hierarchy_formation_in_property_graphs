@@ -195,7 +195,7 @@ class PropertyGraphCobwebProcTest {
   @GraphSource(getDataset = Dataset.YELP_GRAPH)
   void testCobwebYelpGraph(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(2000))
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(500))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
@@ -210,9 +210,9 @@ class PropertyGraphCobwebProcTest {
         this.checkParent(root);
         this.checkLeafType(root);
       }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 2000);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 2000);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 2000);
+      Assertions.assertEquals(this.leafCount(subtrees[0]), 500);
+      Assertions.assertEquals(this.leafCount(subtrees[2]), 500);
+      Assertions.assertEquals(this.leafCount(subtrees[3]), 500);
 
       TreeUtils.treesToTexFile(subtrees, "yelp_graph");
     } catch (IOException e) {

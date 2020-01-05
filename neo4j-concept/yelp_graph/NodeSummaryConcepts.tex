@@ -1,14 +1,66 @@
 \begin{tikzpicture}[sibling distance=10em, every node/.style = {shape=rectangle, rounded corners, draw, align=center,top color=white, bottom color=blue!20}]]\node {Root}
 	child { node {l0} 
 		child { node {l00} 
-			child { node {l000} }			child { node {l001} }			child { node {l002} }			child { node {l003} 
-}}		child { node {l01} 
-			child { node {l010} 
-}			child { node {l011} 
-}			child { node {l012} 
-}}}	child { node {l1} 
+			child { node {l000} }			child { node {l001} }}		child { node {l01} 
+			child { node {l010} }			child { node {l011} 
+				child { node {l0110} 
+}				child { node {l0111} 
+}}}		child { node {l02} 
+			child { node {l020} 
+				child { node {l0200} }				child { node {l0201} }				child { node {l0202} }}			child { node {l021} 
+				child { node {l0210} }				child { node {l0211} }}			child { node {l022} 
+				child { node {l0220} }				child { node {l0221} }}			child { node {l023} }			child { node {l024} 
+				child { node {l0240} 
+}				child { node {l0241} 
+}				child { node {l0242} 
+}				child { node {l0243} 
+}}			child { node {l025} 
+				child { node {l0250} }				child { node {l0251} 
+}				child { node {l0252} 
+}				child { node {l0253} 
+}}}		child { node {l03} 
+			child { node {l030} 
+				child { node {l0300} 
+}				child { node {l0301} }				child { node {l0302} }}			child { node {l031} 
+				child { node {l0310} }				child { node {l0311} }				child { node {l0312} 
+}				child { node {l0313} 
+}}			child { node {l032} 
+				child { node {l0320} 
+}				child { node {l0321} 
+}				child { node {l0322} 
+}				child { node {l0323} 
+}}			child { node {l033} 
+				child { node {l0330} 
+}				child { node {l0331} 
+}				child { node {l0332} 
+}}}}	child { node {l1} 
 		child { node {l10} 
-			child { node {l100} }			child { node {l101} }}		child { node {l11} 
-			child { node {l110} }			child { node {l111} }}		child { node {l12} 
-			child { node {l120} }			child { node {l121} }}};
+			child { node {l100} 
+				child { node {l1000} }				child { node {l1001} }				child { node {l1002} 
+}}			child { node {l101} 
+				child { node {l1010} 
+}				child { node {l1011} }				child { node {l1012} }				child { node {l1013} 
+}}			child { node {l102} 
+				child { node {l1020} }				child { node {l1021} 
+}}			child { node {l103} 
+				child { node {l1030} 
+}				child { node {l1031} 
+}}}		child { node {l11} 
+			child { node {l110} 
+				child { node {l1100} }				child { node {l1101} }}			child { node {l111} }			child { node {l112} 
+				child { node {l1120} }				child { node {l1121} 
+}				child { node {l1122} 
+}}}		child { node {l12} 
+			child { node {l120} 
+				child { node {l1200} }				child { node {l1201} 
+}}			child { node {l121} 
+				child { node {l1210} 
+}				child { node {l1211} }				child { node {l1212} 
+}				child { node {l1213} 
+}}			child { node {l122} 
+				child { node {l1220} }				child { node {l1221} 
+}}			child { node {l123} 
+				child { node {l1230} 
+}				child { node {l1231} 
+}}}};
 \end{tikzpicture}
