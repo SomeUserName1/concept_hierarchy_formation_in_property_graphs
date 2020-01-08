@@ -46,11 +46,12 @@ public class ConceptNode {
   /** previously calculated expected attribute prediction probability. */
   private float eap;
   /** flag indicating changes since the last expected attribute prediction accuracy computation. */
-  private boolean altered = true;
+  private boolean altered;
   /**
    * Constructor.
    */
   public ConceptNode() {
+    this.altered = true;
   }
 
   /**
@@ -61,6 +62,8 @@ public class ConceptNode {
   public ConceptNode(final ConceptNode node) {
     this.count = node.count;
     this.id = node.id;
+    this.altered = node.altered;
+    this.eap = node.eap;
 
     List<Value> values;
     String attributeName;
@@ -85,6 +88,7 @@ public class ConceptNode {
    */
   ConceptNode(final PropertyContainer propertyContainer) {
     List<Value> values = new ArrayList<>();
+    this.altered = true;
 
     if (propertyContainer instanceof Relationship) {
       final Relationship rel = (Relationship) propertyContainer;
@@ -189,9 +193,9 @@ public class ConceptNode {
    * @return the EAP
    */
   float getExpectedAttributePrediction() {
-    if (!this.altered) {
-      return this.eap;
-    }
+    // if (!this.altered) {
+    //  return this.eap;
+    // }
     final float noAttributes = this.getAttributes().size();
     if (noAttributes == 0) {
       return 0;
@@ -266,7 +270,6 @@ public class ConceptNode {
    */
   void addChild(final ConceptNode node) {
     this.children.add(node);
-    this.altered = true;
   }
 
   /**
@@ -285,7 +288,6 @@ public class ConceptNode {
    */
   void setParent(final ConceptNode parent) {
     this.parent = parent;
-    this.altered = true;
   }
 
   @Override
@@ -342,7 +344,6 @@ public class ConceptNode {
    */
   void setChild(final int idx, final ConceptNode child) {
     this.children.set(idx, child);
-    this.altered = true;
   }
 
   /**
@@ -352,7 +353,6 @@ public class ConceptNode {
    */
   void removeChild(final ConceptNode child) {
     this.children.remove(child);
-    this.altered = true;
   }
 
   /**
@@ -360,7 +360,6 @@ public class ConceptNode {
    */
   void clearChildren() {
     this.children.clear();
-    this.altered = true;
   }
 
   /**

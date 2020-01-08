@@ -114,7 +114,7 @@ def start_clustering(dataset, n_samples, noise, width, depth):
 
 def main():
     for dataset in [Dataset.SYNTHETIC, Dataset.YELP]:
-        for width, depth in [[3, 5], [8, 3], [4, 5], [2, 11], [5, 5], [4, 6]]:
+        for width, depth in [[3, 5], [8, 3], [4, 5], [2, 11], [5, 5], [4, 6], [9, 4]]:
             n_samples = width ** depth
             logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + str(n_samples) +
                         "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")

@@ -11,13 +11,16 @@ public class Cobweb {
     // NOOP
   }
 
+  public static void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
+    cobweb(newNode, currentNode, 0);
+  }
   /**
    * run the actual cobweb algorithm.
    *
    * @param newNode       node to incorporate
    * @param currentNode   node currently visiting
    */
-  public static void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
+  private static void cobweb(final ConceptNode newNode, final ConceptNode currentNode, final int mergeCount) {
     final float[] results = new float[4];
 
     final Result result = findHost(currentNode, newNode);
@@ -25,7 +28,7 @@ public class Cobweb {
     final ConceptNode host = result.getNode();
 
     results[1] = createNewNodeCU(currentNode, newNode);
-    results[2] = mergeNodesCU(currentNode, host, newNode);
+    results[2] = mergeNodesCU(currentNode, host, result.getSecondNode());
     results[3] = splitNodesCU(host, currentNode);
 
     // By default take create new as standard action if no other is better
@@ -43,12 +46,12 @@ public class Cobweb {
         createNewNode(currentNode, newNode, true);
         break;
       case 2:
-        final ConceptNode mergedNode = mergeNodes(currentNode, host, newNode, true);
+        final ConceptNode mergedNode = mergeNodes(currentNode, host, result.getSecondNode(), true);
         if (mergedNode == null) {
           throw new RuntimeException("Unreachable");
         }
         currentNode.updateCounts(newNode);
-        cobweb(newNode, mergedNode);
+        cobweb(newNode, mergedNode, mergeCount + 1);
         break;
       case 3:
         splitNodes(host, currentNode, true);
@@ -71,30 +74,36 @@ public class Cobweb {
    * @return the best host and the cu for that
    */
   private static Result findHost(final ConceptNode currentNode, final ConceptNode newNode) {
-    float curCU;
-    float maxCU = Integer.MIN_VALUE;
+    float curEAPDiff;
+    float maxEAPDiff = Integer.MIN_VALUE;
     int i = 0;
+    int bestI = -1;
     ConceptNode clone;
     ConceptNode best = null;
+    ConceptNode bestClone = null;
+    ConceptNode secondBest = null;
     final ConceptNode currentNodeTemp = new ConceptNode(currentNode);
     currentNodeTemp.updateCounts(newNode);
-    ConceptNode currentNodeClone;
 
     for (ConceptNode child : currentNode.getChildren()) {
       clone = new ConceptNode(child);
       clone.updateCounts(newNode);
+      curEAPDiff = child.getCount()/ (float) currentNode.getCount()
+          * (clone.getExpectedAttributePrediction() - child.getExpectedAttributePrediction());
 
-      currentNodeClone = new ConceptNode(currentNodeTemp);
-      currentNodeClone.setChild(i, clone);
-
-      curCU = computeCU(currentNodeClone);
-      if (maxCU < curCU) {
-        maxCU = curCU;
+      if (maxEAPDiff < curEAPDiff) {
+        maxEAPDiff = curEAPDiff;
+        secondBest = best;
         best = child;
+        bestClone = clone;
+        bestI = i;
       }
       i++;
     }
-    return new Result(maxCU, best);
+    if (bestI != -1) {
+      currentNodeTemp.setChild(bestI, bestClone);
+    }
+    return new Result(computeCU(currentNodeTemp), best, secondBest);
   }
 
   /**
@@ -199,14 +208,13 @@ public class Cobweb {
    *
    * @param host    node to be merged
    * @param current parent of the host
-   * @param newNode node to be incorporated
    * @return op result including altered node and the cu
    */
-  private static float mergeNodesCU(final ConceptNode current, final ConceptNode host, final ConceptNode newNode) {
+  private static float mergeNodesCU(final ConceptNode current, final ConceptNode host, final ConceptNode secondHost) {
     final ConceptNode clonedParent = new ConceptNode(current);
-    float cu = (mergeNodes(clonedParent, host, newNode, false) != null) ? computeCU(clonedParent)
+    float cu = (mergeNodes(clonedParent, host, secondHost, false) != null) ? computeCU(clonedParent)
         : Integer.MIN_VALUE;
-    return cu == 0.0f ? -0.1f : cu;
+    return cu == 0.0f ? -1.0f : cu;
   }
 
   /**
@@ -214,37 +222,31 @@ public class Cobweb {
    *
    * @param host    node to be merged
    * @param current parent of the host
-   * @param newNode node to be incorporated
    * @param setParent flag indicating weather to set the parent pointers (false when computing the cu in order not to
    *                  alter the tree when probing an action)
    * @return the node that results by the merge.
    */
-  private static ConceptNode mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode newNode,
+  private static ConceptNode mergeNodes(final ConceptNode current, final ConceptNode host, final ConceptNode secondHost,
                                  final boolean setParent) {
-    if (host == null) {
+    if (host == null || secondHost == null) {
       return null;
     }
     current.removeChild(host);
-
-    final Result secondHost = findHost(current, newNode);
-    if (secondHost.node == null) {
-      return null;
-    }
-    current.removeChild(secondHost.node);
+    current.removeChild(secondHost);
     if (setParent) {
-      secondHost.node.setParent(null);
+      secondHost.setParent(null);
       host.setParent(null);
     }
 
     final ConceptNode mNode = new ConceptNode(host);
     mNode.clearChildren();
     mNode.setId(null);
-    mNode.updateCounts(secondHost.node);
+    mNode.updateCounts(secondHost);
     mNode.addChild(host);
-    mNode.addChild(secondHost.node);
+    mNode.addChild(secondHost);
     if (setParent) {
       host.setParent(mNode);
-      secondHost.node.setParent(mNode);
+      secondHost.setParent(mNode);
       mNode.setParent(current);
     }
     current.addChild(mNode);
@@ -284,17 +286,23 @@ public class Cobweb {
     /**
      * the node with the operation applied.
      */
-    private final ConceptNode node;
+    private final ConceptNode node1;
+    /**
+     * the node with the operation applied.
+     */
+    private final ConceptNode node2;
 
     /**
      * Constructor.
      *
      * @param cu        the cu that the operation yields.
-     * @param node      the node with the operation applied.
+     * @param node1      the node that yield the best eap
+     * @param node2      the node that yield the second best eap
      */
-    private Result(final float cu, final ConceptNode node) {
+    private Result(final float cu, final ConceptNode node1, final ConceptNode node2) {
       this.cu = cu;
-      this.node = node;
+      this.node1 = node1;
+      this.node2 = node2;
     }
 
     /**
@@ -312,7 +320,16 @@ public class Cobweb {
      * @return the concept node
      */
     ConceptNode getNode() {
-      return this.node;
+      return this.node1;
+    }
+
+    /**
+     * getter.
+     *
+     * @return the concept node
+     */
+    ConceptNode getSecondNode() {
+      return this.node2;
     }
   }
 

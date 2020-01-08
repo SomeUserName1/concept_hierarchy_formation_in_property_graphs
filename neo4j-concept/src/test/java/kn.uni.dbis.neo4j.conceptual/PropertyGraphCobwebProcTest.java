@@ -1,16 +1,10 @@
 package kn.uni.dbis.neo4j.conceptual;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -195,7 +189,7 @@ class PropertyGraphCobwebProcTest {
   @GraphSource(getDataset = Dataset.YELP_GRAPH)
   void testCobwebYelpGraph(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(500))
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(100))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
       Assertions.assertNotNull(tree);
 
@@ -210,9 +204,9 @@ class PropertyGraphCobwebProcTest {
         this.checkParent(root);
         this.checkLeafType(root);
       }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 500);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 500);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 500);
+      Assertions.assertEquals(this.leafCount(subtrees[0]), 100);
+      Assertions.assertEquals(this.leafCount(subtrees[2]), 100);
+      Assertions.assertEquals(this.leafCount(subtrees[3]), 100);
 
       TreeUtils.treesToTexFile(subtrees, "yelp_graph");
     } catch (IOException e) {
