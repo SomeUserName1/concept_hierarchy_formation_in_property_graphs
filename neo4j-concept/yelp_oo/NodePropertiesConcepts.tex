@@ -1,26 +1,314 @@
-\begin{tikzpicture}[sibling distance=10em, every node/.style = {shape=rectangle, rounded corners, draw, align=center,top color=white, bottom color=blue!20}]]\node {Root}
-	child { node {l0} 
-		child { node {l00} 
-			child { node {l000} 
-}			child { node {l001} }			child { node {l002} 
-}}		child { node {l01} 
-			child { node {l010} 
-}			child { node {l011} 
-}			child { node {l012} 
-}			child { node {l013} 
-}}		child { node {l02} 
-			child { node {l020} }			child { node {l021} 
-}			child { node {l022} 
-}}		child { node {l03} }}
-	child { node {l1}
-		child { node {l10} 
-			child { node {l100} }			child { node {l101} }}		child { node {l11} 
-			child { node {l110} }			child { node {l111} }			child { node {l112} 
-}}		child { node {l12} }		child { node {l13} 
-			child { node {l130} 
-}			child { node {l131} }			child { node {l132} }			child { node {l133} }			child { node {l134} }			child { node {l135} 
-}}		child { node {l14} 
-			child { node {l140} 
-}			child { node {l141} }			child { node {l142} 
-}}};
-\end{tikzpicture}
+
+ 
+ConceptNode l \hspace{1cm} P(node) = 1.0 \hspace{1cm} Count 1000
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{7}{*}{HairSpecializesIn} & Nominal & africanamerican & $0.001$ & $1$ \\ \cline{2-4} 
+ & Nominal & curly & $0.002$ & $2$ \\ \cline{2-4} 
+ & Nominal & kids & $0.001$ & $1$ \\ \cline{2-4} 
+ & Nominal & asian & $0.003$ & $3$ \\ \cline{2-4} 
+ & Nominal & coloring & $0.002$ & $2$ \\ \cline{2-4} 
+ & Nominal & extensions & $0.001$ & $1$ \\ \cline{2-4} 
+ & Nominal & perms & $0.001$ & $1$ \\ \hline 
+address & Nominal & Too many values to display & \\ \hline
+\multirow{6}{*}{BestNights} & Nominal & monday & $0.001$ & $1$ \\ \cline{2-4} 
+ & Nominal & sunday & $0.004$ & $4$ \\ \cline{2-4} 
+ & Nominal & saturday & $0.014$ & $14$ \\ \cline{2-4} 
+ & Nominal & friday & $0.011$ & $11$ \\ \cline{2-4} 
+ & Nominal & thursday & $0.007$ & $7$ \\ \cline{2-4} 
+ & Nominal & wednesday & $0.001$ & $1$ \\ \hline 
+\multirow{5}{*}{BusinessParking} & Nominal & street & $0.007$ & $7$ \\ \cline{2-4} 
+ & Nominal & valet & $0.011$ & $11$ \\ \cline{2-4} 
+ & Nominal & garage & $0.005$ & $5$ \\ \cline{2-4} 
+ & Nominal & validated & $0.002$ & $2$ \\ \cline{2-4} 
+ & Nominal & lot & $0.004$ & $4$ \\ \hline 
+city & Nominal & Too many values to display & \\ \hline
+\multirow{4}{*}{NoiseLevel} & Nominal & average & $0.151$ & $151$ \\ \cline{2-4} 
+ & Nominal & quiet & $0.056$ & $56$ \\ \cline{2-4} 
+ & Nominal & loud & $0.026$ & $26$ \\ \cline{2-4} 
+ & Nominal & very_loud & $0.012$ & $12$ \\ \hline 
+\multirow{1}{*}{latitude} & Numeric &  mean= 38.6620, std=4.9158 & $1.0$ & $1000$ \\ \hline 
+\multirow{4}{*}{RestaurantsPriceRange2} & Nominal & 1 & $0.211$ & $211$ \\ \cline{2-4} 
+ & Nominal & 2 & $0.381$ & $381$ \\ \cline{2-4} 
+ & Nominal & 3 & $0.069$ & $69$ \\ \cline{2-4} 
+ & Nominal & 4 & $0.012$ & $12$ \\ \hline 
+\multirow{1}{*}{review_count} & Numeric &  mean= 40.1070, std=185.8517 & $1.0$ & $1000$ \\ \hline 
+\multirow{2}{*}{Alcohol} & Nominal & full_bar & $0.115$ & $115$ \\ \cline{2-4} 
+ & Nominal & beer_and_wine & $0.042$ & $42$ \\ \hline 
+\multirow{1}{*}{Labels} & Nominal & Business & $1.0$ & $1000$ \\ \hline 
+\multirow{1}{*}{stars} & Numeric &  mean= 3.5870, std=0.9677 & $1.0$ & $1000$ \\ \hline 
+\multirow{2}{*}{RestaurantsAttire} & Nominal & casual & $0.261$ & $261$ \\ \cline{2-4} 
+ & Nominal & dressy & $0.006$ & $6$ \\ \hline 
+\multirow{5}{*}{Music} & Nominal & dj & $0.002$ & $2$ \\ \cline{2-4} 
+ & Nominal & jukebox & $0.001$ & $1$ \\ \cline{2-4} 
+ & Nominal & live & $0.004$ & $4$ \\ \cline{2-4} 
+ & Nominal & karaoke & $0.002$ & $2$ \\ \cline{2-4} 
+ & Nominal & background_music & $0.001$ & $1$ \\ \hline 
+name & Nominal & Too many values to display & \\ \hline
+attributes & Nominal & Too many values to display & \\ \hline
+state & Nominal & Too many values to display & \\ \hline
+categories & Nominal & Too many values to display & \\ \hline
+\multirow{7}{*}{Ambience} & Nominal & casual & $0.144$ & $144$ \\ \cline{2-4} 
+ & Nominal & trendy & $0.008$ & $8$ \\ \cline{2-4} 
+ & Nominal & classy & $0.005$ & $5$ \\ \cline{2-4} 
+ & Nominal & hipster & $0.005$ & $5$ \\ \cline{2-4} 
+ & Nominal & romantic & $0.002$ & $2$ \\ \cline{2-4} 
+ & Nominal & intimate & $0.001$ & $1$ \\ \cline{2-4} 
+ & Nominal & divey & $0.001$ & $1$ \\ \hline 
+\end{tabular}
+
+
+ 
+ConceptNode l0 \hspace{1cm} P(node) = 0.693 \hspace{1cm} Count 693
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+address & Nominal & Too many values to display & \\ \hline
+city & Nominal & Too many values to display & \\ \hline
+\multirow{4}{*}{RestaurantsPriceRange2} & Nominal & 2 & $0.30158730158730157$ & $209$ \\ \cline{2-4} 
+ & Nominal & 1 & $0.15151515151515152$ & $105$ \\ \cline{2-4} 
+ & Nominal & 3 & $0.0735930735930736$ & $51$ \\ \cline{2-4} 
+ & Nominal & 4 & $0.01443001443001443$ & $10$ \\ \hline 
+\multirow{1}{*}{latitude} & Numeric &  mean= 38.1506, std=4.6616 & $1.0$ & $693$ \\ \hline 
+name & Nominal & Too many values to display & \\ \hline
+\multirow{1}{*}{review_count} & Numeric &  mean= 15.5960, std=27.3227 & $1.0$ & $693$ \\ \hline 
+\multirow{1}{*}{Labels} & Nominal & Business & $1.0$ & $693$ \\ \hline 
+attributes & Nominal & Too many values to display & \\ \hline
+\multirow{1}{*}{stars} & Numeric &  mean= 3.6688, std=1.0398 & $1.0$ & $693$ \\ \hline 
+state & Nominal & Too many values to display & \\ \hline
+categories & Nominal & Too many values to display & \\ \hline
+\end{tabular}
+
+
+ 
+ConceptNode l00 \hspace{1cm} P(node) = 0.329004329004329 \hspace{1cm} Count 228
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+address & Nominal & Too many values to display & \\ \hline
+city & Nominal & Too many values to display & \\ \hline
+\multirow{1}{*}{latitude} & Numeric &  mean= 37.3181, std=4.2447 & $1.0$ & $228$ \\ \hline 
+name & Nominal & Too many values to display & \\ \hline
+\multirow{1}{*}{review_count} & Numeric &  mean= 11.0351, std=15.3471 & $1.0$ & $228$ \\ \hline 
+\multirow{1}{*}{Labels} & Nominal & Business & $1.0$ & $228$ \\ \hline 
+attributes & Nominal & Too many values to display & \\ \hline
+\multirow{1}{*}{stars} & Numeric &  mean= 3.7654, std=1.1233 & $1.0$ & $228$ \\ \hline 
+state & Nominal & Too many values to display & \\ \hline
+\end{tabular}
+
+
+ 
+ConceptNode l01 \hspace{1cm} P(node) = 0.670995670995671 \hspace{1cm} Count 465
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+address & Nominal & Too many values to display & \\ \hline
+city & Nominal & Too many values to display & \\ \hline
+\multirow{4}{*}{RestaurantsPriceRange2} & Nominal & 2 & $0.44946236559139785$ & $209$ \\ \cline{2-4} 
+ & Nominal & 1 & $0.22580645161290322$ & $105$ \\ \cline{2-4} 
+ & Nominal & 3 & $0.10967741935483871$ & $51$ \\ \cline{2-4} 
+ & Nominal & 4 & $0.021505376344086023$ & $10$ \\ \hline 
+\multirow{1}{*}{latitude} & Numeric &  mean= 38.5588, std=4.8005 & $1.0$ & $465$ \\ \hline 
+name & Nominal & Too many values to display & \\ \hline
+\multirow{1}{*}{review_count} & Numeric &  mean= 17.8323, std=31.3350 & $1.0$ & $465$ \\ \hline 
+\multirow{1}{*}{Labels} & Nominal & Business & $1.0$ & $465$ \\ \hline 
+attributes & Nominal & Too many values to display & \\ \hline
+\multirow{1}{*}{stars} & Numeric &  mean= 3.6215, std=0.9929 & $1.0$ & $465$ \\ \hline 
+state & Nominal & Too many values to display & \\ \hline
+categories & Nominal & Too many values to display & \\ \hline
+\end{tabular}
+
+
+ 
+ConceptNode l1 \hspace{1cm} P(node) = 0.307 \hspace{1cm} Count 307
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{7}{*}{HairSpecializesIn} & Nominal & africanamerican & $0.003257328990228013$ & $1$ \\ \cline{2-4} 
+ & Nominal & curly & $0.006514657980456026$ & $2$ \\ \cline{2-4} 
+ & Nominal & kids & $0.003257328990228013$ & $1$ \\ \cline{2-4} 
+ & Nominal & asian & $0.009771986970684038$ & $3$ \\ \cline{2-4} 
+ & Nominal & coloring & $0.006514657980456026$ & $2$ \\ \cline{2-4} 
+ & Nominal & extensions & $0.003257328990228013$ & $1$ \\ \cline{2-4} 
+ & Nominal & perms & $0.003257328990228013$ & $1$ \\ \hline 
+address & Nominal & Too many values to display & \\ \hline
+\multirow{6}{*}{BestNights} & Nominal & monday & $0.003257328990228013$ & $1$ \\ \cline{2-4} 
+ & Nominal & sunday & $0.013029315960912053$ & $4$ \\ \cline{2-4} 
+ & Nominal & saturday & $0.04560260586319218$ & $14$ \\ \cline{2-4} 
+ & Nominal & friday & $0.035830618892508145$ & $11$ \\ \cline{2-4} 
+ & Nominal & thursday & $0.02280130293159609$ & $7$ \\ \cline{2-4} 
+ & Nominal & wednesday & $0.003257328990228013$ & $1$ \\ \hline 
+\multirow{5}{*}{BusinessParking} & Nominal & street & $0.02280130293159609$ & $7$ \\ \cline{2-4} 
+ & Nominal & valet & $0.035830618892508145$ & $11$ \\ \cline{2-4} 
+ & Nominal & garage & $0.016286644951140065$ & $5$ \\ \cline{2-4} 
+ & Nominal & validated & $0.006514657980456026$ & $2$ \\ \cline{2-4} 
+ & Nominal & lot & $0.013029315960912053$ & $4$ \\ \hline 
+city & Nominal & Too many values to display & \\ \hline
+\multirow{4}{*}{NoiseLevel} & Nominal & average & $0.49185667752442996$ & $151$ \\ \cline{2-4} 
+ & Nominal & quiet & $0.18241042345276873$ & $56$ \\ \cline{2-4} 
+ & Nominal & loud & $0.08469055374592833$ & $26$ \\ \cline{2-4} 
+ & Nominal & very_loud & $0.03908794788273615$ & $12$ \\ \hline 
+\multirow{4}{*}{RestaurantsPriceRange2} & Nominal & 2 & $0.5602605863192183$ & $172$ \\ \cline{2-4} 
+ & Nominal & 1 & $0.34527687296416937$ & $106$ \\ \cline{2-4} 
+ & Nominal & 3 & $0.05863192182410423$ & $18$ \\ \cline{2-4} 
+ & Nominal & 4 & $0.006514657980456026$ & $2$ \\ \hline 
+\multirow{1}{*}{latitude} & Numeric &  mean= 39.8166, std=5.2667 & $1.0$ & $307$ \\ \hline 
+\multirow{1}{*}{review_count} & Numeric &  mean= 95.4365, std=326.2026 & $1.0$ & $307$ \\ \hline 
+\multirow{2}{*}{Alcohol} & Nominal & full_bar & $0.3745928338762215$ & $115$ \\ \cline{2-4} 
+ & Nominal & beer_and_wine & $0.13680781758957655$ & $42$ \\ \hline 
+\multirow{1}{*}{Labels} & Nominal & Business & $1.0$ & $307$ \\ \hline 
+\multirow{1}{*}{stars} & Numeric &  mean= 3.4023, std=0.7487 & $1.0$ & $307$ \\ \hline 
+\multirow{2}{*}{RestaurantsAttire} & Nominal & casual & $0.8501628664495114$ & $261$ \\ \cline{2-4} 
+ & Nominal & dressy & $0.019543973941368076$ & $6$ \\ \hline 
+\multirow{5}{*}{Music} & Nominal & dj & $0.006514657980456026$ & $2$ \\ \cline{2-4} 
+ & Nominal & jukebox & $0.003257328990228013$ & $1$ \\ \cline{2-4} 
+ & Nominal & live & $0.013029315960912053$ & $4$ \\ \cline{2-4} 
+ & Nominal & karaoke & $0.006514657980456026$ & $2$ \\ \cline{2-4} 
+ & Nominal & background_music & $0.003257328990228013$ & $1$ \\ \hline 
+name & Nominal & Too many values to display & \\ \hline
+attributes & Nominal & Too many values to display & \\ \hline
+\multirow{7}{*}{Ambience} & Nominal & casual & $0.46905537459283386$ & $144$ \\ \cline{2-4} 
+ & Nominal & trendy & $0.026058631921824105$ & $8$ \\ \cline{2-4} 
+ & Nominal & classy & $0.016286644951140065$ & $5$ \\ \cline{2-4} 
+ & Nominal & hipster & $0.016286644951140065$ & $5$ \\ \cline{2-4} 
+ & Nominal & romantic & $0.006514657980456026$ & $2$ \\ \cline{2-4} 
+ & Nominal & intimate & $0.003257328990228013$ & $1$ \\ \cline{2-4} 
+ & Nominal & divey & $0.003257328990228013$ & $1$ \\ \hline 
+state & Nominal & Too many values to display & \\ \hline
+categories & Nominal & Too many values to display & \\ \hline
+\end{tabular}
+
+
+ 
+ConceptNode l10 \hspace{1cm} P(node) = 0.11400651465798045 \hspace{1cm} Count 35
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+address & Nominal & Too many values to display & \\ \hline
+\multirow{4}{*}{BusinessParking} & Nominal & street & $0.05714285714285714$ & $2$ \\ \cline{2-4} 
+ & Nominal & valet & $0.14285714285714285$ & $5$ \\ \cline{2-4} 
+ & Nominal & lot & $0.05714285714285714$ & $2$ \\ \cline{2-4} 
+ & Nominal & garage & $0.05714285714285714$ & $2$ \\ \hline 
+\multirow{6}{*}{BestNights} & Nominal & monday & $0.02857142857142857$ & $1$ \\ \cline{2-4} 
+ & Nominal & sunday & $0.11428571428571428$ & $4$ \\ \cline{2-4} 
+ & Nominal & saturday & $0.4$ & $14$ \\ \cline{2-4} 
+ & Nominal & friday & $0.3142857142857143$ & $11$ \\ \cline{2-4} 
+ & Nominal & thursday & $0.2$ & $7$ \\ \cline{2-4} 
+ & Nominal & wednesday & $0.02857142857142857$ & $1$ \\ \hline 
+city & Nominal & Too many values to display & \\ \hline
+\multirow{4}{*}{NoiseLevel} & Nominal & average & $0.5714285714285714$ & $20$ \\ \cline{2-4} 
+ & Nominal & loud & $0.14285714285714285$ & $5$ \\ \cline{2-4} 
+ & Nominal & very_loud & $0.11428571428571428$ & $4$ \\ \cline{2-4} 
+ & Nominal & quiet & $0.17142857142857143$ & $6$ \\ \hline 
+\multirow{3}{*}{RestaurantsPriceRange2} & Nominal & 2 & $0.8285714285714286$ & $29$ \\ \cline{2-4} 
+ & Nominal & 3 & $0.05714285714285714$ & $2$ \\ \cline{2-4} 
+ & Nominal & 1 & $0.11428571428571428$ & $4$ \\ \hline 
+\multirow{1}{*}{latitude} & Numeric &  mean= 40.5318, std=5.5997 & $1.0$ & $35$ \\ \hline 
+\multirow{2}{*}{Alcohol} & Nominal & full_bar & $0.8571428571428571$ & $30$ \\ \cline{2-4} 
+ & Nominal & beer_and_wine & $0.05714285714285714$ & $2$ \\ \hline 
+\multirow{1}{*}{review_count} & Numeric &  mean= 184.0000, std=343.0785 & $1.0$ & $35$ \\ \hline 
+\multirow{1}{*}{Labels} & Nominal & Business & $1.0$ & $35$ \\ \hline 
+\multirow{1}{*}{stars} & Numeric &  mean= 3.6571, std=0.6299 & $1.0$ & $35$ \\ \hline 
+\multirow{2}{*}{RestaurantsAttire} & Nominal & casual & $0.8285714285714286$ & $29$ \\ \cline{2-4} 
+ & Nominal & dressy & $0.02857142857142857$ & $1$ \\ \hline 
+\multirow{5}{*}{Music} & Nominal & dj & $0.05714285714285714$ & $2$ \\ \cline{2-4} 
+ & Nominal & jukebox & $0.02857142857142857$ & $1$ \\ \cline{2-4} 
+ & Nominal & live & $0.11428571428571428$ & $4$ \\ \cline{2-4} 
+ & Nominal & karaoke & $0.05714285714285714$ & $2$ \\ \cline{2-4} 
+ & Nominal & background_music & $0.02857142857142857$ & $1$ \\ \hline 
+name & Nominal & Too many values to display & \\ \hline
+attributes & Nominal & Too many values to display & \\ \hline
+\multirow{6}{*}{Ambience} & Nominal & casual & $0.8285714285714286$ & $29$ \\ \cline{2-4} 
+ & Nominal & trendy & $0.08571428571428572$ & $3$ \\ \cline{2-4} 
+ & Nominal & classy & $0.08571428571428572$ & $3$ \\ \cline{2-4} 
+ & Nominal & divey & $0.02857142857142857$ & $1$ \\ \cline{2-4} 
+ & Nominal & romantic & $0.02857142857142857$ & $1$ \\ \cline{2-4} 
+ & Nominal & hipster & $0.02857142857142857$ & $1$ \\ \hline 
+\multirow{8}{*}{state} & Nominal & AZ & $0.17142857142857143$ & $6$ \\ \cline{2-4} 
+ & Nominal & AB & $0.14285714285714285$ & $5$ \\ \cline{2-4} 
+ & Nominal & PA & $0.14285714285714285$ & $5$ \\ \cline{2-4} 
+ & Nominal & NV & $0.17142857142857143$ & $6$ \\ \cline{2-4} 
+ & Nominal & OH & $0.08571428571428572$ & $3$ \\ \cline{2-4} 
+ & Nominal & ON & $0.17142857142857143$ & $6$ \\ \cline{2-4} 
+ & Nominal & NC & $0.05714285714285714$ & $2$ \\ \cline{2-4} 
+ & Nominal & WI & $0.05714285714285714$ & $2$ \\ \hline 
+categories & Nominal & Too many values to display & \\ \hline
+\end{tabular}
+
+
+ 
+ConceptNode l11 \hspace{1cm} P(node) = 0.41042345276872966 \hspace{1cm} Count 126
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+address & Nominal & Too many values to display & \\ \hline
+city & Nominal & Too many values to display & \\ \hline
+\multirow{3}{*}{NoiseLevel} & Nominal & average & $0.6984126984126984$ & $88$ \\ \cline{2-4} 
+ & Nominal & quiet & $0.18253968253968253$ & $23$ \\ \cline{2-4} 
+ & Nominal & loud & $0.1111111111111111$ & $14$ \\ \hline 
+\multirow{3}{*}{RestaurantsPriceRange2} & Nominal & 1 & $0.31746031746031744$ & $40$ \\ \cline{2-4} 
+ & Nominal & 2 & $0.6507936507936508$ & $82$ \\ \cline{2-4} 
+ & Nominal & 3 & $0.023809523809523808$ & $3$ \\ \hline 
+\multirow{1}{*}{latitude} & Numeric &  mean= 39.1681, std=5.2849 & $1.0$ & $126$ \\ \hline 
+\multirow{1}{*}{review_count} & Numeric &  mean= 154.3651, std=459.8451 & $1.0$ & $126$ \\ \hline 
+\multirow{2}{*}{Alcohol} & Nominal & full_bar & $0.38095238095238093$ & $48$ \\ \cline{2-4} 
+ & Nominal & beer_and_wine & $0.21428571428571427$ & $27$ \\ \hline 
+\multirow{1}{*}{Labels} & Nominal & Business & $1.0$ & $126$ \\ \hline 
+\multirow{1}{*}{stars} & Numeric &  mean= 3.5000, std=0.6455 & $1.0$ & $126$ \\ \hline 
+\multirow{2}{*}{RestaurantsAttire} & Nominal & casual & $0.9761904761904762$ & $123$ \\ \cline{2-4} 
+ & Nominal & dressy & $0.007936507936507936$ & $1$ \\ \hline 
+name & Nominal & Too many values to display & \\ \hline
+attributes & Nominal & Too many values to display & \\ \hline
+state & Nominal & Too many values to display & \\ \hline
+categories & Nominal & Too many values to display & \\ \hline
+\multirow{6}{*}{Ambience} & Nominal & casual & $0.9126984126984127$ & $115$ \\ \cline{2-4} 
+ & Nominal & trendy & $0.03968253968253968$ & $5$ \\ \cline{2-4} 
+ & Nominal & classy & $0.015873015873015872$ & $2$ \\ \cline{2-4} 
+ & Nominal & hipster & $0.031746031746031744$ & $4$ \\ \cline{2-4} 
+ & Nominal & romantic & $0.007936507936507936$ & $1$ \\ \cline{2-4} 
+ & Nominal & intimate & $0.007936507936507936$ & $1$ \\ \hline 
+\end{tabular}
+
+
+ 
+ConceptNode l12 \hspace{1cm} P(node) = 0.4755700325732899 \hspace{1cm} Count 146
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{7}{*}{HairSpecializesIn} & Nominal & africanamerican & $0.00684931506849315$ & $1$ \\ \cline{2-4} 
+ & Nominal & curly & $0.0136986301369863$ & $2$ \\ \cline{2-4} 
+ & Nominal & kids & $0.00684931506849315$ & $1$ \\ \cline{2-4} 
+ & Nominal & asian & $0.02054794520547945$ & $3$ \\ \cline{2-4} 
+ & Nominal & coloring & $0.0136986301369863$ & $2$ \\ \cline{2-4} 
+ & Nominal & extensions & $0.00684931506849315$ & $1$ \\ \cline{2-4} 
+ & Nominal & perms & $0.00684931506849315$ & $1$ \\ \hline 
+address & Nominal & Too many values to display & \\ \hline
+\multirow{5}{*}{BusinessParking} & Nominal & garage & $0.02054794520547945$ & $3$ \\ \cline{2-4} 
+ & Nominal & street & $0.03424657534246575$ & $5$ \\ \cline{2-4} 
+ & Nominal & valet & $0.0410958904109589$ & $6$ \\ \cline{2-4} 
+ & Nominal & validated & $0.0136986301369863$ & $2$ \\ \cline{2-4} 
+ & Nominal & lot & $0.0136986301369863$ & $2$ \\ \hline 
+city & Nominal & Too many values to display & \\ \hline
+\multirow{4}{*}{NoiseLevel} & Nominal & quiet & $0.18493150684931506$ & $27$ \\ \cline{2-4} 
+ & Nominal & average & $0.2945205479452055$ & $43$ \\ \cline{2-4} 
+ & Nominal & very_loud & $0.0547945205479452$ & $8$ \\ \cline{2-4} 
+ & Nominal & loud & $0.04794520547945205$ & $7$ \\ \hline 
+\multirow{4}{*}{RestaurantsPriceRange2} & Nominal & 3 & $0.08904109589041095$ & $13$ \\ \cline{2-4} 
+ & Nominal & 2 & $0.4178082191780822$ & $61$ \\ \cline{2-4} 
+ & Nominal & 1 & $0.4246575342465753$ & $62$ \\ \cline{2-4} 
+ & Nominal & 4 & $0.0136986301369863$ & $2$ \\ \hline 
+\multirow{1}{*}{latitude} & Numeric &  mean= 40.2048, std=5.1057 & $1.0$ & $146$ \\ \hline 
+\multirow{2}{*}{Alcohol} & Nominal & full_bar & $0.2534246575342466$ & $37$ \\ \cline{2-4} 
+ & Nominal & beer_and_wine & $0.08904109589041095$ & $13$ \\ \hline 
+\multirow{1}{*}{review_count} & Numeric &  mean= 23.3493, std=54.4775 & $1.0$ & $146$ \\ \hline 
+\multirow{1}{*}{Labels} & Nominal & Business & $1.0$ & $146$ \\ \hline 
+\multirow{1}{*}{stars} & Numeric &  mean= 3.2568, std=0.8239 & $1.0$ & $146$ \\ \hline 
+\multirow{2}{*}{RestaurantsAttire} & Nominal & casual & $0.7465753424657534$ & $109$ \\ \cline{2-4} 
+ & Nominal & dressy & $0.0273972602739726$ & $4$ \\ \hline 
+name & Nominal & Too many values to display & \\ \hline
+attributes & Nominal & Too many values to display & \\ \hline
+state & Nominal & Too many values to display & \\ \hline
+categories & Nominal & Too many values to display & \\ \hline
+\end{tabular}
+

@@ -23,6 +23,7 @@ public class NominalValue extends Value {
     this.str = value;
   }
 
+
   /**
    * copy Constructor.
    *
@@ -52,6 +53,10 @@ public class NominalValue extends Value {
   NominalValue(final char value) {
     this.setCount(1);
     this.str = Character.toString(value);
+  }
+
+  public String getStr() {
+    return this.str;
   }
 
   @Override
@@ -97,6 +102,6 @@ public class NominalValue extends Value {
    */
   @Override
   public String toTexString() {
-    return "Nominal & " + this.str + "& ";
+    return "Nominal & " + this.str + " & ";
   }
 }

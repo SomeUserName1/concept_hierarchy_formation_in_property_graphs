@@ -19,7 +19,7 @@ public final class MathUtils {
    */
   public static int log2(final int bits) {
     if (bits == 0) {
-      return 0;
+      return - 1;
     }
     return 31 - Integer.numberOfLeadingZeros(bits);
   }

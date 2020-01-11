@@ -11,16 +11,13 @@ public class Cobweb {
     // NOOP
   }
 
-  public static void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
-    cobweb(newNode, currentNode, 0);
-  }
   /**
    * run the actual cobweb algorithm.
    *
    * @param newNode       node to incorporate
    * @param currentNode   node currently visiting
    */
-  private static void cobweb(final ConceptNode newNode, final ConceptNode currentNode, final int mergeCount) {
+  public static void cobweb(final ConceptNode newNode, final ConceptNode currentNode) {
     final float[] results = new float[4];
 
     final Result result = findHost(currentNode, newNode);
@@ -51,7 +48,7 @@ public class Cobweb {
           throw new RuntimeException("Unreachable");
         }
         currentNode.updateCounts(newNode);
-        cobweb(newNode, mergedNode, mergeCount + 1);
+        cobweb(newNode, mergedNode);
         break;
       case 3:
         splitNodes(host, currentNode, true);

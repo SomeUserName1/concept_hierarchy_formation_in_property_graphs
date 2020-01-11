@@ -98,10 +98,10 @@ public class ConceptNode {
     } else if (propertyContainer instanceof Node) {
       final Node mNode = (Node) propertyContainer;
       this.id = Long.toString(mNode.getId());
-      for (Label label : mNode.getLabels()) {
-        values.add(new NominalValue(label.name()));
-        this.attributes.put("Label", values);
+      for (Label l : mNode.getLabels()) {
+        values.add(new NominalValue(l.name()));
       }
+      this.attributes.put("Labels", values);
     }
 
     // loop over the properties of a N4J node and cast them to a Value
@@ -118,7 +118,11 @@ public class ConceptNode {
           values.add(Value.cast(ob));
         }
       } else {
-        values.add(Value.cast(property.getValue()));
+        if (property.getKey().equals("id")) {
+          values.add(Value.cast(Long.toString((Long)property.getValue())));
+        } else {
+          values.add(Value.cast(property.getValue()));
+        }
       }
       this.attributes.put(property.getKey(), values);
     }
@@ -204,17 +208,23 @@ public class ConceptNode {
     final float total = this.getCount();
     float intermediate;
     NumericValue num;
+    int attribCount;
+    float attribProb;
 
     for (Map.Entry<String, List<Value>> attrib : this.getAttributes().entrySet()) {
+      attribCount = 0;
       for (Value val : attrib.getValue()) {
+        attribCount += val.getCount();
         if (val instanceof NumericValue) {
           num = (NumericValue) val;
-          exp += 1.0 / (num.getStd()/num.getMean() + 1) - 1;
+          exp +=  num.getStd() < 1 ? 1 :  1.0f / num.getStd();
         } else {
-          intermediate = (float) val.getCount() / total;
+          intermediate = val.getCount() / total;
           exp += intermediate * intermediate;
         }
       }
+      attribProb = attribCount > total ? 1 : attribCount / total;
+      exp =  exp + attribProb * attribProb;
     }
     this.eap = exp / noAttributes;
     return this.eap;
@@ -312,10 +322,10 @@ public class ConceptNode {
    * @return the label of a super-concept of the current node
    */
   String getCutoffLabel(final int cutoffLevel) {
-    if (this.label.length() < cutoffLevel + 1) {
+    if (this.label.length() < cutoffLevel) {
       return this.label;
     }
-    return this.label.substring(0, cutoffLevel + 1);
+    return this.label.substring(0, cutoffLevel);
   }
 
   /**

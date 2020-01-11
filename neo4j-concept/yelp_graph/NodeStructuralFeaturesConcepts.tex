@@ -1,48 +1,234 @@
-\begin{tikzpicture}[sibling distance=10em, every node/.style = {shape=rectangle, rounded corners, draw, align=center,top color=white, bottom color=blue!20}]]\node {Root}
-	child { node {l0} 
-		child { node {l00} 
-			child { node {l000} }			child { node {l001} 
-				child { node {l0010} }				child { node {l0011} 
-}}}		child { node {l01} 
-			child { node {l010} }			child { node {l011} }}		child { node {l02} 
-			child { node {l020} }			child { node {l021} }}		child { node {l03} 
-			child { node {l030} }			child { node {l031} 
-				child { node {l0310} }				child { node {l0311} }}}		child { node {l04} 
-			child { node {l040} }			child { node {l041} 
-				child { node {l0410} }				child { node {l0411} }}}		child { node {l05} 
-			child { node {l050} }			child { node {l051} }}		child { node {l06} 
-			child { node {l060} }			child { node {l061} }}		child { node {l07} 
-			child { node {l070} }			child { node {l071} }}		child { node {l08} 
-			child { node {l080} }			child { node {l081} 
-				child { node {l0810} }				child { node {l0811} }}}		child { node {l09} }		child { node {l010} }		child { node {l011} }		child { node {l012} }		child { node {l013} }		child { node {l014} 
-			child { node {l0140} }			child { node {l0141} 
-				child { node {l01410} }				child { node {l01411} }}}		child { node {l015} }		child { node {l016} 
-			child { node {l0160} }			child { node {l0161} }}		child { node {l017} }		child { node {l018} 
-			child { node {l0180} }			child { node {l0181} }}		child { node {l019} 
-			child { node {l0190} 
-				child { node {l01900} }				child { node {l01901} }				child { node {l01902} }}			child { node {l0191} }}		child { node {l020} 
-			child { node {l0200} }			child { node {l0201} }}		child { node {l021} 
-			child { node {l0210} }			child { node {l0211} }			child { node {l0212} 
-				child { node {l02120} }				child { node {l02121} }}}}	child { node {l1} 
-		child { node {l10} 
-			child { node {l100} }			child { node {l101} }			child { node {l102} }			child { node {l103} 
-				child { node {l1030} }				child { node {l1031} }}			child { node {l104} }			child { node {l105} 
-				child { node {l1050} }				child { node {l1051} }}			child { node {l106} }			child { node {l107} 
-				child { node {l1070} }				child { node {l1071} }}			child { node {l108} 
-				child { node {l1080} }				child { node {l1081} }				child { node {l1082} }}			child { node {l109} }			child { node {l1010} }			child { node {l1011} 
-				child { node {l10110} }				child { node {l10111} 
-}}			child { node {l1012} 
-				child { node {l10120} }				child { node {l10121} }				child { node {l10122} 
-}				child { node {l10123} 
-}}}		child { node {l11} 
-			child { node {l110} }			child { node {l111} }			child { node {l112} }			child { node {l113} }			child { node {l114} }			child { node {l115} }			child { node {l116} }			child { node {l117} 
-				child { node {l1170} }				child { node {l1171} }				child { node {l1172} 
-}}}		child { node {l12} 
-			child { node {l120} 
-				child { node {l1200} }				child { node {l1201} }				child { node {l1202} 
-}				child { node {l1203} 
-}}			child { node {l121} }			child { node {l122} 
-				child { node {l1220} 
-}				child { node {l1221} }				child { node {l1222} 
-}}}};
-\end{tikzpicture}
+
+ 
+ConceptNode l \hspace{1cm} P(node) = 1.0 \hspace{1cm} Count 1000
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{1}{*}{HAS_AMBIENCE_NeighbourDegree} & Numeric &  mean= 21033.7871, std=4380.8335 & $0.136$ & $136$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.641$ & $641$ \\ \hline 
+\multirow{1}{*}{PARKING_POSSIBLILITY_Degree} & Numeric &  mean= 2.5000, std=0.8660 & $0.008$ & $8$ \\ \hline 
+\multirow{1}{*}{GOOD_FOR_MEAL_Degree} & Numeric &  mean= 2.4737, std=0.9931 & $0.019$ & $19$ \\ \hline 
+\multirow{1}{*}{HAS_NOISE_LEVEL_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.264$ & $264$ \\ \hline 
+\multirow{1}{*}{PLAYS_MUSIC_NeighbourDegree} & Numeric &  mean= 119.0000, std=0.0000 & $0.001$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_NeighbourDegree} & Numeric &  mean= 13614.5801, std=3693.2573 & $0.178$ & $178$ \\ \hline 
+\multirow{1}{*}{HAS_ALCOHOL_SORTS_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.163$ & $163$ \\ \hline 
+\multirow{1}{*}{RATING_NeighbourDegree} & Numeric &  mean= 23949.3555, std=7847.2163 & $0.984$ & $984$ \\ \hline 
+\multirow{1}{*}{IN_CITY_NeighbourDegree} & Numeric &  mean= 9178.1035, std=8745.5273 & $0.995$ & $995$ \\ \hline 
+\multirow{1}{*}{HAS_AMBIENCE_Degree} & Numeric &  mean= 1.2206, std=0.7143 & $0.136$ & $136$ \\ \hline 
+\multirow{1}{*}{AverageNeighbourDegree} & Numeric &  mean= 34913.3242, std=11739.2617 & $1.0$ & $1000$ \\ \hline 
+\multirow{1}{*}{RATING_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.984$ & $984$ \\ \hline 
+\multirow{1}{*}{SPECIALIZED_IN_Degree} & Numeric &  mean= 5.5000, std=2.5000 & $0.002$ & $2$ \\ \hline 
+\multirow{1}{*}{GOOD_FOR_MEAL_NeighbourDegree} & Numeric &  mean= 2698.7898, std=429.0789 & $0.019$ & $19$ \\ \hline 
+\multirow{1}{*}{SPECIALIZED_IN_NeighbourDegree} & Numeric &  mean= 361.5000, std=22.5000 & $0.002$ & $2$ \\ \hline 
+\multirow{1}{*}{BEST_VISIT_NIGHT_Degree} & Numeric &  mean= 3.0000, std=0.0000 & $0.007$ & $7$ \\ \hline 
+\multirow{1}{*}{HAS_ALCOHOL_SORTS_NeighbourDegree} & Numeric &  mean= 11343.1494, std=6387.6240 & $0.163$ & $163$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_NeighbourDegree} & Numeric &  mean= 46330.8984, std=19044.6152 & $0.641$ & $641$ \\ \hline 
+\multirow{1}{*}{IN_STATE_NeighbourDegree} & Numeric &  mean= 144.8182, std=58.0890 & $0.011$ & $11$ \\ \hline 
+\multirow{1}{*}{HAS_ATTIRE_NeighbourDegree} & Numeric &  mean= 23840.5762, std=5111.0806 & $0.292$ & $292$ \\ \hline 
+\multirow{1}{*}{HAS_ATTIRE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.292$ & $292$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_NeighbourDegree} & Numeric &  mean= 64685.3047, std=25757.7383 & $0.897$ & $897$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.178$ & $178$ \\ \hline 
+\multirow{1}{*}{IN_CATEGORY_Degree} & Numeric &  mean= 4.2399, std=2.2421 & $0.296$ & $296$ \\ \hline 
+\multirow{1}{*}{EgoNetIncomingEdges} & Numeric &  mean= 263115.0000, std=171913.3594 & $1.0$ & $1000$ \\ \hline 
+\multirow{1}{*}{EgoDegree} & Numeric &  mean= 30.5610, std=706.0026 & $1.0$ & $1000$ \\ \hline 
+\multirow{1}{*}{HAS_NOISE_LEVEL_NeighbourDegree} & Numeric &  mean= 14427.5762, std=8803.3320 & $0.264$ & $264$ \\ \hline 
+\multirow{1}{*}{PLAYS_MUSIC_Degree} & Numeric &  mean= 2.0000, std=0.0000 & $0.001$ & $1$ \\ \hline 
+\multirow{1}{*}{EgoNetOutgoingEdges} & Numeric &  mean= 118.9331, std=3357.9368 & $1.0$ & $1000$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_Degree} & Numeric &  mean= 28.2865, std=745.5197 & $0.897$ & $897$ \\ \hline 
+\multirow{1}{*}{IN_CATEGORY_NeighbourDegree} & Numeric &  mean= 16667.1523, std=6474.3979 & $0.296$ & $296$ \\ \hline 
+\multirow{1}{*}{PARKING_POSSIBLILITY_NeighbourDegree} & Numeric &  mean= 1272.1250, std=312.4470 & $0.008$ & $8$ \\ \hline 
+\multirow{1}{*}{BEST_VISIT_NIGHT_NeighbourDegree} & Numeric &  mean= 1509.5715, std=239.2893 & $0.007$ & $7$ \\ \hline 
+\multirow{1}{*}{IN_CITY_Degree} & Numeric &  mean= 1.1387, std=3.6499 & $0.995$ & $995$ \\ \hline 
+\multirow{1}{*}{IN_STATE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.011$ & $11$ \\ \hline 
+\end{tabular}
+
+
+ 
+ConceptNode l0 \hspace{1cm} P(node) = 0.509 \hspace{1cm} Count 509
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{1}{*}{SPECIALIZED_IN_NeighbourDegree} & Numeric &  mean= 339.0000, std=0.0000 & $0.0019646365422396855$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.3516699410609037$ & $179$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_NeighbourDegree} & Numeric &  mean= 61506.0000, std=0.0000 & $0.3516699410609037$ & $179$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_NeighbourDegree} & Numeric &  mean= 73625.5000, std=28292.4414 & $0.8762278978388998$ & $446$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_NeighbourDegree} & Numeric &  mean= 16355.0000, std=0.0000 & $0.043222003929273084$ & $22$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.043222003929273084$ & $22$ \\ \hline 
+\multirow{1}{*}{RATING_NeighbourDegree} & Numeric &  mean= 23284.1699, std=7720.8579 & $1.0$ & $509$ \\ \hline 
+\multirow{1}{*}{IN_CITY_NeighbourDegree} & Numeric &  mean= 9581.7705, std=8909.4893 & $1.0$ & $509$ \\ \hline 
+\multirow{1}{*}{EgoNetIncomingEdges} & Numeric &  mean= 164130.2500, std=78473.4375 & $1.0$ & $509$ \\ \hline 
+\multirow{1}{*}{EgoDegree} & Numeric &  mean= 4.0354, std=1.3871 & $1.0$ & $509$ \\ \hline 
+\multirow{1}{*}{EgoNetOutgoingEdges} & Numeric &  mean= 6.5894, std=2.5865 & $1.0$ & $509$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_Degree} & Numeric &  mean= 1.8543, std=0.9814 & $0.8762278978388998$ & $446$ \\ \hline 
+\multirow{1}{*}{AverageNeighbourDegree} & Numeric &  mean= 39180.1172, std=11938.1436 & $1.0$ & $509$ \\ \hline 
+\multirow{1}{*}{RATING_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $1.0$ & $509$ \\ \hline 
+\multirow{1}{*}{SPECIALIZED_IN_Degree} & Numeric &  mean= 8.0000, std=0.0000 & $0.0019646365422396855$ & $1$ \\ \hline 
+\multirow{1}{*}{IN_CITY_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $1.0$ & $509$ \\ \hline 
+\end{tabular}
+
+
+ 
+ConceptNode l00 \hspace{1cm} P(node) = 0.3831041257367387 \hspace{1cm} Count 195
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{1}{*}{SPECIALIZED_IN_NeighbourDegree} & Numeric &  mean= 339.0000, std=0.0000 & $0.005128205128205128$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.9179487179487179$ & $179$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_NeighbourDegree} & Numeric &  mean= 61506.0000, std=0.0000 & $0.9179487179487179$ & $179$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_NeighbourDegree} & Numeric &  mean= 70669.3828, std=23507.4941 & $0.8666666666666667$ & $169$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_NeighbourDegree} & Numeric &  mean= 16355.0000, std=0.0000 & $0.11282051282051282$ & $22$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.11282051282051282$ & $22$ \\ \hline 
+\multirow{1}{*}{RATING_NeighbourDegree} & Numeric &  mean= 24645.6328, std=7019.5703 & $1.0$ & $195$ \\ \hline 
+\multirow{1}{*}{IN_CITY_NeighbourDegree} & Numeric &  mean= 10332.4131, std=8712.9736 & $1.0$ & $195$ \\ \hline 
+\multirow{1}{*}{EgoNetIncomingEdges} & Numeric &  mean= 217201.9219, std=75264.9297 & $1.0$ & $195$ \\ \hline 
+\multirow{1}{*}{EgoDegree} & Numeric &  mean= 4.9692, std=1.4211 & $1.0$ & $195$ \\ \hline 
+\multirow{1}{*}{EgoNetOutgoingEdges} & Numeric &  mean= 7.5897, std=2.5792 & $1.0$ & $195$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_Degree} & Numeric &  mean= 2.1893, std=1.0261 & $0.8666666666666667$ & $169$ \\ \hline 
+\multirow{1}{*}{AverageNeighbourDegree} & Numeric &  mean= 43227.9180, std=9446.3662 & $1.0$ & $195$ \\ \hline 
+\multirow{1}{*}{RATING_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $1.0$ & $195$ \\ \hline 
+\multirow{1}{*}{SPECIALIZED_IN_Degree} & Numeric &  mean= 8.0000, std=0.0000 & $0.005128205128205128$ & $1$ \\ \hline 
+\multirow{1}{*}{IN_CITY_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $1.0$ & $195$ \\ \hline 
+\end{tabular}
+
+
+ 
+ConceptNode l01 \hspace{1cm} P(node) = 0.6168958742632613 \hspace{1cm} Count 314
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{1}{*}{EgoDegree} & Numeric &  mean= 3.4554, std=0.9934 & $1.0$ & $314$ \\ \hline 
+\multirow{1}{*}{EgoNetOutgoingEdges} & Numeric &  mean= 5.9682, std=2.3887 & $1.0$ & $314$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_Degree} & Numeric &  mean= 1.6498, std=0.8933 & $0.8821656050955414$ & $277$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_NeighbourDegree} & Numeric &  mean= 75429.0469, std=30709.9336 & $0.8821656050955414$ & $277$ \\ \hline 
+\multirow{1}{*}{AverageNeighbourDegree} & Numeric &  mean= 36666.3984, std=12614.1367 & $1.0$ & $314$ \\ \hline 
+\multirow{1}{*}{RATING_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $1.0$ & $314$ \\ \hline 
+\multirow{1}{*}{RATING_NeighbourDegree} & Numeric &  mean= 22438.6621, std=8010.3271 & $1.0$ & $314$ \\ \hline 
+\multirow{1}{*}{IN_CITY_NeighbourDegree} & Numeric &  mean= 9115.6035, std=8997.9131 & $1.0$ & $314$ \\ \hline 
+\multirow{1}{*}{EgoNetIncomingEdges} & Numeric &  mean= 131171.8438, std=60241.0820 & $1.0$ & $314$ \\ \hline 
+\multirow{1}{*}{IN_CITY_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $1.0$ & $314$ \\ \hline 
+\end{tabular}
+
+
+ 
+ConceptNode l1 \hspace{1cm} P(node) = 0.491 \hspace{1cm} Count 491
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{1}{*}{HAS_AMBIENCE_NeighbourDegree} & Numeric &  mean= 21033.7871, std=4380.8335 & $0.2769857433808554$ & $136$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.9409368635437881$ & $462$ \\ \hline 
+\multirow{1}{*}{PARKING_POSSIBLILITY_Degree} & Numeric &  mean= 2.5000, std=0.8660 & $0.016293279022403257$ & $8$ \\ \hline 
+\multirow{1}{*}{GOOD_FOR_MEAL_Degree} & Numeric &  mean= 2.4737, std=0.9931 & $0.038696537678207736$ & $19$ \\ \hline 
+\multirow{1}{*}{HAS_NOISE_LEVEL_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.5376782077393075$ & $264$ \\ \hline 
+\multirow{1}{*}{PLAYS_MUSIC_NeighbourDegree} & Numeric &  mean= 119.0000, std=0.0000 & $0.002036659877800407$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_NeighbourDegree} & Numeric &  mean= 13228.1152, std=3788.8418 & $0.31771894093686354$ & $156$ \\ \hline 
+\multirow{1}{*}{RATING_NeighbourDegree} & Numeric &  mean= 24662.1406, std=7918.6182 & $0.9674134419551935$ & $475$ \\ \hline 
+\multirow{1}{*}{IN_CITY_NeighbourDegree} & Numeric &  mean= 8755.3535, std=8550.0420 & $0.9898167006109979$ & $486$ \\ \hline 
+\multirow{1}{*}{HAS_ALCOHOL_SORTS_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.3319755600814664$ & $163$ \\ \hline 
+\multirow{1}{*}{HAS_AMBIENCE_Degree} & Numeric &  mean= 1.2206, std=0.7143 & $0.2769857433808554$ & $136$ \\ \hline 
+\multirow{1}{*}{AverageNeighbourDegree} & Numeric &  mean= 30490.0488, std=9720.6074 & $1.0$ & $491$ \\ \hline 
+\multirow{1}{*}{RATING_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.9674134419551935$ & $475$ \\ \hline 
+\multirow{1}{*}{SPECIALIZED_IN_Degree} & Numeric &  mean= 3.0000, std=0.0000 & $0.002036659877800407$ & $1$ \\ \hline 
+\multirow{1}{*}{GOOD_FOR_MEAL_NeighbourDegree} & Numeric &  mean= 2698.7898, std=429.0789 & $0.038696537678207736$ & $19$ \\ \hline 
+\multirow{1}{*}{SPECIALIZED_IN_NeighbourDegree} & Numeric &  mean= 384.0000, std=0.0000 & $0.002036659877800407$ & $1$ \\ \hline 
+\multirow{1}{*}{BEST_VISIT_NIGHT_Degree} & Numeric &  mean= 3.0000, std=0.0000 & $0.014256619144602852$ & $7$ \\ \hline 
+\multirow{1}{*}{HAS_ALCOHOL_SORTS_NeighbourDegree} & Numeric &  mean= 11343.1494, std=6387.6240 & $0.3319755600814664$ & $163$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_NeighbourDegree} & Numeric &  mean= 40451.3867, std=19479.0098 & $0.9409368635437881$ & $462$ \\ \hline 
+\multirow{1}{*}{IN_STATE_NeighbourDegree} & Numeric &  mean= 144.8182, std=58.0890 & $0.02240325865580448$ & $11$ \\ \hline 
+\multirow{1}{*}{HAS_ATTIRE_NeighbourDegree} & Numeric &  mean= 23840.5762, std=5111.0806 & $0.594704684317719$ & $292$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_NeighbourDegree} & Numeric &  mean= 55844.1836, std=19255.4629 & $0.9185336048879837$ & $451$ \\ \hline 
+\multirow{1}{*}{HAS_ATTIRE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.594704684317719$ & $292$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.31771894093686354$ & $156$ \\ \hline 
+\multirow{1}{*}{EgoNetIncomingEdges} & Numeric &  mean= 365728.9375, std=181992.6094 & $1.0$ & $491$ \\ \hline 
+\multirow{1}{*}{IN_CATEGORY_Degree} & Numeric &  mean= 4.2399, std=2.2421 & $0.6028513238289206$ & $296$ \\ \hline 
+\multirow{1}{*}{EgoDegree} & Numeric &  mean= 58.0591, std=1006.8090 & $1.0$ & $491$ \\ \hline 
+\multirow{1}{*}{HAS_NOISE_LEVEL_NeighbourDegree} & Numeric &  mean= 14427.5762, std=8803.3320 & $0.5376782077393075$ & $264$ \\ \hline 
+\multirow{1}{*}{PLAYS_MUSIC_Degree} & Numeric &  mean= 2.0000, std=0.0000 & $0.002036659877800407$ & $1$ \\ \hline 
+\multirow{1}{*}{EgoNetOutgoingEdges} & Numeric &  mean= 235.3950, std=4789.3848 & $1.0$ & $491$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_Degree} & Numeric &  mean= 54.4257, std=1050.7439 & $0.9185336048879837$ & $451$ \\ \hline 
+\multirow{1}{*}{IN_CATEGORY_NeighbourDegree} & Numeric &  mean= 16667.1523, std=6474.3979 & $0.6028513238289206$ & $296$ \\ \hline 
+\multirow{1}{*}{PARKING_POSSIBLILITY_NeighbourDegree} & Numeric &  mean= 1272.1250, std=312.4470 & $0.016293279022403257$ & $8$ \\ \hline 
+\multirow{1}{*}{BEST_VISIT_NIGHT_NeighbourDegree} & Numeric &  mean= 1509.5715, std=239.2893 & $0.014256619144602852$ & $7$ \\ \hline 
+\multirow{1}{*}{IN_CITY_Degree} & Numeric &  mean= 1.2840, std=5.2184 & $0.9898167006109979$ & $486$ \\ \hline 
+\multirow{1}{*}{IN_STATE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.02240325865580448$ & $11$ \\ \hline 
+\end{tabular}
+
+
+ 
+ConceptNode l10 \hspace{1cm} P(node) = 0.35030549898167007 \hspace{1cm} Count 172
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{1}{*}{HAS_AMBIENCE_NeighbourDegree} & Numeric &  mean= 22651.0000, std=0.0000 & $0.011627906976744186$ & $2$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.9069767441860465$ & $156$ \\ \hline 
+\multirow{1}{*}{PARKING_POSSIBLILITY_Degree} & Numeric &  mean= 2.0000, std=0.0000 & $0.005813953488372093$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_NOISE_LEVEL_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.05813953488372093$ & $10$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_NeighbourDegree} & Numeric &  mean= 11134.6904, std=3867.4966 & $0.1686046511627907$ & $29$ \\ \hline 
+\multirow{1}{*}{RATING_NeighbourDegree} & Numeric &  mean= 23165.8555, std=8331.9004 & $0.9418604651162791$ & $162$ \\ \hline 
+\multirow{1}{*}{IN_CITY_NeighbourDegree} & Numeric &  mean= 9087.4453, std=8760.4248 & $1.0$ & $172$ \\ \hline 
+\multirow{1}{*}{HAS_ALCOHOL_SORTS_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.0755813953488372$ & $13$ \\ \hline 
+\multirow{1}{*}{HAS_AMBIENCE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.011627906976744186$ & $2$ \\ \hline 
+\multirow{1}{*}{AverageNeighbourDegree} & Numeric &  mean= 33387.1133, std=13311.3408 & $1.0$ & $172$ \\ \hline 
+\multirow{1}{*}{RATING_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.9418604651162791$ & $162$ \\ \hline 
+\multirow{1}{*}{SPECIALIZED_IN_Degree} & Numeric &  mean= 3.0000, std=0.0000 & $0.005813953488372093$ & $1$ \\ \hline 
+\multirow{1}{*}{SPECIALIZED_IN_NeighbourDegree} & Numeric &  mean= 384.0000, std=0.0000 & $0.005813953488372093$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_ALCOHOL_SORTS_NeighbourDegree} & Numeric &  mean= 16516.0000, std=0.0000 & $0.0755813953488372$ & $13$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_NeighbourDegree} & Numeric &  mean= 26696.2227, std=17553.1348 & $0.9069767441860465$ & $156$ \\ \hline 
+\multirow{1}{*}{IN_STATE_NeighbourDegree} & Numeric &  mean= 139.0000, std=57.7875 & $0.05813953488372093$ & $10$ \\ \hline 
+\multirow{1}{*}{HAS_ATTIRE_NeighbourDegree} & Numeric &  mean= 28320.0000, std=0.0000 & $0.005813953488372093$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_NeighbourDegree} & Numeric &  mean= 72891.3125, std=23228.1445 & $0.8081395348837209$ & $139$ \\ \hline 
+\multirow{1}{*}{HAS_ATTIRE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.005813953488372093$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.1686046511627907$ & $29$ \\ \hline 
+\multirow{1}{*}{EgoNetIncomingEdges} & Numeric &  mean= 187365.0938, std=98394.3750 & $1.0$ & $172$ \\ \hline 
+\multirow{1}{*}{IN_CATEGORY_Degree} & Numeric &  mean= 2.0000, std=0.0000 & $0.005813953488372093$ & $1$ \\ \hline 
+\multirow{1}{*}{EgoDegree} & Numeric &  mean= 6.0349, std=8.6857 & $1.0$ & $172$ \\ \hline 
+\multirow{1}{*}{HAS_NOISE_LEVEL_NeighbourDegree} & Numeric &  mean= 22681.0000, std=0.0000 & $0.05813953488372093$ & $10$ \\ \hline 
+\multirow{1}{*}{EgoNetOutgoingEdges} & Numeric &  mean= 15.3779, std=82.7300 & $1.0$ & $172$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_Degree} & Numeric &  mean= 2.4460, std=1.3686 & $0.8081395348837209$ & $139$ \\ \hline 
+\multirow{1}{*}{IN_CATEGORY_NeighbourDegree} & Numeric &  mean= 26300.0000, std=0.0000 & $0.005813953488372093$ & $1$ \\ \hline 
+\multirow{1}{*}{PARKING_POSSIBLILITY_NeighbourDegree} & Numeric &  mean= 1509.0000, std=0.0000 & $0.005813953488372093$ & $1$ \\ \hline 
+\multirow{1}{*}{IN_CITY_Degree} & Numeric &  mean= 1.7907, std=8.7479 & $1.0$ & $172$ \\ \hline 
+\multirow{1}{*}{IN_STATE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.05813953488372093$ & $10$ \\ \hline 
+\end{tabular}
+
+
+ 
+ConceptNode l11 \hspace{1cm} P(node) = 0.6496945010183299 \hspace{1cm} Count 319
+\\ Attributes: \\ 
+ \begin{tabular}{|c|c|c|c|c|} \hline 
+Attribute & ValueType & Value & Probability & Occurences \hline 
+\multirow{1}{*}{HAS_AMBIENCE_NeighbourDegree} & Numeric &  mean= 21009.6465, std=4408.9146 & $0.4200626959247649$ & $134$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.9592476489028213$ & $306$ \\ \hline 
+\multirow{1}{*}{PARKING_POSSIBLILITY_Degree} & Numeric &  mean= 2.5714, std=0.9035 & $0.0219435736677116$ & $7$ \\ \hline 
+\multirow{1}{*}{GOOD_FOR_MEAL_Degree} & Numeric &  mean= 2.4737, std=0.9931 & $0.05956112852664577$ & $19$ \\ \hline 
+\multirow{1}{*}{HAS_NOISE_LEVEL_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.7962382445141066$ & $254$ \\ \hline 
+\multirow{1}{*}{PLAYS_MUSIC_NeighbourDegree} & Numeric &  mean= 119.0000, std=0.0000 & $0.003134796238244514$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_NeighbourDegree} & Numeric &  mean= 13706.1426, std=3603.9683 & $0.3981191222570533$ & $127$ \\ \hline 
+\multirow{1}{*}{HAS_ALCOHOL_SORTS_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.4702194357366771$ & $150$ \\ \hline 
+\multirow{1}{*}{RATING_NeighbourDegree} & Numeric &  mean= 25436.5703, std=7580.8940 & $0.9811912225705329$ & $313$ \\ \hline 
+\multirow{1}{*}{IN_CITY_NeighbourDegree} & Numeric &  mean= 8573.4453, std=8427.0303 & $0.9843260188087775$ & $314$ \\ \hline 
+\multirow{1}{*}{HAS_AMBIENCE_Degree} & Numeric &  mean= 1.2239, std=0.7191 & $0.4200626959247649$ & $134$ \\ \hline 
+\multirow{1}{*}{AverageNeighbourDegree} & Numeric &  mean= 28928.0059, std=6552.3638 & $1.0$ & $319$ \\ \hline 
+\multirow{1}{*}{RATING_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.9811912225705329$ & $313$ \\ \hline 
+\multirow{1}{*}{GOOD_FOR_MEAL_NeighbourDegree} & Numeric &  mean= 2698.7898, std=429.0789 & $0.05956112852664577$ & $19$ \\ \hline 
+\multirow{1}{*}{BEST_VISIT_NIGHT_Degree} & Numeric &  mean= 3.0000, std=0.0000 & $0.0219435736677116$ & $7$ \\ \hline 
+\multirow{1}{*}{HAS_ALCOHOL_SORTS_NeighbourDegree} & Numeric &  mean= 10894.8330, std=6466.6729 & $0.4702194357366771$ & $150$ \\ \hline 
+\multirow{1}{*}{HAS_PRICE_RANGE_NeighbourDegree} & Numeric &  mean= 47463.8242, std=16436.5293 & $0.9592476489028213$ & $306$ \\ \hline 
+\multirow{1}{*}{IN_STATE_NeighbourDegree} & Numeric &  mean= 203.0000, std=0.0000 & $0.003134796238244514$ & $1$ \\ \hline 
+\multirow{1}{*}{HAS_ATTIRE_NeighbourDegree} & Numeric &  mean= 23825.1816, std=5113.0942 & $0.9122257053291536$ & $291$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_NeighbourDegree} & Numeric &  mean= 48249.4844, std=10413.1816 & $0.9780564263322884$ & $312$ \\ \hline 
+\multirow{1}{*}{HAS_ATTIRE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.9122257053291536$ & $291$ \\ \hline 
+\multirow{1}{*}{HAS_WIFI_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.3981191222570533$ & $127$ \\ \hline 
+\multirow{1}{*}{EgoNetIncomingEdges} & Numeric &  mean= 461899.6563, std=139130.8438 & $1.0$ & $319$ \\ \hline 
+\multirow{1}{*}{IN_CATEGORY_Degree} & Numeric &  mean= 4.2475, std=2.2421 & $0.9247648902821317$ & $295$ \\ \hline 
+\multirow{1}{*}{EgoDegree} & Numeric &  mean= 86.1097, std=1248.1707 & $1.0$ & $319$ \\ \hline 
+\multirow{1}{*}{HAS_NOISE_LEVEL_NeighbourDegree} & Numeric &  mean= 14102.6465, std=8818.2959 & $0.7962382445141066$ & $254$ \\ \hline 
+\multirow{1}{*}{PLAYS_MUSIC_Degree} & Numeric &  mean= 2.0000, std=0.0000 & $0.003134796238244514$ & $1$ \\ \hline 
+\multirow{1}{*}{EgoNetOutgoingEdges} & Numeric &  mean= 354.0251, std=5938.2026 & $1.0$ & $319$ \\ \hline 
+\multirow{1}{*}{HAS_ATTRIBUTE_Degree} & Numeric &  mean= 77.5834, std=1262.6144 & $0.9780564263322884$ & $312$ \\ \hline 
+\multirow{1}{*}{IN_CATEGORY_NeighbourDegree} & Numeric &  mean= 16634.5039, std=6460.9858 & $0.9247648902821317$ & $295$ \\ \hline 
+\multirow{1}{*}{PARKING_POSSIBLILITY_NeighbourDegree} & Numeric &  mean= 1238.2856, std=320.0132 & $0.0219435736677116$ & $7$ \\ \hline 
+\multirow{1}{*}{BEST_VISIT_NIGHT_NeighbourDegree} & Numeric &  mean= 1509.5715, std=239.2893 & $0.0219435736677116$ & $7$ \\ \hline 
+\multirow{1}{*}{IN_CITY_Degree} & Numeric &  mean= 1.0064, std=0.1127 & $0.9843260188087775$ & $314$ \\ \hline 
+\multirow{1}{*}{IN_STATE_Degree} & Numeric &  mean= 1.0000, std=0.0000 & $0.003134796238244514$ & $1$ \\ \hline 
+\end{tabular}
+

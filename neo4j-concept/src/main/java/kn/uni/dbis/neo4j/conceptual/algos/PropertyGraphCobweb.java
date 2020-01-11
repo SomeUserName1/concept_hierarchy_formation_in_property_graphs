@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import apoc.coll.Coll;
 import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -81,9 +81,9 @@ public class PropertyGraphCobweb {
     ConceptNode summarizedNode;
     List<Value> co;
 
-    int cutoffLevelNodes = MathUtils.log2(TreeUtils.deepestLevel(this.nodePropertiesTree));
-    int cutoffLevelRelationships = MathUtils.log2(TreeUtils.deepestLevel(this.relationshipPropertiesTree));
-    int cutoffLevelStructuralFeatures = MathUtils.log2(TreeUtils.deepestLevel(this.structuralFeaturesTree));
+    int cutoffLevelNodes = MathUtils.log2(TreeUtils.deepestLevel(this.nodePropertiesTree)) + 1;
+    int cutoffLevelRelationships = MathUtils.log2(TreeUtils.deepestLevel(this.relationshipPropertiesTree)) + 1;
+    int cutoffLevelStructuralFeatures = MathUtils.log2(TreeUtils.deepestLevel(this.structuralFeaturesTree)) + 1;
 
     TreeUtils.labelTree(this.nodePropertiesTree, "", "n");
     TreeUtils.labelTree(this.relationshipPropertiesTree, "", "r");
@@ -127,6 +127,7 @@ public class PropertyGraphCobweb {
         }
       }
       summarizedNode.getAttributes().put("RelationshipConcepts", co);
+
 
       Cobweb.cobweb(summarizedNode, this.nodeSummaryTree);
       ++i;
