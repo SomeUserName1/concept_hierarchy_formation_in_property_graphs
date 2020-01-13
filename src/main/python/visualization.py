@@ -56,7 +56,7 @@ def visualize(linkage, m_path, noise, dataset):
         makedirs(m_path)
 
     dataset_str = "synth_" if dataset is not Dataset.YELP else "yelp_"
-    p_path = path.join(m_path, dataset_str + noise_ + str(noise))
+    p_path = path.join(m_path, dataset_str + "noise_" + str(noise))
 
     plt.figure()
     children = linkage[:, :2]

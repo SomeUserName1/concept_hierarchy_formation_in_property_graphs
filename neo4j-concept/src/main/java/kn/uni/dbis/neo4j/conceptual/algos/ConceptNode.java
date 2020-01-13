@@ -86,7 +86,7 @@ public class ConceptNode {
    *
    * @param propertyContainer The property container to parse.
    */
-  ConceptNode(final PropertyContainer propertyContainer) {
+  ConceptNode(final PropertyContainer propertyContainer, final boolean labelsOnly) {
     List<Value> values = new ArrayList<>();
     this.altered = true;
 
@@ -101,35 +101,41 @@ public class ConceptNode {
       for (Label l : mNode.getLabels()) {
         values.add(new NominalValue(l.name()));
       }
-      this.attributes.put("Labels", values);
-    }
-
-    // loop over the properties of a N4J node and cast them to a Value
-    Object o;
-    Object[] arr;
-    try {
-    for (Map.Entry<String, Object> property : propertyContainer.getAllProperties().entrySet()) {
-      values = new ArrayList<>();
-      o = property.getValue();
-      if (o.getClass().isArray()) {
-        arr = (Object[]) o;
-
-        for (Object ob : arr) {
-          values.add(Value.cast(ob));
-        }
-      } else {
-        if (property.getKey().equals("id")) {
-          values.add(Value.cast(Long.toString((Long)property.getValue())));
-        } else {
-          values.add(Value.cast(property.getValue()));
-        }
+      if (!values.isEmpty()) {
+        this.attributes.put("Labels", values);
       }
-      this.attributes.put(property.getKey(), values);
     }
-    } catch (final Exception ignored) {}
+
+    if (!labelsOnly) {
+      // loop over the properties of a N4J node and cast them to a Value
+      Object o;
+      Object[] arr;
+      try {
+        for (Map.Entry<String, Object> property : propertyContainer.getAllProperties().entrySet()) {
+          values = new ArrayList<>();
+          o = property.getValue();
+          if (o.getClass().isArray()) {
+            arr = (Object[]) o;
+
+            for (Object ob : arr) {
+              values.add(Value.cast(ob));
+            }
+          } else {
+            if (property.getKey().equals("id")) {
+              values.add(Value.cast(Long.toString((Long) property.getValue())));
+            } else {
+              values.add(Value.cast(property.getValue()));
+            }
+          }
+          this.attributes.put(property.getKey(), values);
+        }
+
+      } catch (final Exception ignored) {
+      }
+    }
   }
 
-  public ConceptNode root() {
+    public ConceptNode root() {
     this.count = 0;
     this.parent = this;
 
@@ -208,23 +214,17 @@ public class ConceptNode {
     final float total = this.getCount();
     float intermediate;
     NumericValue num;
-    int attribCount;
-    float attribProb;
 
     for (Map.Entry<String, List<Value>> attrib : this.getAttributes().entrySet()) {
-      attribCount = 0;
       for (Value val : attrib.getValue()) {
-        attribCount += val.getCount();
         if (val instanceof NumericValue) {
           num = (NumericValue) val;
-          exp +=  num.getStd() < 1 ? 1 :  1.0f / num.getStd();
+          exp +=  num.getStd() == 0 ? 0 :  1.0f / (num.getStd() + 1);
         } else {
           intermediate = val.getCount() / total;
           exp += intermediate * intermediate;
         }
       }
-      attribProb = attribCount > total ? 1 : attribCount / total;
-      exp =  exp + attribProb * attribProb;
     }
     this.eap = exp / noAttributes;
     return this.eap;

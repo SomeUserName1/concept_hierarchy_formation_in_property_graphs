@@ -131,7 +131,7 @@ public final class TreeUtils {
     if (depth <= maxDepth) {
       toTexTable(node, sb);
       for (ConceptNode child : node.getChildren()) {
-        if (child.getCount() / (double) node.getCount() > 0.05) {
+        if (child.getCount() / (double) node.getCount() > 0.005) {
           printRecTexTable(child, sb, depth + 1, maxDepth);
         }
       }
@@ -144,9 +144,9 @@ public final class TreeUtils {
         .append((double) node.getCount() / (double) node.getParent().getCount()).append(" \\hspace{1cm} Count ")
         .append(node.getCount()).append("\n")
         .append("\\\\ Attributes: \\\\ \n \\begin{tabular}{|c|c|c|c|c|} \\hline \n")
-        .append("Attribute & ValueType & Value & Probability & Occurences \\hline \n");
+        .append("Attribute & ValueType & Value & Probability & Occurernces \\hline \n");
     for (ConcurrentMap.Entry<String, List<Value>> attribute : node.getAttributes().entrySet()) {
-      if (attribute.getValue().size() < 10) {
+      if (attribute.getValue().size() < 20) {
         sb.append("\\multirow{").append(attribute.getValue().size()).append("}{*}{").append(attribute.getKey())
             .append("}");
         List<Value> values = attribute.getValue();
@@ -196,7 +196,7 @@ public final class TreeUtils {
 
     if (depth < maxDepth) {
       for (ConceptNode child : node.getChildren()) {
-        if (child.getCount() / (double) node.getCount() > 0.05) {
+        if (child.getCount() / (double) node.getCount() > 0.005) {
           for (int i = 0; i <= depth; i++) {
             sb.append("\t");
           }
@@ -234,44 +234,31 @@ public final class TreeUtils {
     }
   }
 
-  public static void treesToTexFile(ConceptNode[] nodes, String dir) throws IOException {
-    treesToTexFile(nodes, dir, -1);
+  public static void treesToTexFile(final String dir, final ConceptNode[] nodes) throws IOException {
+    treesToTexFile(dir, -1, nodes);
   }
 
-  public static void treesToTexFile(final ConceptNode[] nodes, final String dir, final int depth)
+  public static void treesToTexFile(final String prefix, final int depth, final ConceptNode... nodes)
       throws IOException {
-    if (nodes.length != 4) {
-      throw new RuntimeException("Need exactly 4 Trees");
-    }
+    final List<File> treeFiles = new ArrayList<>();
+    final List<File> conceptFiles = new ArrayList<>();
 
-    final File[] treeFiles = {getOutPath(dir, "NodePropertiesTree.tex"),
-        getOutPath(dir, "RelationPropertiesTree.tex"),
-        getOutPath(dir, "NodeStructuralFeaturesTree.tex"),
-        getOutPath(dir, "NodeSummaryTree.tex")};
-
-    final File[] conceptFiles = {getOutPath(dir, "NodePropertiesConcepts.tex"),
-        getOutPath(dir, "RelationPropertiesConcepts.tex"),
-        getOutPath(dir, "NodeStructuralFeaturesConcepts.tex"),
-        getOutPath(dir, "NodeSummaryConcepts.tex")};
-
-    if (!treeFiles[0].getParentFile().exists()) {
-      Files.createDirectory(treeFiles[0].getParentFile().toPath());
-    }
-
-    if (!conceptFiles[0].getParentFile().exists()) {
-      Files.createDirectory(conceptFiles[0].getParentFile().toPath());
+    int i = 0;
+    for (final ConceptNode node : nodes) {
+      treeFiles.add(getOutPath(prefix, i + "Tree.tex"));
+      conceptFiles.add(getOutPath(prefix, i + "Concepts.tex"));
     }
 
     int pDepth;
-    for (int i = 0; i < nodes.length; ++i) {
-      if (!treeFiles[i].exists()) {
-        Files.createFile(treeFiles[i].toPath());
+    for (i = 0; i < nodes.length; ++i) {
+      if (!treeFiles.get(i).exists()) {
+        Files.createFile(treeFiles.get(i).toPath());
       }
-      if (!conceptFiles[i].exists()) {
-        Files.createFile(conceptFiles[i].toPath());
+      if (!conceptFiles.get(i).exists()) {
+        Files.createFile(conceptFiles.get(i).toPath());
       }
 
-      try (FileOutputStream fos = new FileOutputStream(treeFiles[i]);
+      try (FileOutputStream fos = new FileOutputStream(treeFiles.get(i));
            OutputStreamWriter osw = new OutputStreamWriter(fos);
            BufferedWriter bw = new BufferedWriter(osw)) {
         if (depth == -1 ||  MathUtils.log2(TreeUtils.deepestLevel(nodes[i])) + 1 < depth) {
@@ -287,7 +274,7 @@ public final class TreeUtils {
         e.printStackTrace();
       }
 
-      try (FileOutputStream fos = new FileOutputStream(conceptFiles[i]);
+      try (FileOutputStream fos = new FileOutputStream(conceptFiles.get(i));
            OutputStreamWriter osw = new OutputStreamWriter(fos);
            BufferedWriter bw = new BufferedWriter(osw)) {
         if (depth == -1 ||  MathUtils.log2(TreeUtils.deepestLevel(nodes[i]))  + 1 < depth) {
@@ -306,6 +293,6 @@ public final class TreeUtils {
   }
 
   private static File getOutPath(String dir, String fileName) {
-    return Paths.get(Paths.get("").toString(), dir, fileName).toFile();
+    return Paths.get(Paths.get("").toString(), dir + "_" + fileName).toFile();
   }
 }
