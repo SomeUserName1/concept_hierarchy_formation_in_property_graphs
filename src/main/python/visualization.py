@@ -12,10 +12,12 @@ from hdbscan.plots import CondensedTree
 from constants import logger, result_summary, Dataset, IMG_BASE, BASE
 
 
-def visualize_clusters(estimator, data, p_path, noise):
+def visualize_clusters(estimator, data, p_path, noise, dataset):
     if not path.exists(p_path):
         makedirs(p_path)
     labels = estimator.labels_
+
+    dataset_str = "synth_" if dataset is not Dataset.YELP else "yelp_"
 
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     n_noise_ = list(labels).count(-1)
@@ -45,15 +47,16 @@ def visualize_clusters(estimator, data, p_path, noise):
                  markeredgecolor='k', markersize=10)
 
     plt.title(type(estimator).__name__ + ' Number of clusters: %d' % n_clusters_)
-    plt.savefig(path.join(p_path, "noise_" + str(noise) + "_clusters.pdf"))
+    plt.savefig(path.join(p_path, dataset_str + "noise_" + str(noise) + "_clusters.pdf"))
     plt.close('all')
 
 
-def visualize(linkage, m_path, noise):
+def visualize(linkage, m_path, noise, dataset):
     if not path.exists(m_path):
         makedirs(m_path)
 
-    p_path = path.join(m_path, "noise_" + str(noise))
+    dataset_str = "synth_" if dataset is not Dataset.YELP else "yelp_"
+    p_path = path.join(m_path, dataset_str + "noise_" + str(noise))
 
     plt.figure()
     children = linkage[:, :2]

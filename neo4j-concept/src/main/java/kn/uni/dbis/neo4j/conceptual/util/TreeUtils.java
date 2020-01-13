@@ -1,6 +1,7 @@
 package kn.uni.dbis.neo4j.conceptual.util;
 
 import kn.uni.dbis.neo4j.conceptual.algos.ConceptNode;
+import kn.uni.dbis.neo4j.conceptual.algos.NominalValue;
 import kn.uni.dbis.neo4j.conceptual.algos.Value;
 
 import java.io.BufferedWriter;
@@ -21,8 +22,8 @@ import java.util.logging.Logger;
  */
 public final class TreeUtils {
   /** Logger. */
-  public static final Logger LOG = Logger.getLogger("PropertyGraphCobweb");
-  
+  private static final Logger LOG = Logger.getLogger("PropertyGraphCobweb");
+
   /**
    * Hidden default constructor.
    */
@@ -37,7 +38,7 @@ public final class TreeUtils {
    */
   public static int deepestLevel(final ConceptNode node) {
     if (node.getChildren().isEmpty()) {
-      return 0;
+      return 1;
     } else {
       int deepest = 0;
       int temp;
@@ -109,37 +110,74 @@ public final class TreeUtils {
 
     sb.append(node.toString()).append("\n");
     if (depth <= maxDepth) {
-      final List<ConceptNode> localChildren;
-      synchronized (node.getChildren()) {
-        localChildren = new ArrayList<>(node.getChildren());
-      }
-      for (ConceptNode child : localChildren) {
-        printRec(child, sb, depth + 1, maxDepth);
+    final List<ConceptNode> localChildren;
+      localChildren = new ArrayList<>(node.getChildren());
+
+    for (ConceptNode child : localChildren) {
+      printRec(child, sb, depth + 1, maxDepth);
       }
     }
     return sb.toString();
   }
 
-  /**
-   * Returns a Latex table representation of the ConceptNode.
-   * @param node stupid
-   * @return a String containing a latex table representation of the ConceptNode
-   */
-  public String toTexTable(final ConceptNode node) {
+  private static String getTexTables(final ConceptNode root, final int maxDepth) {
+    TreeUtils.labelTree(root, "", "l");
     final StringBuilder sb = new StringBuilder();
-    sb.append("ConceptNode \\hspace{1cm} P(node) = ")
-        .append(Double.toString((double) node.getCount() / (double) node.getParent().getCount()), 0, 5)
-        .append("\\\\ Attributes: \\\\ \\begin{tabular}{|c|c|c|} \\hline");
-    for (ConcurrentMap.Entry<String, List<Value>> attribute : node.getAttributes().entrySet()) {
-      sb.append("\\multirow{4}{*}{").append(attribute.getKey()).append("} ");
-      synchronized (attribute.getValue()) {
-        for (Value value : attribute.getValue()) {
-          sb.append(value.toTexString()).append((double) value.getCount() / (double) node.getCount())
-              .append("\\\\ \\hline");
+    printRecTexTable(root, sb, 0, maxDepth);
+    return sb.toString();
+  }
+
+  private static void printRecTexTable(final ConceptNode node, final StringBuilder sb, final int depth, final int maxDepth) {
+    if (depth <= maxDepth) {
+      toTexTable(node, sb);
+      for (ConceptNode child : node.getChildren()) {
+        if (child.getCount() / (double) node.getCount() > 0.005) {
+          printRecTexTable(child, sb, depth + 1, maxDepth);
         }
       }
     }
-    sb.append("\\end{tabular}");
+  }
+
+
+  private static void toTexTable(final ConceptNode node, StringBuilder sb) {
+    sb.append("\n \n").append("ConceptNode ").append(node.getLabel()).append(" \\hspace{1cm} P(node) = ")
+        .append((double) node.getCount() / (double) node.getParent().getCount()).append(" \\hspace{1cm} Count ")
+        .append(node.getCount()).append("\n")
+        .append("\\\\ Attributes: \\\\ \n \\begin{tabular}{|c|c|c|c|c|} \\hline \n")
+        .append("Attribute & ValueType & Value & Probability & Occurernces \\hline \n");
+    for (ConcurrentMap.Entry<String, List<Value>> attribute : node.getAttributes().entrySet()) {
+      if (attribute.getValue().size() < 20) {
+        sb.append("\\multirow{").append(attribute.getValue().size()).append("}{*}{").append(attribute.getKey())
+            .append("}");
+        List<Value> values = attribute.getValue();
+        Value value;
+        for (int i = 0; i < values.size(); ++i) {
+          value = values.get(i);
+          sb.append(" & ").append(value.toTexString()).append("$")
+              .append((double) value.getCount() / (double) node.getCount()).append("$ & $").append(value.getCount())
+              .append("$ ");
+          if (i < values.size() - 1 ) {
+            sb.append("\\\\ \\cline{2-4} \n");
+          } else {
+            sb.append("\\\\ \\hline \n");
+          }
+        }
+      } else {
+        String valueType = attribute.getValue().get(0).toTexString().startsWith("Num") ? "Numeric" : "Nominal";
+        sb.append(attribute.getKey()).append(" & ").append(valueType).append(" & Too many values to display & ")
+            .append("\\\\ \\hline\n");
+      }
+    }
+    sb.append("\\end{tabular}\n").append("\n");
+  }
+
+
+  private static String getTexForrest(final ConceptNode root, final int maxDepth) {
+    TreeUtils.labelTree(root, "", "l");
+    final StringBuilder sb = new StringBuilder();
+    sb.append("\\begin{forest}\n");
+    printRecTexForest(root, sb, 0, maxDepth);
+    sb.append("\n").append("\\end{forest}");
     return sb.toString();
   }
 
@@ -150,43 +188,27 @@ public final class TreeUtils {
    * @param depth the current depth
    * @param maxDepth the maximal depth
    */
-  private static void printRecTexTree(final ConceptNode node, final StringBuilder sb, final int depth,
-                                      final int maxDepth) {
+  private static void printRecTexForest(final ConceptNode node, final StringBuilder sb, final int depth,
+                                        final int maxDepth) {
     if (depth == 0) {
-      sb.append("\\node {Root}\n");
+      sb.append("[Root\n");
     }
 
-    if (depth <= maxDepth) {
+    if (depth < maxDepth) {
       for (ConceptNode child : node.getChildren()) {
-        for (int i = 0; i <= depth; i++) {
-          sb.append("\t");
+        if (child.getCount() / (double) node.getCount() > 0.005) {
+          for (int i = 0; i <= depth; i++) {
+            sb.append("\t");
+          }
+          sb.append("[").append(child.getLabel()).append(" \n");
+          printRecTexForest(child, sb, depth + 1, maxDepth);
+          sb.append("]");
         }
-        sb.append("child { node {").append(child.getLabel()).append("} ");
-        if (child.getChildren().size() > 0) {
-          sb.append("\n");
-          printRecTexTree(child, sb, depth + 1, maxDepth);
-        }
-        sb.append("}");
       }
     }
-  }
-
-  /**
-   * Constructs a tikzpicture containing a tree representation of the concept hierarchy.
-   * @param root the root of the tree to be visualized
-   * @param maxDepth the maximal depth to be visualized
-   * @return a String containing a tkizpicture
-   */
-  public static String getTexTree(final ConceptNode root, final int maxDepth) {
-    TreeUtils.labelTree(root, "", "l");
-    final StringBuilder sb = new StringBuilder();
-    sb.append("\\begin{tikzpicture}[sibling distance=10em, "
-        + "every node/.style = {shape=rectangle, rounded corners, "
-        + "draw, align=center,"
-        + "top color=white, bottom color=blue!20}]]");
-    printRecTexTree(root, sb, 0, maxDepth);
-    sb.append(";\n").append("\\end{tikzpicture}");
-    return sb.toString();
+    if (depth == 0) {
+      sb.append("]");
+    }
   }
 
   /**
@@ -211,46 +233,65 @@ public final class TreeUtils {
     }
   }
 
-  /**
-   * convenience method for printing.
-   * @param root stupid
-   */
-  public static void prettyPrint(final ConceptNode root) {
-    final int cut = MathUtils.log2(TreeUtils.deepestLevel(root));
-    LOG.info(TreeUtils.printRec(root, new StringBuilder(), 0, cut));
-    LOG.info(getTexTree(root, cut));
+  public static void treesToTexFile(final String dir, final ConceptNode[] nodes) throws IOException {
+    treesToTexFile(dir, -1, nodes);
   }
 
-  public static void treesToTexFile(ConceptNode[] nodes, String dir) throws IOException {
-    if (nodes.length != 4) {
-      throw new RuntimeException("Need exactly 4 Trees");
+  public static void treesToTexFile(final String prefix, final int depth, final ConceptNode... nodes)
+      throws IOException {
+    final List<File> treeFiles = new ArrayList<>();
+    final List<File> conceptFiles = new ArrayList<>();
+
+    int i = 0;
+    for (final ConceptNode node : nodes) {
+      treeFiles.add(getOutPath(prefix, i + "Tree.tex"));
+      conceptFiles.add(getOutPath(prefix, i + "Concepts.tex"));
     }
 
-    final File[] files = {getOutPath(dir, "NodePropertiesConcepts.tex"),
-        getOutPath(dir, "RelationPropertiesConcepts.tex"),
-        getOutPath(dir, "NodeStructuralFeaturesConcepts.tex"),
-        getOutPath(dir, "NodeSummaryConcepts.tex")};
-
-    if (!files[0].getParentFile().exists()) {
-      Files.createDirectory(files[0].getParentFile().toPath());
-    }
-
-    for (int i = 0; i < nodes.length; ++i) {
-      if (!files[i].exists()) {
-        Files.createFile(files[i].toPath());
+    int pDepth;
+    for (i = 0; i < nodes.length; ++i) {
+      if (!treeFiles.get(i).exists()) {
+        Files.createFile(treeFiles.get(i).toPath());
       }
-      try (FileOutputStream fos = new FileOutputStream(files[i]);
+      if (!conceptFiles.get(i).exists()) {
+        Files.createFile(conceptFiles.get(i).toPath());
+      }
+
+      try (FileOutputStream fos = new FileOutputStream(treeFiles.get(i));
            OutputStreamWriter osw = new OutputStreamWriter(fos);
            BufferedWriter bw = new BufferedWriter(osw)) {
-        bw.write(TreeUtils.getTexTree(nodes[i], MathUtils.log2(TreeUtils.deepestLevel(nodes[3]))));
+        if (depth == -1 ||  MathUtils.log2(TreeUtils.deepestLevel(nodes[i])) + 1 < depth) {
+          pDepth = MathUtils.log2(TreeUtils.deepestLevel(nodes[i])) + 1;
+          System.out.println(TreeUtils.deepestLevel(nodes[i]));
+        } else {
+          pDepth = depth;
+        }
+        System.out.println("Visualization depth: " + pDepth);
+        bw.write(TreeUtils.getTexForrest(nodes[i], pDepth));
         bw.flush();
       } catch (IOException e) {
         e.printStackTrace();
       }
+
+      try (FileOutputStream fos = new FileOutputStream(conceptFiles.get(i));
+           OutputStreamWriter osw = new OutputStreamWriter(fos);
+           BufferedWriter bw = new BufferedWriter(osw)) {
+        if (depth == -1 ||  MathUtils.log2(TreeUtils.deepestLevel(nodes[i]))  + 1 < depth) {
+          pDepth = MathUtils.log2(TreeUtils.deepestLevel(nodes[i]))  + 1;
+        } else {
+          pDepth = depth;
+        }
+        System.out.println("Visualization depth: " + pDepth);
+        bw.write(TreeUtils.getTexTables(nodes[i], pDepth));
+        bw.flush();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
     }
   }
 
   private static File getOutPath(String dir, String fileName) {
-    return Paths.get(Paths.get("").toString(), dir, fileName).toFile();
+    return Paths.get(Paths.get("").toString(), dir + "_" + fileName).toFile();
   }
 }

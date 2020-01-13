@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -46,11 +43,15 @@ public class ConceptNode {
    * The super-concept of this concept.
    */
   private ConceptNode parent = null;
-
+  /** previously calculated expected attribute prediction probability. */
+  private float eap;
+  /** flag indicating changes since the last expected attribute prediction accuracy computation. */
+  private boolean altered;
   /**
    * Constructor.
    */
   public ConceptNode() {
+    this.altered = true;
   }
 
   /**
@@ -61,6 +62,8 @@ public class ConceptNode {
   public ConceptNode(final ConceptNode node) {
     this.count = node.count;
     this.id = node.id;
+    this.altered = node.altered;
+    this.eap = node.eap;
 
     List<Value> values;
     String attributeName;
@@ -83,8 +86,9 @@ public class ConceptNode {
    *
    * @param propertyContainer The property container to parse.
    */
-  ConceptNode(final PropertyContainer propertyContainer) {
+  ConceptNode(final PropertyContainer propertyContainer, final boolean labelsOnly) {
     List<Value> values = new ArrayList<>();
+    this.altered = true;
 
     if (propertyContainer instanceof Relationship) {
       final Relationship rel = (Relationship) propertyContainer;
@@ -94,34 +98,44 @@ public class ConceptNode {
     } else if (propertyContainer instanceof Node) {
       final Node mNode = (Node) propertyContainer;
       this.id = Long.toString(mNode.getId());
-      for (Label label : mNode.getLabels()) {
-        values.add(new NominalValue(label.name()));
-        this.attributes.put("Label", values);
+      for (Label l : mNode.getLabels()) {
+        values.add(new NominalValue(l.name()));
+      }
+      if (!values.isEmpty()) {
+        this.attributes.put("Labels", values);
       }
     }
 
-    // loop over the properties of a N4J node and cast them to a Value
-    Object o;
-    Object[] arr;
-    try {
-    for (Map.Entry<String, Object> property : propertyContainer.getAllProperties().entrySet()) {
-      values = new ArrayList<>();
-      o = property.getValue();
-      if (o.getClass().isArray()) {
-        arr = (Object[]) o;
+    if (!labelsOnly) {
+      // loop over the properties of a N4J node and cast them to a Value
+      Object o;
+      Object[] arr;
+      try {
+        for (Map.Entry<String, Object> property : propertyContainer.getAllProperties().entrySet()) {
+          values = new ArrayList<>();
+          o = property.getValue();
+          if (o.getClass().isArray()) {
+            arr = (Object[]) o;
 
-        for (Object ob : arr) {
-          values.add(Value.cast(ob));
+            for (Object ob : arr) {
+              values.add(Value.cast(ob));
+            }
+          } else {
+            if (property.getKey().equals("id")) {
+              values.add(Value.cast(Long.toString((Long) property.getValue())));
+            } else {
+              values.add(Value.cast(property.getValue()));
+            }
+          }
+          this.attributes.put(property.getKey(), values);
         }
-      } else {
-        values.add(Value.cast(property.getValue()));
+
+      } catch (final Exception ignored) {
       }
-      this.attributes.put(property.getKey(), values);
     }
-    } catch (final Exception ignored) {}
   }
 
-  public ConceptNode root() {
+    public ConceptNode root() {
     this.count = 0;
     this.parent = this;
 
@@ -180,6 +194,40 @@ public class ConceptNode {
         this.attributes.put(otherAttributes.getKey(), copies);
       }
     }
+    this.altered = true;
+  }
+
+  /**
+   * Computes the Expected Attribute Prediction Probability for the current concept node.
+   *
+   * @return the EAP
+   */
+  float getExpectedAttributePrediction() {
+    // if (!this.altered) {
+    //  return this.eap;
+    // }
+    final float noAttributes = this.getAttributes().size();
+    if (noAttributes == 0) {
+      return 0;
+    }
+    float exp = 0;
+    final float total = this.getCount();
+    float intermediate;
+    NumericValue num;
+
+    for (Map.Entry<String, List<Value>> attrib : this.getAttributes().entrySet()) {
+      for (Value val : attrib.getValue()) {
+        if (val instanceof NumericValue) {
+          num = (NumericValue) val;
+          exp +=  num.getStd() == 0 ? 0 :  1.0f / (num.getStd() + 1);
+        } else {
+          intermediate = val.getCount() / total;
+          exp += intermediate * intermediate;
+        }
+      }
+    }
+    this.eap = exp / noAttributes;
+    return this.eap;
   }
 
   /**
@@ -274,10 +322,10 @@ public class ConceptNode {
    * @return the label of a super-concept of the current node
    */
   String getCutoffLabel(final int cutoffLevel) {
-    if (this.label.length() < cutoffLevel + 1) {
+    if (this.label.length() < cutoffLevel) {
       return this.label;
     }
-    return this.label.substring(0, cutoffLevel + 1);
+    return this.label.substring(0, cutoffLevel);
   }
 
   /**

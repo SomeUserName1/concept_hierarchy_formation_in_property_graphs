@@ -93,6 +93,6 @@ public class ConceptValue extends Value {
    */
   @Override
   public String toTexString() {
-    return "Concept & " + this.concept.getLabel() + "&";
+    return "Concept & " + this.concept.getLabel() + " & ";
   }
 }

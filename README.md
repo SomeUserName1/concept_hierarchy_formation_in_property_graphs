@@ -14,14 +14,14 @@ Questions that Project should answer:
             algorithms more robust  
     - for each node how many edges of each type: Introduce new properties with graphy traits/new column in the feature vector  
     - Neighbours, types of neighbours, type of relationships, cumulative relationship, ...  
-- [ ] How much do we need to sample to get a correct hierarchy? Or how many distinct labels do we need?    
+- [x] How much do we need to sample to get a correct hierarchy? Or how many distinct labels do we need?    
 
 
 ### Now:
 - [x] Data: LDBC SNB generator
 - [x] Algorithms: Single Linkage, TTSAS, OPTICS, HDBSCAN, Trestle, Cobweb
 - [x] Features: label sets, neighbourhood  
-- [ ] Experiments: What features shall be used?
+- [x] Experiments: What features shall be used?
 - [x] Data: LDBC SNB Generator, maybe Yelp
 
 

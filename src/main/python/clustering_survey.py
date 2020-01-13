@@ -13,7 +13,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 from algorithm_search_wrapper import *
 from data_loader import load, preprocess_trestle_yelp, preprocess_trestle_synthetic
-from constants import IMG_BASE, Dataset, logger, result_summary
+from constants import IMG_BASE, Dataset, logger, result_summary, BASE
 from tree_edit_distance import compute_ted
 from visualization import visualize, visualize_clusters, parse_results
 
@@ -33,7 +33,7 @@ def two_step(vectorized_data, dataset, n_samples, noise):
         estimator = searcher.best_estimator_
         logger.info(estimator)
 
-        visualize_clusters(estimator, vectorized_data, path.join(IMG_BASE, type(estimator).__name__), noise)
+        visualize_clusters(estimator, vectorized_data, path.join(IMG_BASE, type(estimator).__name__), noise, dataset)
 
         start = time.time()
         linkage = bench_two_step_estimator(estimator, vectorized_data)
@@ -46,7 +46,7 @@ def two_step(vectorized_data, dataset, n_samples, noise):
                 name=type(searcher.estimator).__name__, noise=noise, seconds=str(total), samples=n_samples,
                 n_clusters=len(set(estimator.labels_)), dataset=dataset)
 
-        visualize(linkage, path.join(IMG_BASE + type(estimator).__name__), noise)
+        visualize(linkage, path.join(IMG_BASE + type(estimator).__name__), noise, dataset)
 
 
 def cluster_trestle(dataset, noise, n_samples):
@@ -93,7 +93,7 @@ def cluster_basic_single_linkage(diatance_matrix, dataset, noise, n_samples):
             noise=noise, seconds=str(total), samples=n_samples,
             n_clusters=diatance_matrix.shape[0], dataset=dataset)
 
-    visualize(linkage, path.join(IMG_BASE + "Single linkage"), noise)
+    visualize(linkage, path.join(IMG_BASE + "Single linkage"), noise, dataset)
 
 
 def start_clustering(dataset, n_samples, noise, width, depth):
@@ -114,7 +114,7 @@ def start_clustering(dataset, n_samples, noise, width, depth):
 
 def main():
     for dataset in [Dataset.SYNTHETIC, Dataset.YELP]:
-        for width, depth in [[3, 5], [8, 3], [4, 5], [2, 11], [5, 5], [4, 6]]:
+        for width, depth in [[3, 5], [8, 3], [4, 5], [11, 3], [12, 3], [13, 3],  [7, 4], [5, 5], [4, 6], [9, 4]]:
             n_samples = width ** depth
             logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + str(n_samples) +
                         "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -145,6 +145,6 @@ def bench_two_step_estimator(estimator, data):
 
 
 if __name__ == '__main__':
-    # main()
-    parse_results(path.join("doc", "clustering_results_save_full.log"))
+    main()
+    parse_results(path.join(BASE, "doc", "thesis", 'clustering_survey_results.log'))
     result_summary.close()

@@ -1,6 +1,8 @@
 package kn.uni.dbis.neo4j.conceptual;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -29,6 +31,8 @@ import kn.uni.dbis.neo4j.eval.annotations.Preprocessing;
 import kn.uni.dbis.neo4j.eval.annotations.Procedures;
 import kn.uni.dbis.neo4j.eval.datasets.Dataset;
 
+import kn.uni.dbis.neo4j.conceptual.util.ShuffledSpliterator;
+
 /**
  * Tests for the PropertyGraphCobweb algorithm.
  *
@@ -41,13 +45,13 @@ import kn.uni.dbis.neo4j.eval.datasets.Dataset;
 class PropertyGraphCobwebProcTest {
 
   /**
-   * Tests if the procedure throws runtime errors and if the resulting tree is returned.
+   * Tests if the procedure throws runtime.dat errors and if the resulting tree is returned.
    *
    * @param db database to execute the procedure call against
    * @param dataset the dataset specified in the class scope, used to access it's node and relationship count
    */
-  @Disabled
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.name RETURN n")
+  @Disabled
   @Test
   void testCobwebSmall(final GraphDatabaseService db, final Dataset dataset) {
     try (Transaction ignored = db.beginTx()) {
@@ -76,12 +80,12 @@ class PropertyGraphCobwebProcTest {
   }
 
   /**
-   * Tests if the procedure throws runtime errors and if the resulting tree is returned.
+   * Tests if the procedure throws runtime.dat errors and if the resulting tree is returned.
    *
    * @param db database to execute the procedure call against
    */
-  @Disabled
   @Test
+  @Disabled
   @Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.Rome99)
   void testCobwebMedium(final GraphDatabaseService db) {
@@ -100,7 +104,6 @@ class PropertyGraphCobwebProcTest {
         this.checkPartitionCounts(root);
         this.checkParent(root);
         this.checkLeafType(root);
-        System.out.println("Tree " + root.getLabel() + " clear");
       }
       Assertions.assertEquals(this.leafCount(subtrees[0]), 1000);
       Assertions.assertEquals(this.leafCount(subtrees[2]), 1000);
@@ -110,73 +113,59 @@ class PropertyGraphCobwebProcTest {
 
 
   /**
-   * Tests if the procedure throws runtime errors and if the resulting tree is returned.
+   * Tests if the procedure throws runtime.dat errors and if the resulting tree is returned.
    *
    * @param db database to execute the procedure call against
    */
   @Disabled
   @Test
-  //@Preprocessing(preprocessing = "MATCH (n) REMOVE n.nodeId RETURN n")
   @GraphSource(getDataset = Dataset.LDBC_SNB)
   void testCobwebLDBC(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(1000))
+      Instant start = Instant.now();
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream()
+          .collect(ShuffledSpliterator.toLazyShuffledStream()).limit(2000))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
+      Instant end = Instant.now();
       Assertions.assertNotNull(tree);
 
-      final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
-          tree.getStructuralFeaturesTree(), tree.getNodeSummaryTree()};
+      TreeUtils.printCutoffTrees(tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
 
-      TreeUtils.printCutoffTrees(subtrees);
-
-      for (ConceptNode root : subtrees) {
-        this.checkIds(root);
-        this.checkPartitionCounts(root);
-        this.checkParent(root);
-        this.checkLeafType(root);
-      }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 1000);
+      System.out.println(Duration.between(start, end));
+      TreeUtils.treesToTexFile("ldbc", 2, tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
   /**
-   * Tests if the procedure throws runtime errors and if the resulting tree is returned.
+   * Tests if the procedure throws runtime.dat errors and if the resulting tree is returned.
    *
    * @param db database to execute the procedure call against
    */
   @Disabled
   @Test
-  @Preprocessing(preprocessing = "MATCH (n) REMOVE n.id RETURN n")
   @GraphSource(getDataset = Dataset.YELP_OO)
   void testCobwebYelpOO(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(1000))
+      Instant start = Instant.now();
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream()
+          .collect(ShuffledSpliterator.toLazyShuffledStream()).limit(2000))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
+      Instant end = Instant.now();
       Assertions.assertNotNull(tree);
 
-      final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
-          tree.getStructuralFeaturesTree(), tree.getNodeSummaryTree()};
+      TreeUtils.printCutoffTrees(tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
 
-      TreeUtils.printCutoffTrees(subtrees);
-
-      for (ConceptNode root : subtrees) {
-        this.checkIds(root);
-        this.checkPartitionCounts(root);
-        this.checkParent(root);
-        this.checkLeafType(root);
-        System.out.println("Tree " + root.getLabel() + " clear");
-      }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[1]), 0);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 1000);
+      System.out.println(Duration.between(start, end));
+      TreeUtils.treesToTexFile("yelp_oo", 2, tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
   /**
-   * Tests if the procedure throws runtime errors and if the resulting tree is returned.
+   * Tests if the procedure throws runtime.dat errors and if the resulting tree is returned.
    *
    * @param db database to execute the procedure call against
    */
@@ -184,26 +173,17 @@ class PropertyGraphCobwebProcTest {
   @GraphSource(getDataset = Dataset.YELP_GRAPH)
   void testCobwebYelpGraph(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(500))
+      Instant start = Instant.now();
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream()
+          .collect(ShuffledSpliterator.toLazyShuffledStream()).limit(2000))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
+      Instant end = Instant.now();
       Assertions.assertNotNull(tree);
 
-      final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
-          tree.getStructuralFeaturesTree(), tree.getNodeSummaryTree()};
+      TreeUtils.printCutoffTrees(tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
 
-      TreeUtils.printCutoffTrees(subtrees);
-
-      for (ConceptNode root : subtrees) {
-        this.checkIds(root);
-        this.checkPartitionCounts(root);
-        this.checkParent(root);
-        this.checkLeafType(root);
-      }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 500);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 500);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 500);
-
-      TreeUtils.treesToTexFile(subtrees, "yelp_graph");
+      System.out.println(Duration.between(start, end));
+      TreeUtils.treesToTexFile("yelp_graph", 2, tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -218,24 +198,19 @@ class PropertyGraphCobwebProcTest {
   @Test
   void testCobwebMediumLarge(final GraphDatabaseService db) {
     try (Transaction ignored = db.beginTx()) {
-      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream().limit(1000))
+      Instant start = Instant.now();
+      final PropertyGraphCobweb tree = PropertyGraphCobwebProc.integrate(db.getAllNodes().stream()
+          .collect(ShuffledSpliterator.toLazyShuffledStream()).limit(2000))
           .findFirst().orElseThrow(() -> new RuntimeException("Unreachable"));
+      Instant end = Instant.now();
       Assertions.assertNotNull(tree);
 
-      final ConceptNode[] subtrees = {tree.getNodePropertiesTree(), tree.getRelationshipPropertiesTree(),
-          tree.getStructuralFeaturesTree(), tree.getNodeSummaryTree()};
+      TreeUtils.printCutoffTrees(tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
 
-      TreeUtils.printCutoffTrees(subtrees);
-
-      for (ConceptNode root : subtrees) {
-        this.checkIds(root);
-        this.checkPartitionCounts(root);
-        this.checkParent(root);
-        this.checkLeafType(root);
-      }
-      Assertions.assertEquals(this.leafCount(subtrees[0]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[2]), 1000);
-      Assertions.assertEquals(this.leafCount(subtrees[3]), 1000);
+      System.out.println(Duration.between(start, end));
+      TreeUtils.treesToTexFile("roadnet-ny", 2, tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -366,8 +341,8 @@ class PropertyGraphCobwebProcTest {
   /**
    * test the counts after updating values.
    */
-  @Disabled
   @Test
+  @Disabled
   void testUpdateCounts() {
     final ArrayList<Value> nomList = new ArrayList<>();
     final ArrayList<Value> numList = new ArrayList<>();
@@ -403,8 +378,8 @@ class PropertyGraphCobwebProcTest {
   /**
    * Test if nodes are created correctly.
    */
-  @Disabled
   @Test
+  @Disabled
   void testCreate() {
     final ConceptNode root = new ConceptNode().root();
     final ConceptNode conceptNode = new ConceptNode();
@@ -428,8 +403,8 @@ class PropertyGraphCobwebProcTest {
   /**
    * Comment.
    */
-  @Disabled
   @Test
+  @Disabled
   void testMerge() {
     final ConceptNode root = new ConceptNode().root();
     final ConceptNode conceptNode = new ConceptNode();

@@ -1,5 +1,7 @@
 package kn.uni.dbis.neo4j.conceptual.algos;
 
+import java.util.Locale;
+
 /**
  * Holder for numeric values, aggregates from single values a gaussian/normal distribution.
  *
@@ -9,15 +11,15 @@ public class NumericValue extends Value {
   /**
    * Mean of the gaussian.
    */
-  private double mean;
+  private float mean;
   /**
    * standard deviation of the gaussian.
    */
-  private double std;
+  private float std;
   /**
    * Used for Welford's and Chan's methods to compute the mean and variance incrementally and based on partitons.
    */
-  private double m2;
+  private float m2;
 
   /**
    * Constructor for a single Number instance.
@@ -27,7 +29,7 @@ public class NumericValue extends Value {
    */
   public NumericValue(final Number nr) {
     this.setCount(1);
-    this.mean = nr.doubleValue();
+    this.mean = nr.floatValue();
     this.std = 0.0f;
     this.m2 = 0.0f;
   }
@@ -40,7 +42,7 @@ public class NumericValue extends Value {
    * @param std  std of the gaussian to be initialized.
    * @param m2 used by welford and chans online algos for mean and variance
    */
-  private NumericValue(final int count, final double mean, final double std, final double m2) {
+  private NumericValue(final int count, final float mean, final float std, final float m2) {
     this.setCount(count);
     this.mean = mean;
     this.std = std;
@@ -55,11 +57,11 @@ public class NumericValue extends Value {
     if (other instanceof NumericValue) {
       final NumericValue v = (NumericValue) other;
       final int totalCount = this.getCount() + v.getCount();
-      final double delta = v.mean - this.mean;
-      final double mean = this.mean + delta * (double) v.getCount() / (double) totalCount;
-      final double m2x = this.m2 + v.m2 + delta * delta * (this.getCount() * v.getCount()) / totalCount;
+      final float delta = v.mean - this.mean;
+      final float mean = this.mean + delta * (float) v.getCount() / (float) totalCount;
+      final float m2x = this.m2 + v.m2 + delta * delta * (this.getCount() * v.getCount()) / totalCount;
       this.mean = mean;
-      this.std = Math.sqrt(m2x / totalCount);
+      this.std = (float) Math.sqrt(m2x / totalCount);
       this.m2 = m2x;
       this.setCount(totalCount);
     } else {
@@ -72,7 +74,7 @@ public class NumericValue extends Value {
    *
    * @return std of the gaussian representing the NumericValue.
    */
-  double getStd() {
+  float getStd() {
     return this.std;
   }
 
@@ -81,7 +83,7 @@ public class NumericValue extends Value {
    *
    * @return std of the gaussian representing the NumericValue.
    */
-  double getMean() {
+  float getMean() {
     return this.mean;
   }
 
@@ -102,6 +104,7 @@ public class NumericValue extends Value {
    */
   @Override
   public String toTexString() {
-    return "Numeric &  mean= " + this.mean + ", std=" + this.std + " &";
+    return "Numeric &  mean= " + String.format(Locale.US, "%.4f", this.mean) + ", std="
+        + String.format(Locale.US, "%.4f", this.std) + " & ";
   }
 }

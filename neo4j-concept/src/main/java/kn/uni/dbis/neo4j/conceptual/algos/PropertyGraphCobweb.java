@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import apoc.coll.Coll;
 import kn.uni.dbis.neo4j.conceptual.util.MathUtils;
 import kn.uni.dbis.neo4j.conceptual.util.TreeUtils;
 import org.neo4j.graphdb.Direction;
@@ -39,8 +38,281 @@ public class PropertyGraphCobweb {
    * and integrates it into the tree
    *
    * @param nodes the list of nodes to be incorporated
+   *
    */
-  public void integrate(final Set<Node> nodes) {
+  public void integrateLabelPropStrcutChar(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode(node, false);
+      extractStructuralFeatures(node, conceptNode);
+      extractCharacteristicSet(node, conceptNode);
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  public void integrateLabelStructChar(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode(node, true);
+      extractStructuralFeatures(node, conceptNode);
+      extractCharacteristicSet(node, conceptNode);
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  public void integrateLabelPropStruct(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode(node, false);
+      extractStructuralFeatures(node, conceptNode);
+
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  public void integrateLabelPropChar(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode(node, true);
+      extractCharacteristicSet(node, conceptNode);
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  public void integrateLabelStruct(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode(node, true);
+      extractStructuralFeatures(node, conceptNode);
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  public void integrateLabelChar(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode(node, true);
+      extractCharacteristicSet(node, conceptNode);
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  public void integrateLabel(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode(node, true);
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  public void integrateLabelProp(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode(node, false);
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  public void integrateRelStruct(final Set<Node> nodes) {
+    // Static categorization according to properties, labels and relationship type
+    ConceptNode conceptNode;
+    List<Node> nodeList = new ArrayList<>(nodes);
+    Set<Relationship> rels = new HashSet<>();
+
+    for (Node node : nodeList) {
+      node.getRelationships().forEach(rels::add);
+    }
+    integrateRelationships(rels);
+    int cutoffLevelRelationships = MathUtils.log2(TreeUtils.deepestLevel(this.relationshipPropertiesTree)) + 1;
+
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
+    for (Node node : nodeList) {
+      conceptNode = new ConceptNode();
+      conceptNode.setId(Long.toString(node.getId()));
+
+      extractStructuralFeatures(node, conceptNode);
+      extractRelationshipConcepts(cutoffLevelRelationships, node, conceptNode);
+
+      Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
+    }
+    TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
+  }
+
+  private static void extractCharacteristicSet(final Node node, final ConceptNode conceptNode) {
+    List<Value> co = new ArrayList<>();
+    NominalValue check;
+    for (Relationship rel : node.getRelationships()) {
+      check = new NominalValue(rel.getType().name());
+      if (co.contains(check)) {
+        co.get(co.indexOf(check)).update(check);
+      } else {
+        co.add(check);
+      }
+    }
+    conceptNode.getAttributes().put("RelationshipTypes", co);
+  }
+
+  private void extractRelationshipConcepts(int cutoffLevelRelationships, Node node, ConceptNode conceptNode) {
+    List<Value> co;
+    ConceptNode relNode;
+    String label;
+    co = new ArrayList<>();
+    NominalValue check;
+    for (Relationship rel : node.getRelationships()) {
+      relNode = TreeUtils.findById(Long.toString(rel.getId()), this.relationshipPropertiesTree);
+      assert relNode != null;
+      label = relNode.getCutoffLabel(cutoffLevelRelationships);
+      check = new NominalValue(label);
+      if (co.contains(check)) {
+        co.get(co.indexOf(check)).update(check);
+      } else {
+        co.add(check);
+      }
+    }
+    conceptNode.getAttributes().put("RelationshipConcepts", co);
+  }
+
+  private void integrateRelationships(Set<Relationship> rels) {
+    int progress;
+    int i;
+    int tenPercent;
+    ConceptNode conceptNode;
+    progress = 0;
+    i = 0;
+    tenPercent = rels.size() / 10;
+    System.out.println("Number of Relationships " + rels.size());
+    for (Relationship rel : rels) {
+      conceptNode = new ConceptNode(rel, false);
+      Cobweb.cobweb(conceptNode, this.relationshipPropertiesTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the relation features processed");
+      }
+    }
+    TreeUtils.labelTree(this.relationshipPropertiesTree, "", "r");
+  }
+
+  /**
+   * Integrates a neo4j node into the cobweb trees.
+   * 1. incorporates the node properties and labels and it's relationships types and properties into the tree
+   * 2. takes the results from 1, extracts structural features, creates a new node that incorporates all information
+   * and integrates it into the tree
+   *
+   * @param nodes the list of nodes to be incorporated
+   */
+  public void integrateSubsequent(final Set<Node> nodes) {
     // Static categorization according to properties, labels and relationship type
     Set<Relationship> rels = new HashSet<>();
     ConceptNode properties;
@@ -48,32 +320,41 @@ public class PropertyGraphCobweb {
     List<Node> nodeList = new ArrayList<>(nodes);
     Collections.shuffle(nodeList);
 
+    int progress = 0;
+    int i = 0;
+    int tenPercent = nodeList.size() / 10;
     for (Node node : nodeList) {
       node.getRelationships().forEach(rels::add);
-      properties = new ConceptNode(node);
+      properties = new ConceptNode(node, false);
       structuralFeatures = new ConceptNode();
       extractStructuralFeatures(node, structuralFeatures);
       Cobweb.cobweb(properties, this.nodePropertiesTree);
       Cobweb.cobweb(structuralFeatures, this.structuralFeaturesTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node features processed");
+      }
     }
 
-    for (Relationship rel : rels) {
-      properties = new ConceptNode(rel);
-      Cobweb.cobweb(properties, this.relationshipPropertiesTree);
-    }
+    integrateRelationships(rels);
+
     ConceptNode summarizedNode;
     List<Value> co;
 
-    int cutoffLevelNodes = MathUtils.log2(TreeUtils.deepestLevel(this.nodePropertiesTree));
-    int cutoffLevelRelationships = MathUtils.log2(TreeUtils.deepestLevel(this.relationshipPropertiesTree));
-    int cutoffLevelStructuralFeatures = MathUtils.log2(TreeUtils.deepestLevel(this.structuralFeaturesTree));
+    int cutoffLevelNodes = MathUtils.log2(TreeUtils.deepestLevel(this.nodePropertiesTree)) + 1;
+    int cutoffLevelRelationships = MathUtils.log2(TreeUtils.deepestLevel(this.relationshipPropertiesTree)) + 1;
+    int cutoffLevelStructuralFeatures = MathUtils.log2(TreeUtils.deepestLevel(this.structuralFeaturesTree)) + 1;
 
     TreeUtils.labelTree(this.nodePropertiesTree, "", "n");
-    TreeUtils.labelTree(this.relationshipPropertiesTree, "", "r");
     TreeUtils.labelTree(this.structuralFeaturesTree, "", "s");
 
     String label;
     Collections.shuffle(nodeList);
+
+    progress = 0;
+    i = 0;
+    tenPercent = nodeList.size() / 10;
     for (Node node : nodeList) {
       summarizedNode = new ConceptNode();
       summarizedNode.setId(Long.toString(node.getId()));
@@ -92,22 +373,14 @@ public class PropertyGraphCobweb {
       co.add(new NominalValue(label));
       summarizedNode.getAttributes().put("StructuralFeaturesConcept", co);
 
-      co = new ArrayList<>();
-      NominalValue check;
-      for (Relationship rel : node.getRelationships()) {
-        properties = TreeUtils.findById(Long.toString(rel.getId()), this.relationshipPropertiesTree);
-        assert properties != null;
-        label = properties.getCutoffLabel(cutoffLevelRelationships);
-        check = new NominalValue(label);
-        if (co.contains(check)) {
-          co.get(co.indexOf(check)).update(check);
-        } else {
-          co.add(check);
-        }
-      }
-      summarizedNode.getAttributes().put("RelationshipConcepts", co);
+      extractRelationshipConcepts(cutoffLevelRelationships, node, summarizedNode);
 
       Cobweb.cobweb(summarizedNode, this.nodeSummaryTree);
+      ++i;
+      if (i % tenPercent == 0) {
+        ++progress;
+        System.out.println(progress + "0% of the node summaries processed");
+      }
     }
     TreeUtils.labelTree(this.nodeSummaryTree, "", "c");
   }
@@ -118,19 +391,6 @@ public class PropertyGraphCobweb {
    * [x] EgoDegree
    * [x] EgoDegreePerType
    * [x] AvgNeighbourDegree
-   * [x] AvgNeighbourDegreePerType
-   * <p>
-   * Resulting ConceptNode structure:
-   * ConceptNode
-   * *Label-based*
-   * NodeConcept (property-based)
-   * RelationshipConcepts (property-based)
-   * <p>
-   * *StructureBased*
-   * EgoDegree
-   * EgoDeg per RelationshipType (Characteristic set with counts)
-   * AvgNeighbourDegree
-   * NeighbourDegree per RelationshipType
    * |OutArcsEgoNet|
    * |InArcsEgoNet|
    *
@@ -140,7 +400,7 @@ public class PropertyGraphCobweb {
   private static void extractStructuralFeatures(final Node node, final ConceptNode conceptNode) {
     final int egoDegree = node.getDegree();
     final Map<RelationshipType, Integer> egoDegPerType = new HashMap<>();
-    final Map<RelationshipType, Integer> neighbourDegreePerType = new HashMap<>();
+    // final Map<RelationshipType, Integer> neighbourDegreePerType = new HashMap<>();
     int totalNeighbourDegree = 0;
     int neighbourDegree;
     RelationshipType relType;
@@ -157,14 +417,8 @@ public class PropertyGraphCobweb {
       if (!egoDegPerType.containsKey(relType)) {
         egoDegPerType.put(relType, node.getDegree(relType));
       }
-      if (neighbourDegreePerType.containsKey(relType)) {
-        neighbourDegreePerType.put(relType, neighbourDegreePerType.get(relType) + neighbourDegree);
-      } else {
-        neighbourDegreePerType.put(relType, neighbourDegree);
-      }
     }
 
-    neighbourDegreePerType.replaceAll((k, v) -> v / egoDegPerType.get(k));
 
     // store features into node
     List<Value> temp = new ArrayList<>();
@@ -183,11 +437,6 @@ public class PropertyGraphCobweb {
       temp = new ArrayList<>();
       temp.add(new NumericValue(egodegpt.getValue()));
       conceptNode.getAttributes().put(egodegpt.getKey().name() + "_Degree", temp);
-    }
-    for (Map.Entry<RelationshipType, Integer> neighdegpt : neighbourDegreePerType.entrySet()) {
-      temp = new ArrayList<>();
-      temp.add(new NumericValue(neighdegpt.getValue()));
-      conceptNode.getAttributes().put(neighdegpt.getKey().name() + "_NeighbourDegree", temp);
     }
 
     temp = new ArrayList<>();
