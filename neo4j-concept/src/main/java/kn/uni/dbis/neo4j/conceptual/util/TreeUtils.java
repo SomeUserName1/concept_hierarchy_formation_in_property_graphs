@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
@@ -143,32 +144,33 @@ public final class TreeUtils {
     sb.append("\n \n").append("ConceptNode ").append(node.getLabel()).append(" \\hspace{1cm} P(node) = ")
         .append((double) node.getCount() / (double) node.getParent().getCount()).append(" \\hspace{1cm} Count ")
         .append(node.getCount()).append("\n")
-        .append("\\\\ Attributes: \\\\ \n \\begin{tabular}{|c|c|c|c|c|} \\hline \n")
-        .append("Attribute & ValueType & Value & Probability & Occurernces \\hline \n");
+        .append("\\\\ Attributes: \\\\ \n \\begin{table}[h] \n  \\centering \n \\begin{longtable}{|c|c|c|c|c|} \\hline \n")
+        .append("Attribute & ValueType & Value & Probability & Occurences \\\\ \\hline \n");
     for (ConcurrentMap.Entry<String, List<Value>> attribute : node.getAttributes().entrySet()) {
-      if (attribute.getValue().size() < 20) {
+      if (attribute.getValue().size() < 11) {
         sb.append("\\multirow{").append(attribute.getValue().size()).append("}{*}{").append(attribute.getKey())
             .append("}");
         List<Value> values = attribute.getValue();
         Value value;
         for (int i = 0; i < values.size(); ++i) {
           value = values.get(i);
+          double prob = (double) value.getCount() / (double) node.getCount();
+          prob = prob > 1 ? 1 : prob;
           sb.append(" & ").append(value.toTexString()).append("$")
-              .append((double) value.getCount() / (double) node.getCount()).append("$ & $").append(value.getCount())
-              .append("$ ");
+              .append(String.format(Locale.US, "%.4f", prob)).append("$ & $").append(value.getCount()).append("$ ");
           if (i < values.size() - 1 ) {
-            sb.append("\\\\ \\cline{2-4} \n");
+            sb.append("\\\\ \\cline{2-5} \n");
           } else {
             sb.append("\\\\ \\hline \n");
           }
         }
       } else {
         String valueType = attribute.getValue().get(0).toTexString().startsWith("Num") ? "Numeric" : "Nominal";
-        sb.append(attribute.getKey()).append(" & ").append(valueType).append(" & Too many values to display & ")
+        sb.append(attribute.getKey()).append(" & ").append(valueType).append(" & Too many values to display & & ")
             .append("\\\\ \\hline\n");
       }
     }
-    sb.append("\\end{tabular}\n").append("\n");
+    sb.append("\\end{longtable}\n \\end{table} \n").append("\n");
   }
 
 

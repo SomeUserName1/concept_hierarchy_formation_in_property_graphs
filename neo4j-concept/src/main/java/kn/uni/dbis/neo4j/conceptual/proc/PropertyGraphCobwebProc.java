@@ -37,7 +37,7 @@ public class PropertyGraphCobwebProc {
     final PropertyGraphCobweb tree = new PropertyGraphCobweb();
     Set<Node> nodesSet = nodes.collect(Collectors.toSet());
     System.out.println("Number of nodes " + nodesSet.size());
-    tree.integrateRelStruct(nodesSet);
+    tree.integrateLabel(nodesSet);
     return Stream.of(tree);
   }
 }

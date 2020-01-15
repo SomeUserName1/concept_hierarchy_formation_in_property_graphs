@@ -104,7 +104,8 @@ public class NumericValue extends Value {
    */
   @Override
   public String toTexString() {
-    return "Numeric &  mean= " + String.format(Locale.US, "%.4f", this.mean) + ", std="
+    String val = "Numeric &  mean= " + String.format(Locale.US, "%.4f", this.mean) + ", std="
         + String.format(Locale.US, "%.4f", this.std) + " & ";
+    return val.length() < 30 ? val : "Numeric &  Value too large to display & ";
   }
 }

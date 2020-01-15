@@ -145,6 +145,6 @@ def bench_two_step_estimator(estimator, data):
 
 
 if __name__ == '__main__':
-    main()
-    parse_results(path.join(BASE, "doc", "thesis", 'clustering_survey_results.log'))
+    # main()
+    parse_results("/home/someusername/Nextcloud/workspace/uni/bachelor/klopfer-bachelor/doc/clustering_survey_results.log")
     result_summary.close()

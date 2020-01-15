@@ -117,7 +117,6 @@ class PropertyGraphCobwebProcTest {
    *
    * @param db database to execute the procedure call against
    */
-  @Disabled
   @Test
   @GraphSource(getDataset = Dataset.LDBC_SNB)
   void testCobwebLDBC(final GraphDatabaseService db) {
@@ -129,10 +128,10 @@ class PropertyGraphCobwebProcTest {
       Instant end = Instant.now();
       Assertions.assertNotNull(tree);
 
-      TreeUtils.printCutoffTrees(tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+      TreeUtils.printCutoffTrees(tree.getNodeSummaryTree());
 
       System.out.println(Duration.between(start, end));
-      TreeUtils.treesToTexFile("ldbc", 2, tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+      TreeUtils.treesToTexFile("ldbc", 2, tree.getNodeSummaryTree());
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -143,7 +142,6 @@ class PropertyGraphCobwebProcTest {
    *
    * @param db database to execute the procedure call against
    */
-  @Disabled
   @Test
   @GraphSource(getDataset = Dataset.YELP_OO)
   void testCobwebYelpOO(final GraphDatabaseService db) {
@@ -155,10 +153,10 @@ class PropertyGraphCobwebProcTest {
       Instant end = Instant.now();
       Assertions.assertNotNull(tree);
 
-      TreeUtils.printCutoffTrees(tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+      TreeUtils.printCutoffTrees(tree.getNodeSummaryTree());
 
       System.out.println(Duration.between(start, end));
-      TreeUtils.treesToTexFile("yelp_oo", 2, tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+      TreeUtils.treesToTexFile("yelp_oo", 2, tree.getNodeSummaryTree());
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -180,10 +178,10 @@ class PropertyGraphCobwebProcTest {
       Instant end = Instant.now();
       Assertions.assertNotNull(tree);
 
-      TreeUtils.printCutoffTrees(tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+      TreeUtils.printCutoffTrees(tree.getNodeSummaryTree());
 
       System.out.println(Duration.between(start, end));
-      TreeUtils.treesToTexFile("yelp_graph", 2, tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+      TreeUtils.treesToTexFile("yelp_graph", 2, tree.getNodeSummaryTree());
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -193,7 +191,6 @@ class PropertyGraphCobwebProcTest {
    * stupid.
    * @param db stupid
    */
-  @Disabled
   @GraphSource(getDataset = Dataset.RoadNetNY)
   @Test
   void testCobwebMediumLarge(final GraphDatabaseService db) {
@@ -205,10 +202,10 @@ class PropertyGraphCobwebProcTest {
       Instant end = Instant.now();
       Assertions.assertNotNull(tree);
 
-      TreeUtils.printCutoffTrees(tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+      TreeUtils.printCutoffTrees(tree.getNodeSummaryTree());
 
       System.out.println(Duration.between(start, end));
-      TreeUtils.treesToTexFile("roadnet-ny", 2, tree.getRelationshipPropertiesTree(), tree.getNodeSummaryTree());
+      TreeUtils.treesToTexFile("roadnet-ny", 2, tree.getNodeSummaryTree());
     } catch (IOException e) {
       e.printStackTrace();
     }
