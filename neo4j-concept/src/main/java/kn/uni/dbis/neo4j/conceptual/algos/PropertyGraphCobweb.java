@@ -118,7 +118,7 @@ public class PropertyGraphCobweb {
     int i = 0;
     int tenPercent = nodeList.size() / 10;
     for (Node node : nodeList) {
-      conceptNode = new ConceptNode(node, true);
+      conceptNode = new ConceptNode(node, false);
       extractCharacteristicSet(node, conceptNode);
 
       Cobweb.cobweb(conceptNode, this.nodeSummaryTree);
@@ -228,6 +228,7 @@ public class PropertyGraphCobweb {
     }
     integrateRelationships(rels);
     int cutoffLevelRelationships = MathUtils.log2(TreeUtils.deepestLevel(this.relationshipPropertiesTree)) + 1;
+    cutoffLevelRelationships = Math.min(cutoffLevelRelationships, 3);
 
     int progress = 0;
     int i = 0;
@@ -250,17 +251,13 @@ public class PropertyGraphCobweb {
   }
 
   private static void extractCharacteristicSet(final Node node, final ConceptNode conceptNode) {
-    List<Value> co = new ArrayList<>();
+    Set<Value> co = new HashSet<>();
     NominalValue check;
     for (Relationship rel : node.getRelationships()) {
       check = new NominalValue(rel.getType().name());
-      if (co.contains(check)) {
-        co.get(co.indexOf(check)).update(check);
-      } else {
-        co.add(check);
-      }
+      co.add(check);
     }
-    conceptNode.getAttributes().put("RelationshipTypes", co);
+    conceptNode.getAttributes().put("RelationshipTypes", new ArrayList<>(co));
   }
 
   private void extractRelationshipConcepts(int cutoffLevelRelationships, Node node, ConceptNode conceptNode) {
@@ -399,24 +396,16 @@ public class PropertyGraphCobweb {
    */
   private static void extractStructuralFeatures(final Node node, final ConceptNode conceptNode) {
     final int egoDegree = node.getDegree();
-    final Map<RelationshipType, Integer> egoDegPerType = new HashMap<>();
-    // final Map<RelationshipType, Integer> neighbourDegreePerType = new HashMap<>();
     int totalNeighbourDegree = 0;
     int neighbourDegree;
-    RelationshipType relType;
     int noOutArcs = node.getDegree(Direction.OUTGOING);
     int noInArcs = node.getDegree(Direction.INCOMING);
 
     for (Relationship rel : node.getRelationships()) {
-      relType = rel.getType();
       neighbourDegree = rel.getOtherNode(node).getDegree();
       noOutArcs += rel.getOtherNode(node).getDegree(Direction.OUTGOING);
       noInArcs += rel.getOtherNode(node).getDegree(Direction.INCOMING);
       totalNeighbourDegree += neighbourDegree;
-
-      if (!egoDegPerType.containsKey(relType)) {
-        egoDegPerType.put(relType, node.getDegree(relType));
-      }
     }
 
 
@@ -432,12 +421,6 @@ public class PropertyGraphCobweb {
       temp.add(new NumericValue(totalNeighbourDegree / egoDegree));
     }
     conceptNode.getAttributes().put("AverageNeighbourDegree", temp);
-
-    for (Map.Entry<RelationshipType, Integer> egodegpt : egoDegPerType.entrySet()) {
-      temp = new ArrayList<>();
-      temp.add(new NumericValue(egodegpt.getValue()));
-      conceptNode.getAttributes().put(egodegpt.getKey().name() + "_Degree", temp);
-    }
 
     temp = new ArrayList<>();
     temp.add(new NumericValue(noOutArcs));

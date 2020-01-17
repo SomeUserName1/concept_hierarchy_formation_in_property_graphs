@@ -102,7 +102,7 @@ public class NominalValue extends Value {
    */
   @Override
   public String toTexString() {
-    String val =  "Nominal & " + this.str + " & ";
-    return val.length() < 30 ? val : "Nominal &  Value too large to display & ";
+    String val = this.str;
+    return val.length() < 30 ? "Nominal & " +  val + " & " : "Nominal &  Value too large to display & ";
   }
 }

@@ -219,7 +219,7 @@ public class ConceptNode {
       for (Value val : attrib.getValue()) {
         if (val instanceof NumericValue) {
           num = (NumericValue) val;
-          exp +=  num.getStd() == 0 ? 0 :  1.0f / (num.getStd() + 1);
+          exp +=  num.getStd() == 0 ? 0 :  1.0f / (10 * num.getStd() + 4);
         } else {
           intermediate = val.getCount() / total;
           exp += intermediate * intermediate;

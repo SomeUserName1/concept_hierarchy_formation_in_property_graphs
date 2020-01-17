@@ -132,7 +132,7 @@ public final class TreeUtils {
     if (depth <= maxDepth) {
       toTexTable(node, sb);
       for (ConceptNode child : node.getChildren()) {
-        if (child.getCount() / (double) node.getCount() > 0.005) {
+        if (child.getCount() / (double) node.getCount() > 0.05) {
           printRecTexTable(child, sb, depth + 1, maxDepth);
         }
       }
@@ -141,13 +141,11 @@ public final class TreeUtils {
 
 
   private static void toTexTable(final ConceptNode node, StringBuilder sb) {
-    sb.append("\n \n").append("ConceptNode ").append(node.getLabel()).append(" \\hspace{1cm} P(node) = ")
-        .append((double) node.getCount() / (double) node.getParent().getCount()).append(" \\hspace{1cm} Count ")
-        .append(node.getCount()).append("\n")
-        .append("\\\\ Attributes: \\\\ \n \\begin{table}[h] \n  \\centering \n \\begin{longtable}{|c|c|c|c|c|} \\hline \n")
+    sb.append("\n \n")
+        .append("\\begin{table}[h] \n  \\centering \n \\begin{longtable}{|c|c|c|c|c|} \\hline \n")
         .append("Attribute & ValueType & Value & Probability & Occurences \\\\ \\hline \n");
     for (ConcurrentMap.Entry<String, List<Value>> attribute : node.getAttributes().entrySet()) {
-      if (attribute.getValue().size() < 11) {
+      if (attribute.getValue().size() < 16) {
         sb.append("\\multirow{").append(attribute.getValue().size()).append("}{*}{").append(attribute.getKey())
             .append("}");
         List<Value> values = attribute.getValue();
@@ -170,6 +168,9 @@ public final class TreeUtils {
             .append("\\\\ \\hline\n");
       }
     }
+    sb.append("\\caption{").append("ConceptNode ").append(node.getLabel()).append(", P(node) = ")
+        .append((double) node.getCount() / (double) node.getParent().getCount()).append(", Count ")
+        .append(node.getCount()).append("}\n");
     sb.append("\\end{longtable}\n \\end{table} \n").append("\n");
   }
 
@@ -241,30 +242,25 @@ public final class TreeUtils {
 
   public static void treesToTexFile(final String prefix, final int depth, final ConceptNode... nodes)
       throws IOException {
-    final List<File> treeFiles = new ArrayList<>();
-    final List<File> conceptFiles = new ArrayList<>();
-
-    int i = 0;
-    for (final ConceptNode node : nodes) {
-      treeFiles.add(getOutPath(prefix, i + "Tree.tex"));
-      conceptFiles.add(getOutPath(prefix, i + "Concepts.tex"));
-    }
+    int i;
 
     int pDepth;
     for (i = 0; i < nodes.length; ++i) {
-      if (!treeFiles.get(i).exists()) {
-        Files.createFile(treeFiles.get(i).toPath());
+      File treeFile = getOutPath(prefix, i + "Tree.tex");
+      File conceptFile = getOutPath(prefix, i + "Concepts.tex");
+
+      if (!treeFile.exists()) {
+        Files.createFile(treeFile.toPath());
       }
-      if (!conceptFiles.get(i).exists()) {
-        Files.createFile(conceptFiles.get(i).toPath());
+      if (!conceptFile.exists()) {
+        Files.createFile(conceptFile.toPath());
       }
 
-      try (FileOutputStream fos = new FileOutputStream(treeFiles.get(i));
+      try (FileOutputStream fos = new FileOutputStream(treeFile);
            OutputStreamWriter osw = new OutputStreamWriter(fos);
            BufferedWriter bw = new BufferedWriter(osw)) {
         if (depth == -1 ||  MathUtils.log2(TreeUtils.deepestLevel(nodes[i])) + 1 < depth) {
           pDepth = MathUtils.log2(TreeUtils.deepestLevel(nodes[i])) + 1;
-          System.out.println(TreeUtils.deepestLevel(nodes[i]));
         } else {
           pDepth = depth;
         }
@@ -275,7 +271,7 @@ public final class TreeUtils {
         e.printStackTrace();
       }
 
-      try (FileOutputStream fos = new FileOutputStream(conceptFiles.get(i));
+      try (FileOutputStream fos = new FileOutputStream(conceptFile);
            OutputStreamWriter osw = new OutputStreamWriter(fos);
            BufferedWriter bw = new BufferedWriter(osw)) {
         if (depth == -1 ||  MathUtils.log2(TreeUtils.deepestLevel(nodes[i]))  + 1 < depth) {
