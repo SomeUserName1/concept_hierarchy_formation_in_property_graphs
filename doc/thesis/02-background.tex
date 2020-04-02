@@ -1,0 +1,84 @@
+\chapter{Background}\label{\positionnumber} 
+
+\section{The Property Graph Model}\label{\positionnumber}
+A \textbf{Property Graph} is a 9-Tuple $G = (V, E, \lambda, P, T, L, f_P, f_T, f_L)$ with 
+\begin{itemize}
+    \item $V$ the set of vertices.
+    \item $E$ the set of edges.
+    \item $\lambda: (V \times V) \rightarrow E$ a function assigning a pair of nodes to an edge.
+    \item $L$ a set of strings used as labels.
+    \item $P$ a set of key-value pairs called properties.
+    \item $T$ a set of strings used as relationship types.
+    \item $f_P: V \cup E \rightarrow 2^P$ a function that assigns a set of properties to a node or relationship.
+   \item $f_T: E \rightarrow T$ a function that assigns a type to  a relationship.
+   \item  $f_L: V \rightarrow 2^L$ a function that assigns a node a set of labels.
+\end{itemize} 
+\smallskip
+The property graph model reflects a directed, node-labeled and relationship-typed multi-graph $G$, where each node and relationship can hold a set of key-value pairs~\cite{angles2018property}. \\
+    In a graph the edges are normally defined as $E \subseteq (V \times V)$, but in the property graph model edges have sets of properties and a type, which makes them objects on their own.
+    An illustration of this model is shown in \fullref{fig:propertygraph}\fig{img/property_graph_elements.jpg}{propertygraph}{A visualization of the property graph model}{1}.
+Neo4j is a graph database employing the property graph model~\cite{neo4j_book}, which is used in the evaluation part of this thesis.
+
+
+\section{Cluster Analysis}\label{\positionnumber}
+Clustering or Cluster Analysis is defined as the automated process of splitting the set of observations into subsets, in order to group them such that objects in different subsets are different from another and objects within a subset are as similar~\cite{han2011data}. \\
+According to Mirkin, ``Clustering is a mathematical technique designed for revealing classification structures in the data collected on real-world phenomena``~\cite{mirkin2013mathematical}, with the purpose of analyzing structure in data, relate different aspects and assist in designing classification schemes. \\
+
+Let $O$  be the set of data objects (or equivalently data instances, data points, data sample, $\dots$) \\
+Let $O_0, O_1, \dots, O_n \subseteq O$ with
+\begin{itemize}
+    \item $\forall i \in \{0, 1, \dots n\}: \cup_i O_i = O$
+    \item $\forall i \in \{0, 1, \dots n\} \forall j \in \{0, 1, \dots n\}\setminus\{i\}: O_i \cap O_j =\emptyset$
+\end{itemize}
+Then $O_0, O_1, \dots, O_n$ is a clustering of $O$. \\
+Each subset $O_i$ is called a cluster and clusters. For some approaches, e.g.~fuzzy clustering, the constraint of disjointedness of the subsets may be relaxed. \\
+
+Thus the goal of a clustering algorithm is to find a set of subsets that optimize an objective function based on the attributes and values $A, V$. Note that the clustering in general only imposes an order on the objects and not on the attributes, i.e.~that the objects are grouped in some way is a necessity of clustering. The constraints defined on the attributes and values is imposed by the objective function of the respective algorithm. Looking at k-Means and bi-clustering \footnote{see \fullref{A}} the former is grouping the attributes implicitly by the mean values of the cluster, whereas in bi-clustering each attribute is explicitly grouped by value. \\
+
+\noindent Depending on the method used and the objective that is optimized for, the clustering differs between different algorithms. 
+In order to compute any metric or to find similarities and differences or patterns in the set of objects, they must have some attributes. If no object has an attribute the only clusterings are the trivial ones: 
+\begin{itemize}
+    \item $O_0 \equiv O \wedge \forall i \in \{1, \dots n\}: O_i \equiv \emptyset$
+    \item $\forall i \in \{0, 1, \dots |O|\}: |O_i| = 1 \wedge \sum_i |O_i| = |O|$
+\end{itemize}
+
+\noindent A class of clustering algorithms called hierarchical clustering algorithms construct sets of hierarchically ordered clusters~\cite{Murtagh_2012}. The method has connections to the mathematical field of formal concept analysis which is out of the scope of the presented work. Fionn Murtagh provides excellent resources on the connection of hierarchical clustering to formal concept analysis~\cite{murtagh2010ultrametric, Murtagh_2012}. \\
+
+\noindent The second class of clustering algorithms is non-hierarchic and produces so called flat clusters, i.e.~only one partition level. This distinction between hierarchic and non-hierarchic approaches is a narrow view on the wide field of clustering algorithms, a brief but broader overview is given in what follows.
+
+\subsection{Approaches}\label{\positionnumber}
+Different surveys list different taxonomies and categories of clustering algorithms. In what follows we are going to consider the ones discussed in Han et al.~\cite{han2011data} and Jain et al.~\cite{overview_clust}.
+\fig{img/ClusteringOverview.png}{taxonomy_han}{A taxonomy of clustering algorithms and some examples for each class}{1}
+Han et al. compares the different methods by the representations used for data. Emphasizing that the proposed categories overlap, they define the following ones, depicted in \fullref{fig:taxonomy_han}\note{Further approaches not used in this work are sketched in the appendix.}:
+\begin{itemize}
+    \item \textbf{Partition-based methods:} Partition the objects into k disjoint groups. The input is partitioned only once producing a flat clustering. The requirement of disjoint groups may be relaxed for fuzzy clustering and related methods. Many partitioning algorithms use distance-based semantics, comparing the set of attributes of an object $A_{o}$ element-wise, calculating the distance between those values with respect to a certain scale and metric e.g. Minkowski-distance for numeric attributes that may be interpreted geometrically as points in a space~\cite{THEODORIDIS2009701} or Jaccard-distance for a set of binary attributes~\cite{DBLP:journals/corr/Kosub16}. Often partition-based methods use one or more prototypes to compare to when assigning a cluster to an object and tend to find rather spherically shaped clusters~\cite{han2011data}. \\
+    
+    \item \textbf{Hierarchical methods:} Merges (agglomerative) or splits (divisive) sets of objects recursively until all objects are assigned once in each level of the tree. Classic linkage-based approaches produce so called dendrograms~\cite{han2011data, Murtagh_2012, murtagh2010ultrametric} \fig{img/dendro_ex.png}{exdendro}{An example dendrogram.~\cite{dendroex}}{0.6}. For an example see \fullref{fig:exdendro}. \\
+    Hierarchical clustering can also be applied as a post-processing step of other methods in order to construct a hierarchy from flat clusters, which is one of the things that is applied in the later chapters. \\
+    
+    \item \textbf{Density-based methods} use a combination of distance and neighbourhood to identify dense regions which are recognized as clusters, separated by less dense regions. Density-based methods may recognize outliers (single objects in low density regions) and naturally assign a quality measure to each cluster --- its density~\cite{mcinnes2017accelerated, hdbscan, dbscan, optics}. Most density based methods produce flat clusters but there are extensions that append hierarchical clustering at the end to provide hierarchies (e.g. OPTICS and HDBSCAN), which is elaborated on in \fullref{3}. Also these methods are able to find not only spherical but arbitrarily shaped clusters~\cite{dbscan}.  \\
+    
+    \item \textbf{Model-based methods} are all approaches that use or construct a model to cluster instances. An example is the Gaussian Mixture Model that is the most common variant used with expectation maximization to estimate the mean and varience or in different terms the center and radius of blob-shaped clusters~\cite{han2011data}. In this category are also Self-Organizing Maps~\cite{kohonen1990self} and other neural network-based approaches, as all these assume a certain model how the neurons shall learn weights between layers~\cite{kohonen1997exploration}.  \\
+    Another class of methods that is model-oriented are the conceptual clustering algorithms, first introduced by Stepp and Michalski~\cite{michalski1983learning}. Conceptual clustering algorithms construct a description along with the clustering of objects. We will focus on this method in the latter part of \fullref{3}.
+\end{itemize}
+
+
+\subsection{Clustering as a Search}\label{\positionnumber}
+Clustering may be defined as a search for some set of subsets, dividing the input to satisfy some condition or optimizing for a certain metric function e.g. intra-cluster homogeneity and inter-cluster diversity~\cite{Fisher1987}. \\
+\textbf{Search-based methods} improve \textit{incrementally} with every iteration on a certain objective function. Search-based methods are generally all methods that optimize an objective function, but emphasize the nature of the problem as being a search for certain solution. Many clustering algorithms are also search-based, i.e.~try to find an optimal solution in the space of all possible and valid solutions~\cite{overview_clust}. \\
+The search space is defined as the set of all possible partitions for flat clustering, which cardinality can be calculated using the Bell numbers~\cite{10.2307/2300300} and in case of hierarchical clustering the set of all possible partitions of each cluster in the tree besides the bottom-most layer i.e.~the layer that has single data instances as clusters. An example for the former is k-Means, improving the quality of the chosen centroids of the clusters with each iteration. An example for the latter is Cobweb, where in each iteration the constructed tree is altered in order to improve category utility. A more concise description of the algorithms is given in the next chapter.
+
+\section{Taxonomy}\label{\positionnumber}
+Taxonomies organize observations into hierarchical classification schemes, grouping a set of objects depending on their properties and are able to represent sub- and super-ordinations as well as inheritance. An example are biological taxonomies, grouping animals and plants into domains, kingdoms, phyla, classes, and so on~\cite{Krcmar2015, han2011data}. A Taxonomy can also be seen as a well-structured hierarchy of labels, associated with certain concepts. The term well-structured means here practically usable according to its application. For instance a taxonomy of animals where each hierarchically ordered cluster only contains one element less than the cluster above would be hierarchically ordered but not convenient in practice. A dendrogram is such a hierarchy that is not a usable taxonomy shown in \fullref{fig:exdendro}.
+
+\section{Probability Theory}\label{\positionnumber}
+In order to understand some aspects of the Cobweb algorithm the following definitions are required. A formally more complete introduction to probability theory is given in \fullref{B}.\\
+
+\noindent The \textbf{expected value $E[X]$}, also known as the mean value is defined as the average of all possible outcomes, weighted by the respective probability to occur.
+In the case of a discrete random variable: \[ \mu = E[X] = \sum_{x_i} x_i P(X=x_i)  \]
+In the case of a continuous random variable: \[ \mu = E[X] = \int_{\mathbb{R}} x_i f_X(x_i)dx_i  \]
+
+\noindent The \textbf{variance} may then be defined as \[ \sigma^2 = \text{Var}[X] = E[X^2] - (E[X])^2 \]
+
+\noindent The \textbf{Gaussian distribution} is a continuous probability distribution with probability density function \[ f(x | \mu, \sigma^2) = \frac{1}{\sqrt{2 \pi \sigma^2}e^{-\frac{(x-\mu)^2}{2\sigma^2}}} \]
+Notice that the Gaussian distribution can be identified in terms of mean and variance.

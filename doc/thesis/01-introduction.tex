@@ -1,0 +1,54 @@
+\chapter{Introduction}
+\begin{center}
+    \textit{``Thus my central theme is that complexity frequently takes the form of hierarchy and that hierarchic systems have some common properties, independent of their specific content. Hierarchy, I shall argue, is one of the central structural schemes, that the architect of complexity uses.``} \\
+    \vspace{0.3cm}
+    - Herbert A. Simon, \\
+    Nobel Laureate and ACM Turing award winner, \\
+    The Sciences of the Artificial, 1968~\cite{simon2019sciences}. \\
+\end{center}{}
+\vspace{1cm}
+Many things in everyday live are structured hierarchically. Biologists use a taxonomy to classify all sorts of creatures into sub-groups like bacteria, arachea and eukaryota. Computer scientists use taxonomies to reflect type hierarchies and inheritance in object oriented programming, and type hierarchies are used by mathematicians in type theory e.g. in Russell's Principia Mathematica to define a type system~\cite{whitehead1912principia, TUPPER2011369}. Further Eleanor Rosch, a famous cognitive psychologist, assumes the existence of taxonomies during the categorizations of stimuli in the human brain~\cite{Rosch1976BasicOI}. Corter and Gluck call categorization ``one of the most basic cognitive functions`` and assume that it is performed leveraging the ``hierarchies of natural categories``~\cite{corter1992explaining}.\\
+
+\noindent A lot of data contains implicit patterns, knowledge and structures~\cite{mitchell2006discipline}~\cite{carlsson2009topology} that are not reflected explicitly in the data model. Extracting those pieces of knowledge is the task of knowledge discovery and data mining~\cite{SIGKDD-2019-12-11}. In many data models there tends to be no or only little information about the hierarchies that are implicitly present in the data. For example in relational databases, data is stored in relations or in more simple terms in tables. Thus the data model is aware of the different types of relations and how they refer to each other but not of the existing sub-types in a relation and between relations. Other data models are designed to include such hierarchies but require the specification of information by the user rather than automatically extracting relevant information from data. \\
+
+\noindent When  the property graph model, employed in some graph databases we find the same problem: There is no notion of something equivalent to type hierarchies. One may use this model to construct and describe such situations but those again need external intervention. \\
+Consider the example in \fullref{tab:ex_1}. In this data set we have nodes representing businesses. There exists only one label for all of them, namely 'Business'. Community or owner-assigned tags assigned are represented as a node property. By visual inspection one can see that those tags induce sub-types like restaurant, shopping or cafe with further refinements to the cooking style of restaurants for example. A visualization of this is shown in \fullref{fig:ex_tax}.\\
+\begin{table}[htp]
+     \centering
+     \begin{tabular}{c c} \toprule
+            Node.name & Node.tags \\ \midrule
+            Fernando's & restaurant, Italian \\ 
+            Arche & restaurant, Vietnamese \\ 
+            Zum Elefanten & restaurant, Thai \\ 
+            Campus Cafe & cafe, WiFi \\ 
+            Endlicht & cafe, late-night \\ 
+            Pano & cafe, breakfast \\
+            Lago & shopping, mall \\ 
+            Seerhein Center & shopping, cheap \\ 
+            Seepark & Shopping, expensive \\ \bottomrule
+        \end{tabular}
+    \caption{A fictive example of business and user-defined associated tags.}
+    \label{tab:ex_1}
+\end{table}{}
+\fig{img/ex_hierarchy}{ex_tax}{The taxonomy that is implicit in the tags of the example in \fullref{tab:ex_1}}{1}
+This kind of information may be useful for cardinality estimation during query optimization but also for data exploration and the specification of more concise queries. The extraction requires either the specification of this hierarchy by the user assuming that it is already known beforehand or it is to be extracted automatically. Especially when there is a lot of data it is non-trivial to extract such structures by hand, even when only one property of a node provides all necessary information. Given the fact that not all data sets contain community or owner defined tags but rather a mixture of many properties, structural and other semantic features like the characteristic set (see \fullref{3.5}) that span the space of sub-types, specification by hand is infeasible in many cases. \\
+
+\noindent In order to derive a taxonomy from data one needs two things: groups of similar instances and a hierarchy incorporating the former. Existing algorithmic approaches to find groups of similar instances are called clustering algorithms. \\
+
+\noindent The contributions we make in this thesis are:
+\begin{itemize}
+    \item A review of related literature on clustering data in a hierarchical fashion.
+    \item The description and analysis of some of those methods.
+    \item The combination of 'flat' clustering algorithms with hierarchical approaches to improve performance.
+    \item A survey using the above results to extract a predefined hierarchy from synthetic data using only one attribute containing a set of tags in order to evaluate the results with the simplest possible feature vector.
+    \item The implementation of one algorithms according to the kernel API of the Neo4j database.
+    \item The Extension of the feature vector to capture information present in the property graph model.
+    \item The experimentation with different extended feature vectors for different data sets to proof or reject the concept and point out methodological problems.
+\end{itemize} 
+\vspace{0.5cm}
+
+\noindent In the first step, a survey is carried out to find a suitable method to construct a taxonomy. Therefore different algorithms are considered, combined, improved and evaluated using a pipeline and synthetic data. \\
+In the second step the pipeline previously applied is extended to be applicable to the property graph model and a particular algorithm is then selected and implemented --- namely Cobweb --- in the Neo4j property graph database to deliver a proof of concept, evaluate the proposed methodology and experiment with different feature vectors.\\
+
+\noindent The rest of the thesis is structured in the following manner: \\
+\fullref{2} presents basic terminology and a methodological overview of clustering. In \fullref{3} we describe selected clustering and feature extraction algorithms. The proposed pipeline is explained in \fullref{4}. In \fullref{5} we present and discuss the results. Finally \fullref{6} contains an outlook on future work and a summary of the thesis.

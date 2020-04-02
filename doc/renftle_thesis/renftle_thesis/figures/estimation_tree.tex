@@ -1,0 +1,27 @@
+\begin{tikzpicture}
+    \newcommand{\E}[1]{\estfunc{#1}}
+    \small
+    
+    \node [block] (query) {
+      $\estprops{\selection{h : \{ \text{Hobby} \}}(\expandout{x}{l : \{ \text{LIKES} \}}{h}(\selection{x : \{ \text{Person} \}}(\getnodes{x})))}$
+    };
+    
+    \node [block] (hobby-label-selection) [below = of query] {$\E{\selection{h : \{ \text{Hobby} \}}}$};
+    \node [block] (likes-expand) [below = of hobby-label-selection] {$\E{\expandout{x}{l : \{ \text{LIKES} \}}{h}}$};
+    \node [block] (person-label-selection) [below = of likes-expand] {$\E{\selection{x : \{ \text{Person} \}}}$};
+    \node [block] (get-nodes-as-x) [below = of person-label-selection] {$\E{\getnodes{x}}$};
+    
+    \draw[->] (likes-expand) edge node {} (hobby-label-selection);
+    \draw[->] (person-label-selection) edge node {} (likes-expand);
+    \draw[->] (get-nodes-as-x) edge node {} (person-label-selection);
+    
+    \node [block] at ([xshift=2cm]get-nodes-as-x.center) (db-props) {$\props{G}$};
+    \draw[->] ([xshift=2cm]hobby-label-selection.center) -- (hobby-label-selection);
+    \draw[->] ([xshift=2cm]likes-expand.center) -- (likes-expand);
+    \draw[->] ([xshift=2cm]person-label-selection.center) --  (person-label-selection);
+    \draw[->] (db-props) -- (get-nodes-as-x);
+    \draw[-] (db-props) -- ([xshift=2cm]hobby-label-selection.center);
+    
+    \draw ([xshift=-0.5mm]hobby-label-selection.north) -- ([xshift=-0.5mm]query.south);
+    \draw ([xshift=0.5mm]hobby-label-selection.north) -- ([xshift=0.5mm]query.south);
+\end{tikzpicture}

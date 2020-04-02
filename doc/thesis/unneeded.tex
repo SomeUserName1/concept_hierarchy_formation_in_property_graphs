@@ -1,0 +1,75 @@
+\noindent  Clustering may be seen as a partial form of Formal Concept Analysis\note{For an introduction to Formal Concept Analysis, see \fullref{A}}, as it's approach may be less strict in terms of attribute restrictions, may have a one-sided focus on objects in terms of connections - contrary to the Galois connections used in Formal Concept Analysis and lattice theory - and partial as many clustering algorithms only split the input once into a set of subsets instead of exploring all sets for a given rule recursively~\cite{ignatov2012concept}.
+There are also algorithms constructing Concept lattices, but those may be too restrictive for noisy applications and exponential in run time\cite{doi:10.1111/j.1467-8640.1995.tb00031.x}. is in the latter respect more similar to Formal Concept Analysis as e.g. 
+
+
+\section{An Introduction to Formal Concept Analysis}\label{\positionnumber}
+Lattice Theory and Formal Concept Analysis, the latter developed by Wille~\cite{wille1982restructuring}, has been applied to solve and analyse a wide range of problems e.g. data retrieval, text mining , functional dependency discovery and association rule mining ~\cite{poelmans2012text, soergel1967mathematical, spoerri1993infocrystal, godin1993experimental, godin1993building, carpineto2004exploiting, carpineto2003mining, ganascia1987charade, oosthuizen1988induction, xie2002concept}. \\
+In order to formalize the description of Objects holding key-value pairs one can use fomral concept analysis. Based on lattice theory, formal concept analysis defines a mathematical framework to exactly describe how objects and attributes may be ordered and visualized by Hasse diagrams. The following terminology is a summary of \cite{ganter2012formal}. \\
+
+Let $O, A$ be sets, $I \subseteq (O \times A)$ a relation. We call \textbf{$O$ the set of objects, $A$ the set of attributes and $I$ the composition relation}, assigning attributes to an object. As a pair $(o, a)$ either is or is not in $I$ the relation is binary, i.e. Object has Attribute is the only thing we can express by this. In short: The values of attributes here are one-valued or in other words binary (present or not). \\
+
+Then the \textbf{formal context $\mathcal{K}$} is given by the triple $\mathcal{C} = (O, A, I)$. 
+
+Let $O_0 \subseteq O$ be a subset of all objects and $A_0 \subseteq A$ be a subset of all attributes then:
+\[ A' = \{ a \in A | \forall o \in O_0: oIa \}  \]
+the set of attributes, that the objects in $O_0$ have in common and 
+\[ O' = \{ o \in O | \forall a \in A_0: oIa \} \]
+the set objects having all attributes in $A_0$. \\
+
+A \textbf{formal Concept $\mathcal{C}$} of the context $\mathcal{K}$ is a pair $(O_i, A_i)$ with $O_i \subseteq O$,  $A_i \subseteq A$ and $O_i = O'$ with respect to $A_i$ and $A_i = A'$ with respect to $O_i$. $O_i$ is called the extent and $A_i$ is called the Intent of the concept $\mathcal{C}$. \\
+
+Let $\mathcal{C}_0 = (O_0, A_0), \mathcal{C}_1 =(O_1, A_1)$ formal concepts of context $\mathcal{K}$.\\
+$\mathcal{C}_0$ is called \textbf{a sub-concept} of $\mathcal{C}_1$, iff $O_0 \subseteq O_1 \wedge A_0 \subseteq A_1$ and we call $\mathcal{C}_1$ the \textbf{super-concept} of $\mathcal{C}_0$. The relation $\leq$ is called hierarchical order and we write $\mathcal{C}_0 \leq \mathcal{C}_1$.  \\
+The \textbf{concept lattice $\mathfrak{B}(\mathcal{K})$} is the set of all concepts of the context $\mathcal{K} =(O, A, I)$ ordered by the relation $\leq$. \\
+
+\fig{img/table_hasse.png}{tablehasse}{Tabular representation of a formal context \cite{ganter2012formal}}{0.6} 
+
+A \textbf{multi-valued Context $\mathcal{K_V} = (O, A, V, I)$} is a context with $O, A$ as in the definition of a simple Context $\mathcal{K}$ above, $V$ is the set of all values and $I \subseteq O \times A \times V$. The values $V$ of the multi-valued context $\mathcal{K_V}$ can be partitioned per attribute and interpreted in a meaningful way using a method called conceptual scaling, which is beyond the scope of this thesis. Conceptual scaling creates a context for each attribute and defines a table that map the possible attributes onto themselves in order to add additional ordering semantics to e.g. cover ordinal, nominal and convex-ordinal scales. The latter corresponds to orderings on the expected values of random variables in stochastic processes. Just notice that one can easily derive a tabular description by replacing each attribute with the pairs $\forall v_a \in V_a: (a, v_a)$ with $V_a$ of possible values of the attribute $a$. \\
+
+\fig{img/hasse.png}{hasse}{A Hasse-diagram for the above table \cite{ganter2012formal}}{1}
+A context is easily visualizable by a table as in fig. \ref{fig:tablehasse}. Fig. \ref{fig:hasse} shows the Hasse diagram for the example context from the table above. It is the visualization of the concept lattice of the context and maybe intuitively interpreted as a two sided hierarchy (directly following from using Galois connections in the lattice): The top node contains all elements and only attributes that are common to all objects. Descending in the diagram, one gets less objects and larger, more specific attribute sets. If one reads the diagram bottom up, the bottom-most node contains all attributes and either no object or the ones having all attributes Ascending the trees constructs increasingly large clusters of less and less specific objects. Breaking The diagram into two separate that end upon having either just one attribute or one object would yield two hierarchies: 
+\begin{itemize}
+    \item \textbf{Common attributes per object set}, starting from the top-most node the common attribute set is $a$ as all objects have $a$ in common. : Focusing on the Objects and their increasingly larger common attribute sets with decreasing object size. One could formulate this as expected attributes objects have given the concept they're hosted in. The rightmost node shows the common attributes for objects $5, 6$
+    \item \textbf{Selectivity per attribute Set}: Focusing on the attributes, starting with objects that have all attributes and ending with the selectivities of single attributes or the expected number of objects, when querying for a set of attributes.  E.g. The selectivity of all attributes in conjunction is $\frac{0}{8}$, the selectivity of $a$ and $d$ is $\sigma_{a \wedge d} = \frac{4}{8} = 0.5$ and the selectivity of a is $\sigma_a = \frac{8}{8} = 1$.
+\end{itemize}
+
+
+The definitions in Formal Concept Analysis are too strict in some places, that's why we're going to relax them a bit to fit to the clustering problem.~\cite{ignatov2012concept}
+
+\section{Other Approaches to Clustering}\label{\positionnumber}
+\begin{itemize}
+    \item \textbf{Grid-based methods} construct a grid on the space to cluster that may be scaled to produce clusters in multiple resolutions. Most grid-based methods have a fast processing time as they are typically independent of the number of data objects but rather on the space the objects span.
+    
+    \item \textbf{Bi-clustering methods} sometimes also referred to as subspace clustering clusters the objects and one class of attributes - in other words rows and columns of a matrix - at the same time or in the terms of Formal Concept Analysis all attributes of in the same scaling context. It is closely related to formal concept analysis as described by\cite{ignatov2012concept} and may be thought of as grouping both the columns and the rows of a table concurrently. It is a very common technique in clustering gene expression data~\cite{PONTES2015163}. An example of is given in fig. \ref{fig:biclust}. \fig{img/bicluster.jpg}{biclust}{An example of biclustering on gene expression data~\cite{PONTES2015163}.}{0.5}
+
+    \item \textbf{Evolutionary or genetic methods} are search-based, searching the space by 
+        \begin{enumerate}
+            \item applying random alternations (mutation) or combinations of previous clusters to generate new clustering candidates.
+            \item evaluating the so generated clustering candidates against the objective function.
+            \item selecting a subset of the evaluated candidates, possibly introducing randomness and other tools to sample from different regions of the search space in order not to converge into a local minimum.
+            \item iterate until there is convergence or stopping criteria are satisfied.
+        \end{enumerate}
+        All of these steps may be adapted to a certain setting. It is a common approach to combine evolutionary algorithms with other techniques e.g. self-organizing maps with evolutionary algorithms~\cite{leng2006design}. 
+        Generally neural networks and evolutionary algorithms or similar constructed Markov decision processes (reinforcement learning) are often combined into neural architecture search systems, using stochastic processes to select and vary the already evaluated networks to generate new ones with faster convergence rates to better AUC-scores\cite{kandasamy2018neural}. \\
+        Evolutionary algorithms may be seen as Markov chains, as the Markov property holds (each generation only depends on the last one) and each generative operator creates a new candidate solution with each candidate solution having a certain probability depending on the nature of the operation and the probabilities of all generateable candidate solutions of 1 per operator and generation~\cite{Nix1992}.
+\end{itemize}
+
+
+
+
+
+%\section{Definitions}\label{\positionnumber}
+%In order to elaborate on the methods and results, some concepts, terms and notations need to be defined in the following.
+%\section{Graph Database}\label{\positionnumber}
+%A database management system is a  software system that assists users to  maintain and utilize large amounts of data ~\cite{Ramakrishnan:2002:DMS:560733}.
+%A \textbf{graph database management system}, henceforth graph database, is a database management system which uses a graph structure as model to represent data~\cite{neo4j_book}, e.g. the Resource Description Framework or the Property Graph Model. Fig. \ref{fig:neo4jarch} shows the high level architecture of the graph database Neo4J. \\
+%\marginfigure{img/neo4j_arch.png}{neo4jarch}{High level architecture of the Graph database Neo4J. \cite{neo4j_book}}{-6cm}
+
+
+
+%%%%%%% From 3.1
+%There are also the centroid distance, computing the distance from the mean elements of each cluster and Ward's method but those use the notion of the mean element (or the center of gravity of the cluster) which is not directly applicable for binary attributes~\cite{mirkin2013mathematical, han2011data}. One could use fuzzy logic in order to provide a mean with non-crisp attributes in order to apply the other two distances~\cite{kruse2016computational}.
+
+
+
+%Most k-Means implementations use euclidean space (including the respective metric function) to define the objective as the squared error of the cluster members to the centroid $E = \sum_{i=0}^{k-1}\sum_{o \in C_i} d(c_i,o)^2$. Another objective function is centroid convergence: repeat until the centroids don't change anymore. There are several different variants of this procedure, e.g. ISODATA~\cite{ball1967clustering} or fuzzy c-Means~\cite{fuzzy-c-means}, which employ subsequent merging or splitting of small or large clusters respectively and a notion of fuzzy membership to a cluster. Other improvements and variations of k-Means focus on the centroid initialization procedure. An example here fore is k-Means++~\cite{arthur2007k}. \\

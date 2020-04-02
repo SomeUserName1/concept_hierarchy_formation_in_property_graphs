@@ -1,0 +1,48 @@
+\documentclass[11pt, rgb, twoside, bibtotoc]{scrreprt}
+\usepackage{themeKonstanzDBIS} % Muss immer verwendet werden (Standardpaket)
+\format{a4}
+
+% Thesis information        %
+\date{\today}
+\year{2020}
+\author{Fabian Klopfer}
+\title{Label Hierarchy Inference in Property Graph Databases}
+\subtitle{Bachelor Thesis}
+\unisection{Faculty of Sciences}
+\department{Department of Computer and Information Science}
+\supervisorOne{Prof. Dr. Michael Grossniklaus}
+\supervisorTwo{Prof. Dr. Tatjana Petrov}
+
+\headFoot{14}
+\bibliography{resources} 
+
+\begin{document}
+
+\newgeometry{left=2.5cm, right=2.5cm, bottom=2cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=22pt}
+\thesistitlepage[language=english]{Bachelor Thesis}
+\input{01-abstract.tex}  
+\cleardoublepage
+\tableofcontents
+\cleardoublepage
+\newpage~\newpage~\newpage
+\restoregeometry
+
+
+\rmfamily 
+\normalsize
+
+\include{01-introduction}
+\cleardoublepage
+\include{02-background}
+\cleardoublepage
+\include{03-clustering_algorithms}
+\cleardoublepage
+\include{04-label_inference}
+\cleardoublepage
+\include{05-evaluation}
+\cleardoublepage
+\include{06-conclusions}
+\cleardoublepage
+\include{07-appendix}
+\printbibliography
+\end{document}

@@ -1,0 +1,98 @@
+\documentclass[abstract=on,twoside,table,xcdraw]{scrreprt}
+
+\usepackage{pdfpages}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[german, english]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\tikzstyle{block}=[minimum size=2em, align=center, node distance=0.4cm]
+\tikzstyle{label}=[align=center, above=5pt]
+\usepackage[shortlabels]{enumitem}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{mdframed}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage{pdflscape}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{csvsimple}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\input{newcommands.tex}
+
+\renewcommand{\sc}[1]{\textsc{#1}}
+
+
+\newenvironment{aboutchapter}
+  {\par\itshape}
+  {\par\vspace{1em}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{mdremark}{Remark}
+\newenvironment{remark}%
+  {\begin{mdframed}[nobreak=true]\begin{mdremark}}%
+  {\end{mdremark}\end{mdframed}}
+% \newmdtheoremenv{remark}{Remark}[section]
+\newtheorem{example}{Example}[section]
+
+\interfootnotelinepenalty=10000
+
+% for use with amsthm.
+% same as proof environment, but with definition-style proof head
+% and named theorem.
+\makeatletter
+\newenvironment{proofof}[1]{\par
+  \pushQED{\qed}%
+  \normalfont \topsep6\p@\@plus6\p@\relax
+  \trivlist
+  \item[\hskip\labelsep
+        \bfseries
+    Proof: #1\@addpunct{.}]\ignorespaces
+}{%
+  \popQED\endtrivlist\@endpefalse
+}
+\makeatother
+
+\begin{document}
+
+\includepdf{title.pdf}
+
+\input{abstract.tex}
+
+% Table of contents
+% -----------------
+
+\tableofcontents
+
+\input{chapters/01-intro.tex}
+
+\input{chapters/02-query-algebra.tex}
+
+\input{chapters/04-label-dist.tex}
+
+\input{chapters/03-log-props.tex}
+
+\input{chapters/05-neo4j.tex}
+
+\input{chapters/06-summary-future.tex}
+
+\appendix
+\input{chapters/07-appendix.tex}
+
+% Bibliography
+% ------------
+
+\bibliography{literature/literature}
+\bibliographystyle{abbrv}
+
+\end{document}

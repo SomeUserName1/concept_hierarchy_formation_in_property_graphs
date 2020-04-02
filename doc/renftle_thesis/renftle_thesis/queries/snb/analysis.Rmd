@@ -1,0 +1,231 @@
+---
+title: "Comparison of estimated result sizes of Neo4j and Cascades"
+author: "Moritz Renftle"
+date: "13 June 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Our test takes a database and a set of queries on this database as input.
+It outputs a CSV-file containing the actual result size of the query and the
+estimated sizes of the optimizers:
+
+```
+ -------------
+|             |
+|  Database   |-------\
+|             |       |        ----------
+ -------------        \------>|           |
+                              |    Test   |--> CSV(QueryId|ResultSize|Optimizer|EstSize)
+ -------------        /------>|           |
+|   Catalog   |       |        -----------
+|     of      |-------/
+|   queries   |
+ -------------
+```
+
+The test was run on this system:
+```
+Arch: amd64
+Cores: 4
+Memory: 1908932608
+OS: Linux (4.8.13-100.fc23.x86_64)
+VirtualMachine: OpenJDK 64-Bit Server VM by Oracle Corporation (25.111-b16)
+
+Cascades Version: b0c810b391da28587d574ddb7190fad4cd63023a
+Benchmark: 1.1
+Replication: 1
+```
+This test was run on the *LDBC Social Network Benchmark*.
+
+# Query Catalog
+
+The following queries were run:
+
+```{r}
+library(knitr)
+library(dplyr)
+library(scales)
+queries = read.csv("queries.csv", sep = "|")
+kable(queries, caption="Query catalog for the SNB")
+```
+
+# Result size estimations
+
+```{r}
+sizes = read.csv("sizes.csv", sep = "|") %>% select(QueryId, ResultSize)
+estimations = read.csv("estimations.csv", sep = "|")
+```
+
+## Absolute estimation errors
+
+We are interested in the estimation errors of the optimizers.
+Let's begin by looking at the absolute estimation errors, i.e. the absolute difference between estimated and actual size per query and optimizer.
+
+```{r absolute-estimation-errors, message=FALSE}
+library(ggplot2)
+
+asinh_breaks <- function(x) {
+  br <- function(r) {
+    lmin <- round(log10(r[1]))
+    lmax <- round(log10(r[2]))
+    lbreaks <- seq(lmin, lmax, by = 1)
+    breaks <- 10 ^ lbreaks
+  }
+  p.rng <- range(x[x > 0], na.rm = TRUE)
+  breaks <- br(p.rng)
+  if (min(x) <= 0) {breaks <- c(0, breaks)}
+  if (sum(x < 0) > 1) { #more negative values that expected from expanding scale that includes zero
+    n.rng <- -range(x[x < 0], na.rm = TRUE)
+    breaks <- c(breaks, -br(n.rng))
+  }
+  return(sort(breaks))
+}
+
+asinh_trans <- function(){
+  trans_new(name = 'asinh', transform = asinh, 
+            inverse = sinh, breaks = asinh_breaks)
+}
+
+diffs = merge(sizes, estimations, by="QueryId") %>% select(QueryId, Optimizer, EstSize, ResultSize) %>% 
+  mutate(AbsError = abs(ResultSize - EstSize), RelError = AbsError / abs(ResultSize)) %>% distinct()
+
+absErrorsPlot = ggplot(diffs,
+       aes(x = factor(QueryId), y = AbsError, fill=Optimizer)) +
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") +
+  scale_y_continuous(trans="asinh", breaks = c(0, 1E1, 1E2, 1E3, 1E4, 1E5, 10E6, 10E7, 10E8, 10E9, 1E10, 1E11))
+absErrorsPlot
+```
+
+Next, lets check the relative estimation errors. They are only defined for non-empty query results.
+```{r relative-estimation-errors}
+relErrorsPlot = ggplot(diffs %>% filter(ResultSize != 0),
+       aes(x = factor(QueryId), y = RelError, fill=Optimizer)) +
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1")
+relErrorsPlot
+```
+
+We want to know how strongly the estimations are (linearly) correlated with the actual query size for both optimizers. For Neo4j this is
+```{r correlation-neo4j, message=FALSE}
+library(cocor)
+
+t = data.frame(diffs %>% group_by(QueryId) %>% mutate(EstNeo4j = EstSize[1], EstCascades = EstSize[2]) %>% distinct(QueryId, ResultSize, EstNeo4j, EstCascades))
+cocor(~ ResultSize + EstNeo4j | ResultSize + EstCascades, t, alternative = "less", conf.level = 0.99)
+```
+
+Let's look at the plots:
+```{r correlation-plot-neo4j, message=FALSE}
+neo4jDiffs = diffs %>% filter(Optimizer == "Neo4j")
+
+neo4jCorPlot = ggplot(neo4jDiffs, aes(x = ResultSize, y = EstSize, color=Optimizer)) + geom_point() + 
+  geom_smooth(method = lm, formula = y ~ x) +
+  geom_line(aes(x = ResultSize, y = ResultSize, color="Perfect optimizer"))
+```
+
+
+```{r correlation-plot-cascades, message=FALSE}
+cascadesDiffs = diffs %>% filter(Optimizer == "Cascades")
+
+cascadesCorPlot = ggplot(cascadesDiffs, aes(x = ResultSize, y = EstSize, color=Optimizer)) + geom_point() + 
+  geom_smooth(method = lm, formula = y ~ x) +
+  geom_line(aes(x = ResultSize, y = ResultSize, color="Perfect optimizer"))
+```
+
+Neo4j's estimations are only marginally correlated to the result size.
+Cascades' estimations tend to underestimate the result cardinality and are a bit heteroscedastic, but they are reasonably correlated.
+
+
+## Comparing the estimation error of Neo4j and Cascades
+
+
+The next plot shows
+`abs(ResultSize - Neo4jEstimatedSize) - abs(ResultSize - CascadesEstimatedSize)`,
+which is the amount to which Neo4j's estimations are worse than Cascades' estimations.
+We plot this 
+
+```{r estimation-errors-compared}
+absDiff = diffs %>% group_by(QueryId) %>% mutate(OptimizerDiff = AbsError[1] - AbsError[2]) %>% 
+  select(QueryId, OptimizerDiff) %>% distinct(QueryId, .keep_all=TRUE) 
+
+absDiffPlot = ggplot(absDiff, aes(x = factor(QueryId), OptimizerDiff)) +
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_y_continuous(trans = "asinh",
+                     breaks = c(-1E6, -1E5, -1E4, -1E3, -1E2, -1E1, 0, 1E1, 1E2, 1E3, 1E4, 1E5, 10E6, 10E7, 10E8, 10E9, 1E10, 1E11, 1E12))
+absDiffPlot
+```
+
+We can clearly see that our estimations make the smaller absolute errors on our query catalog.
+In average, the absolute error of our estimations is
+```{r means-abs-diff}
+mean(absDiff$OptimizerDiff)
+```
+smaller than the absolute error of Neo4j's estimations.
+
+Assuming that the differences of the estimation errors are normally distributed, let's check the 99% confidence intervals:
+```{r estimation-errors-difference-confidence}
+err99 = function(x) {
+  return(qt(0.99, df = length(x) - 1) * sd(x) / sqrt(length(x)))
+}
+
+conf = absDiff %>% group_by() %>% summarise(mean=mean(OptimizerDiff), err=err99(OptimizerDiff))
+conf %>% mutate(low = mean - err, high = mean + err)
+```
+
+The confidence interval includes 0, which means that we cannot conclude that Cascades makes the smaller absolute estimation errors.
+In future work, we should grow the query catalog to reduce the variance and thus the size of the confidence interval.
+
+The next plot shows
+`abs(ResultSize - Neo4jEstimatedSize) - abs(ResultSize - CascadesEstimatedSize) / ResultSize`,
+which is the amount to which Neo4j's estimations are worse than ours, relative to the actual result size.
+Queries which have result size 0 are excluded.
+
+```{r relative-estimation-errors-difference}
+relDiff = diffs %>% filter(ResultSize != 0) %>%
+  group_by(QueryId) %>%
+  mutate(RelOptimizerDiff = (AbsError[1] - AbsError[2]) / ResultSize) %>%
+  select(QueryId, RelOptimizerDiff) %>% distinct(QueryId, .keep_all=TRUE)
+
+relDiffPlot = ggplot(relDiff, aes(x = factor(QueryId), y = RelOptimizerDiff)) + 
+  geom_bar(stat="identity", position = "dodge")
+```
+
+We can clearly see we also make the smaller relative estimation errors.
+In average, the relative error of our estimations is
+```{r means-abs-diff}
+mean(relDiff$RelOptimizerDiff)
+```
+smaller than the relative error of Neo4j.
+
+Again, assuming that the difference of the relative estimation errors is normally distributed, we compute the 99% confidence interval for this difference:
+
+```{r relative-estimation-errors-difference-confidence-1}
+conf = relDiff %>% group_by() %>% summarise(mean=mean(RelOptimizerDiff), err=err99(RelOptimizerDiff))
+conf %>% mutate(low = mean - err, high = mean + err)
+```
+
+So we can conclude that Cascades has better estimations than Neo4j relative to the query size.
+
+# Conclusions
+
+**Q1:** On which kinds of queries does the Cascades/Neo4j optimizer have better estimations?
+
+Cascades clearly outperforms Neo4j in queries consisting of large simple patterns.
+No other subsets of queries were analysed.
+
+**Q2:** How are actual query result size and estimated size correlated for both optimizers?
+
+In case of Neo4j no sensible correlation could be found between the actual result size and the estimated size.
+In case of Cascades there is a correlation and the fitted linear model is reasonably close to reality.
+
+**Q3:** Which optimizer produces overall better estimations in the given database?
+
+Cascades clearly has the overall smaller absolute estimation errors. It is unclear which optimizer has the smaller estimation errors w.r.t. to the result sizes.
+
+[^1]: <https://neo4j.com/>
+
+[^2]: <https://pdfs.semanticscholar.org/360e/cdfc79850873162ee4185bed8f334da30031.pdf>
