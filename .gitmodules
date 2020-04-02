@@ -1,0 +1,3 @@
+[submodule "neo4j-common"]
+	path = neo4j-common
+	url = git@github.com:DBIS-UniKN/neo4j-common.git
