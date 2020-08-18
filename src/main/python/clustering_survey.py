@@ -11,16 +11,20 @@ from scipy.cluster.hierarchy import single
 from scipy.spatial.distance import pdist, jaccard
 from sklearn.feature_extraction.text import CountVectorizer
 
-from algorithm_search_wrapper import *
-from data_loader import load, preprocess_trestle_yelp, preprocess_trestle_synthetic
-from constants import IMG_BASE, Dataset, logger, result_summary, BASE
-from tree_edit_distance import compute_ted
-from visualization import visualize, visualize_clusters, parse_results
+from .algorithm_search_wrapper import cluster_optics, cluster_kmeans, cluster_dbscan, cluster_rsl, cluster_hdbscan, \
+    cluster_ttsas
+from .data_loader import load, preprocess_trestle_yelp, preprocess_trestle_synthetic
+from .constants import IMG_BASE, Dataset, logger, result_summary
+from .tree_edit_distance import compute_ted
+from .visualization import visualize, visualize_clusters, parse_results
 
 
 # cluster_kmedoids(n_samples), cluster_spectral(n_samples), cluster_affinity_prop(), cluster_birch(),
 # cluster_rock(n_samples), cluster_kmedians(n_samples),  cluster_bsas(n_samples), cluster_mbsas(n_samples),
 # , cluster_som(n_samples)
+from src.main.python.constants import RESULT_SUMMARY_PATH
+
+
 def two_step(vectorized_data, dataset, n_samples, noise):
     for searcher in [cluster_optics(n_samples), cluster_kmeans(n_samples), cluster_dbscan(n_samples),
                      cluster_rsl(n_samples), cluster_hdbscan(n_samples), cluster_ttsas()]:
@@ -145,6 +149,6 @@ def bench_two_step_estimator(estimator, data):
 
 
 if __name__ == '__main__':
-    # main()
-    parse_results("/home/someusername/Nextcloud/workspace/uni/bachelor/klopfer-bachelor/doc/clustering_survey_results.log")
+    main()
+    parse_results(RESULT_SUMMARY_PATH)
     result_summary.close()

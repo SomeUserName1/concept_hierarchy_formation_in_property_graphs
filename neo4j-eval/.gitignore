@@ -1,9 +1,0 @@
-.idea
-*.iml
-target
-src/main/resources/*
-/resources/
-resources
-ressources
-.directory
-src/test/ressources

@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 import logging
 import numpy as np
 
-from constants import Dataset, BASE, result_summary, logger
+from .constants import Dataset, BASE, result_summary, logger
 
 
 def compute_ted(children_or_tree, name, noise, seconds, samples, dataset: Dataset, trestle: bool = False, n_clusters=0):

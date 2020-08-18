@@ -9,7 +9,7 @@ import seaborn as sns
 from hdbscan import condense_tree
 from hdbscan.plots import CondensedTree
 
-from constants import logger, result_summary, Dataset, IMG_BASE, BASE
+from .constants import logger, result_summary, Dataset, IMG_BASE, BASE
 
 
 def visualize_clusters(estimator, data, p_path, noise, dataset):

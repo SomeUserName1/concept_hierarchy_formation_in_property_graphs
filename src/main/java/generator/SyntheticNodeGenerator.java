@@ -11,11 +11,11 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 class SyntheticNodeGenerator {
-  private JSONArray nodeList = new JSONArray();
-  private int width;
-  private int depth;
+  private final JSONArray nodeList = new JSONArray();
+  private final int width;
+  private final int depth;
   private int idCount = 0;
-  private String path;
+  private final String path;
 
   @SuppressWarnings("unchecked")
   SyntheticNodeGenerator(String path, int width, int depth, int iter) {
@@ -112,7 +112,7 @@ class SyntheticNodeGenerator {
       }
 
       // Get the labels
-      List<String> labels = new ArrayList(Arrays.asList(
+      List<String> labels = new ArrayList<>(Arrays.asList(
           ((String) ((JSONObject) node).get("labels")).split(",\\s+")));
       if (remLabels) {
         labels.remove(rnd.nextInt(this.depth-1));

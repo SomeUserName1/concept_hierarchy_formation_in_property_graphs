@@ -4,7 +4,6 @@ out/
 target/
 /neo4j-concept/infer-out/
 /neo4j-concept/src/test/resources/
-/data/
 /doc/img/
 /src/main/python/__pycache__/
 *.log

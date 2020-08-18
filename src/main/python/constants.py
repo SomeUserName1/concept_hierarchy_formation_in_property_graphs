@@ -7,7 +7,8 @@ import logging
 BASE = os.getcwd()
 IMG_BASE = BASE + "/doc/img/"
 CACHE_PATH = "/tmp/"
-result_summary = open(path.join(BASE, "doc", "thesis", 'clustering_survey_results.log'), 'w+')
+RESULT_SUMMARY_PATH = path.join(BASE, "doc", "thesis", 'clustering_survey_results.log')
+result_summary = open(RESULT_SUMMARY_PATH, 'w+')
 
 
 class Dataset(Enum):
