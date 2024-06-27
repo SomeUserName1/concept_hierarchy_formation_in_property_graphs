@@ -8,7 +8,7 @@ This repository contains code implementing the following functionality:
 [python](src/main/python/preproc_yelp_business.py) sub-directories
 
 
-The key ideas are presented in the following presentations and thesis:
+The key ideas are presented in the following presentations and bachelor thesis:
 - [Survey Presentation](doc/project/Bachelor_Presentation.pdf)
 - [Thesis](doc/thesis/Label_Hierarchy_Inference_in_Property_Graph_Databases.pdf)
 - [Defense Presentation](doc/defense/Klopfer_Defense_Presentation.pdf)
